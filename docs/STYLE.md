@@ -84,6 +84,16 @@ before *own* or a family word (*His Own Team*, *Her Husband*), before a quoted w
 or pronoun opener (*The…*, *She…*). Only the first match is dropped. Config: `drop_possessives` in
 `headline_style.json`. Tests: `tests/test_possessives.py`.
 
+## Trim quoted labels
+
+When a label is quoted, cut it down to the core label and drop the filler around it:
+*Trump says Abdul el Sayed is ‘100%’ a ‘Muslim Brotherhood guy’* → *Trump says Abdul el Sayed is ‘100%’ ‘Muslim Brotherhood’*.
+A trailing generic noun inside the quotes (guy, person, type, figure, …) is dropped when the quote has at least
+two words, along with the a/an just before the quote. Leading *kind of / sort of / type of* is dropped too (‘kind
+of a joke’ → ‘joke’). Only curly-quoted spans are touched, and the label keeps at least one word. Config:
+`trim_quoted_labels` in `headline_style.json`. Tests: `tests/test_quoted_labels.py`. (Smart quotes also
+treat ‘100%’ as a quote, while ’90s and ’24 stay elisions.)
+
 ## No contentless headlines
 
 A headline of three words or fewer with no verb, or a bare proper name (e.g. *Angie Nixon*), counts as

@@ -71,7 +71,38 @@ def clean(title, styl=None):
     t = drop_possessives(t, sty)
     if sty.get("smart_quotes", True):
         t = smartquotes(t)
+    t = trim_quoted_labels(t, sty)
     return t, t != orig
+
+
+def trim_quoted_labels(title, sty=None):
+    """Concision for quoted labels (runs on curly text): ‘Muslim Brotherhood guy’ -> ‘Muslim
+    Brotherhood’ when the quote has >= 2 words and ends in a generic noun; ‘kind of a joke’ ->
+    ‘joke’; and drop a filler a/an right before such a trimmed quote. Conservative: only spans
+    in curly quotes, and the core label must keep at least one word."""
+    cfg = (sty or style()).get("trim_quoted_labels") or {}
+    if not cfg.get("enabled"):
+        return title
+    nouns = {n.lower() for n in cfg.get("generic_nouns", [])}
+    prefixes = sorted((p.lower() for p in cfg.get("generic_prefixes", [])), key=len, reverse=True)
+
+    def fix(m):
+        art, oq, body, cq = m.group(1) or "", m.group(2), m.group(3), m.group(4)
+        words = body.split()
+        changed = False
+        if len(words) >= 2 and words[-1].lower().strip(".,!?") in nouns:
+            words = words[:-1]; changed = True
+        low = " ".join(words).lower()
+        for p in prefixes:
+            if low.startswith(p + " ") and len(words) > len(p.split()):
+                words = words[len(p.split()):]; changed = True
+                break
+        if not changed:
+            return m.group(0)
+        return f"{oq}{' '.join(words)}{cq}"  # filler a/an before the label is dropped too
+
+    pat = re.compile(r"((?<![A-Za-z])(?:an?|An?)\s+)?([‘“])([^‘’“”]{1,60}?)([’”])(?![A-Za-z])")
+    return re.sub(pat, fix, title)
 
 
 def drop_possessives(title, sty=None):
@@ -127,8 +158,8 @@ def smartquotes(text):
         if ch == "'":
             if not opening:
                 out.append("’")                       # contraction / possessive / closing
-            elif nxt and nxt.isdigit():
-                out.append("’")                       # '90s
+            elif re.match(r"\d\ds?(?![\d%.,])|\d\d(?=[\s,.;:!?)]|$)", s[i + 1:i + 5]) and not re.match(r"\d+%", s[i + 1:]):
+                out.append("’")                       # '90s, '24
             elif any(s[i + 1:i + 1 + len(w)].lower() == w and
                      (i + 1 + len(w) >= n or not s[i + 1 + len(w)].isalpha()) for w in _ELISIONS):
                 out.append("’")                       # 'em, 'tis

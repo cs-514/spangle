@@ -322,5 +322,28 @@
       "by",
       "to"
     ]
+  },
+  "trim_quoted_labels": {
+    "enabled": true,
+    "generic_nouns": [
+      "guy",
+      "guys",
+      "person",
+      "people",
+      "type",
+      "types",
+      "figure",
+      "character",
+      "individual"
+    ],
+    "generic_prefixes": [
+      "kind of a",
+      "kind of an",
+      "kind of",
+      "sort of a",
+      "sort of an",
+      "sort of",
+      "type of"
+    ]
   }
 }
