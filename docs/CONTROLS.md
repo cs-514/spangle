@@ -29,8 +29,7 @@ Keep the file valid JSON: double quotes, and no trailing commas.
 | `framing` | 0.0 | Headline framing toward configured entities (lexicon in the private config). It also marks clusters to keep out of the lead. |
 | `curated_by_aggregators` | 0.15 | A human-curated aggregator (Bongino Report) currently links to the story |
 | `google_news` | 0.08 | Number of Google News results for the story's key terms in the past day (keyless) |
-| `reddit` | 0.08 | Score and comments on posts linking to the story in conservative subreddits (keyless) |
-| `hackernews` | 0.04 | HN points and comments for the URL (keyless; rarely fires on political news) |
+| `reddit` | 0.08 | Posts linking to the story in conservative subreddits, read from each listing's public RSS (`/r/<sub>/hot/.rss`); credit decays with rank. Reddit blocks many datacenter IPs, so this often reports "unavailable" and its weight is redistributed. Set `social.reddit.rss: false` to use the JSON API instead. |
 | `x` | 0.0 | Optional X API stub, off by default |
 
 Set a weight to `0` to turn that signal off.
@@ -65,6 +64,49 @@ Picks have no timestamp, so recency uses `recency.undated_curated_score`. The bu
 | `similarity_threshold` | 0.34 | Headline similarity (IDF-weighted) needed to join a cluster. Lower merges more stories together. Higher splits them apart. |
 | `saturation_outlets` | 6 | Number of outlets at which the coverage score reaches 1.0 |
 
+### One story, one headline (event clustering)
+After the headline-similarity pass, a third pass merges clusters that are the same real-world story
+even when outlets word it differently (`ranking/coverage.py: event_merge`). Two clusters merge when
+their founding headlines:
+- name the same person (a two-word proper name seen capitalized mid-sentence somewhere, used in at most
+  25 headlines, not an institution like "Supreme Court"), or one names that person by surname only; or
+- share at least 3 event terms (each in at most 20 headlines) whose rarity adds up, with synonyms folded
+  (probe/subpoena/raid/passport seizure count as one "investigation" term, mail/envelope = letter,
+  sue/sued = lawsuit).
+The page shows one headline per merged story; its meta line adds "+N outlets" for the other outlets
+that ran it.
+
+## Age limits (`age_limits`)
+| key | default | meaning |
+|---|---|---|
+| `lead_hours` | 12 | The lead must be dated and younger than this |
+| `top_hours` | 18 | Top Stories must be dated and younger than this |
+| `column_hours` | 36 | Column items must be younger than this; undated items may appear only in the columns |
+A sibling headline can replace a placed story only if it passes the same slot's age limit. If no story
+is fresh enough for the lead, the freshest dated story leads.
+
+## Sports / celebrity / lifestyle filter (private key `lifestyle`)
+`{"terms": [...], "hooks": [...], "max_per_column": 1}`. A story whose headlines mostly match a term,
+with no political hook (policy, culture-war, or government angle) to save it, never leads, never enters
+Top Stories, and appears at most `max_per_column` times per column, placed low. The lexicon is private.
+
+## GOP-negative framing (private key `framing`)
+Besides the entity/negative-term window and the court rule, `subject_terms` (e.g. "faces lawsuit",
+"accused of") flag a story when one of `subject_entities` is the subject, i.e. comes right before the
+term ("X Faces Lawsuit"; "Trump DOJ: Y indicted" is not flagged). With `top_exclude: true`, flagged
+stories stay out of the lead and Top Stories and sit low in the columns.
+
+## Amplifier freshness (`amplifier_stale_hours`, default 6)
+If the `AMPLIFIER_ITEMS` secret is missing or its newest item is older than this, the build logs a
+GitHub Actions warning ("amplifier data stale") so the refresh routine can be checked.
+
+## Tests and deploy gate
+`.github/workflows/build.yml` runs `python -m unittest discover -s tests` before building and the
+confidentiality guard again on the built page; any failure stops the deploy. Tests cover headline style,
+shortening, ranking signals (retreat, lean, framing, lifestyle), dedup, age limits, QOTD placement and
+freshness, page rendering, outlet names, and confidentiality (terms are read from the secret at run time
+and never printed). Builds run at :07 and :37 each hour; a running build is queued, never cancelled.
+
 ## Quote of the Day
 
 One public editorial feature (independent of ranking). Rendered as a **regular column item**
@@ -89,9 +131,15 @@ Placement (in `settings.json` → `placement.quote_of_the_day`):
 | `column` | 1 | 0-based column index (1 = middle of three) |
 | `index` | 7 | 0-based row within that column |
 
-Authors currently in the bank include C. S. Lewis, Thomas Sowell, Robert Bork, Antonin Scalia,
-George Washington, Ronald Reagan, and Abraham Lincoln. Public mentions of Bork/Scalia are limited
-to this quote feature and are never tied to ranking/alignment.
+Authors currently in rotation: C. S. Lewis, Thomas Sowell, Antonin Scalia, George Washington,
+Ronald Reagan, and Abraham Lincoln. Only quotes checked word-for-word against the original text
+(published work, opinion, speech, or column) are in rotation; quotes sourced only from Wikiquote or
+AZQuotes are kept out until verified. Public mentions of these authors are limited to this quote
+feature and are never tied to ranking/alignment.
+
+**Freshness guard.** `quote_of_the_day.json` is used only if its `date` is today (UTC). Otherwise
+(the daily routine did not run) the build picks a quote deterministically from `qotd_bank.json`
+in the repo, which holds only primary-source-verified quotes, so a stale quote is never shown.
 
 ## Niche drop
 
@@ -207,7 +255,7 @@ To block another domain, add it to `PAYWALL_DOMAINS` and commit. To catch a new 
 
 ## Feeds
 
-Feeds are listed in `FEEDS` in `aggregator.py`. A feed can carry options: `byline` keeps only items whose author contains that text (used for AEI's search feed filtered to one author), and `max_age_hours` overrides `recency.max_age_hours` for infrequent writers (the AEI author feed uses 336, which is 14 days). `substack_free_only` checks each Substack post through Substack's public post API and skips paid-only posts (used for private feed's Substack, which is treated as opinion).
+Public feeds are listed in `FEEDS` in `aggregator.py`. Additional feeds can come from the private config key `private_feeds` (`[{"name", "url", "opinion", "ua": "feed"|"browser", "options": {...}}]`); their names never appear in the repo and their log lines read `private feed #n`. Their source tiers go in the private key `source_tiers` (merged over `sources.tiers` at build time). A feed can carry options: `byline` keeps only items whose author contains that text, `max_age_hours` overrides `recency.max_age_hours` (placement still applies the column age limit), and `substack_free_only` checks each Substack post through Substack's public post API and skips paid-only posts.
 
 ## `sources`
 | key | default | meaning |
@@ -237,7 +285,7 @@ Feeds are listed in `FEEDS` in `aggregator.py`. A feed can carry options: `bylin
 | `columns` | 3 | Number of columns |
 | `max_per_outlet_top` | 1 | Maximum items per outlet in the lead and Top Stories |
 | `max_per_outlet_total` | 5 | Maximum items per outlet on the whole page |
-| `opinion_tag` | true | Shows a small "Opinion" tag, but only for opinion-only feeds (Fox News Opinion, NY Post Opinion, Volokh Conspiracy, Cato op-eds and blog, private feed, Not the Bee) or `/opinion/` and `/commentary/` URLs, which catches Heritage commentary. Heritage reports and SCOTUSblog are treated as news. |
+| `opinion_tag` | true | Shows a small "Opinion" tag, but only for opinion-only feeds (Fox News Opinion, NY Post Opinion, Volokh Conspiracy, Cato op-eds and blog, Not the Bee, and any private feed marked opinion) or `/opinion/` and `/commentary/` URLs, which catches Heritage commentary. Heritage reports and SCOTUSblog are treated as news. |
 | `lead_respects_exclusions` | true | Keeps clusters flagged by the framing signal out of the lead slot |
 | `check_links` | true | Checks each chosen link for a 200 response with no paywall marker |
 
