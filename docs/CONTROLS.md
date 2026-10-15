@@ -73,8 +73,8 @@ their founding headlines:
 - share at least 3 event terms (each in at most 20 headlines) whose rarity adds up, with synonyms folded
   (probe/subpoena/raid/passport seizure count as one "investigation" term, mail/envelope = letter,
   sue/sued = lawsuit).
-The page shows one headline per merged story; its meta line adds "+N outlets" for the other outlets
-that ran it.
+The page shows one headline per merged story. The outlet count is used only for ranking and is
+not displayed.
 
 ## Opinion (internal only, never displayed)
 The page shows no Opinion tags (Drudge-style). `ranking/opinion.py` still classifies every story so

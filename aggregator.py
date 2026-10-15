@@ -656,11 +656,9 @@ def render(lead, top, cols, now, sources, settings):
         if s.get("quote_item"):
             return f'<div class="meta">{t(OUTLET(s))}</div>'
         ts = s["when"].strftime("%b %-d, %H:%M UTC") if s["when"] else ""
-        extra = s.get("outlets_n", 1) - 1
-        more = f' · +{extra} outlet{"s" if extra > 1 else ""}' if extra > 0 else ""
         arc = " · archived copy" if s.get("archived") else ""
         parts = " · ".join(x for x in (OUTLET(s), ts) if x)
-        return f'<div class="meta">{t(parts)}{e(more)}{arc}</div>'
+        return f'<div class="meta">{t(parts)}{arc}</div>'
 
     def show(s):
         disp = s.get("display") or s["title"]
