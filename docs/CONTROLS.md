@@ -71,7 +71,7 @@ Feeds are listed in `FEEDS` in `aggregator.py`. A feed can carry options: `bylin
 | key | default | meaning |
 |---|---|---|
 | `default_tier` | 0.5 | Tier for any feed not listed |
-| `tiers` | per outlet, 0.5–0.9 (legal analysis rated high: SCOTUSblog 0.9, Volokh Conspiracy 0.85; think tanks Cato Institute 0.85, Heritage Foundation 0.85, AEI 0.85) | Source weight (0–1). It also decides which outlet's link represents a cluster. |
+| `tiers` | per outlet, 0.5–0.9 (legal analysis rated high: SCOTUSblog 0.9, Volokh Conspiracy 0.85; think tanks Cato Institute 0.85, Heritage Foundation 0.85, AEI 0.85, Courthouse News 0.85; Not the Bee 0.5, since it's satirical commentary) | Source weight (0–1). It also decides which outlet's link represents a cluster. |
 
 ## `social`
 | key | default | meaning |
@@ -95,7 +95,7 @@ Feeds are listed in `FEEDS` in `aggregator.py`. A feed can carry options: `bylin
 | `columns` | 3 | Number of columns |
 | `max_per_outlet_top` | 1 | Maximum items per outlet in the lead and Top Stories |
 | `max_per_outlet_total` | 5 | Maximum items per outlet on the whole page |
-| `opinion_tag` | true | Shows a small "Opinion" tag, but only for opinion-only feeds (Fox News Opinion, NY Post Opinion, Volokh Conspiracy, Cato op-eds and blog) or `/opinion/` and `/commentary/` URLs, which catches Heritage commentary. Heritage reports and SCOTUSblog are treated as news. |
+| `opinion_tag` | true | Shows a small "Opinion" tag, but only for opinion-only feeds (Fox News Opinion, NY Post Opinion, Volokh Conspiracy, Cato op-eds and blog, private feed, Not the Bee) or `/opinion/` and `/commentary/` URLs, which catches Heritage commentary. Heritage reports and SCOTUSblog are treated as news. |
 | `check_links` | true | Checks each chosen link for a 200 response with no paywall marker |
 
 ## `archive`: archive fallback for paywalled originals (on by default)

@@ -53,6 +53,8 @@ FEEDS = [
     # Substack: paid-only posts are skipped (checked via the public post API).
     ("private feed", "https://example.invalid/private-feed", True, UA, {"substack_free_only": True, "max_age_hours": 168}),
     ("LifeZette", "https://www.lifezette.com/feed/", False),
+    ("Courthouse News", "https://www.courthousenews.com/feed/", False),
+    ("Not the Bee", "https://notthebee.com/feed", True),  # satirical commentary on real news
 ]
 
 # Paywalled feeds: ingested ONLY when archive fallback is on. They count toward cross-outlet
