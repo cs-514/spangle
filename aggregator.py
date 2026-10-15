@@ -10,6 +10,7 @@ from ranking.util import canon
 from ranking import archive
 from ranking import lead as lead_mod
 from ranking import headline as headline_mod
+from ranking import lean
 import curators
 from ranking import coverage
 
@@ -39,6 +40,8 @@ FEEDS = [
     ("Washington Free Beacon", "https://freebeacon.com/feed/", False),
     ("The American Conservative", "https://www.theamericanconservative.com/feed/", False),
     ("First Things", "https://www.firstthings.com/rss", False),
+    # RCP's own commentary; lean filter (settings.lean_filter) keeps right-favorable pieces.
+    ("RealClearPolitics", "https://www.realclearpolitics.com/articles/index.xml", True),
     ("Christian Post", "https://www.christianpost.com/rss", False),
     ("Daily Caller", "https://dailycaller.com/feed/", False),
     ("Just the News", "https://justthenews.com/rss.xml", False),
@@ -139,7 +142,7 @@ def parse_date(s):
 A = "{http://www.w3.org/2005/Atom}"
 DC = "{http://purl.org/dc/elements/1.1/}"
 
-def fetch(feed):
+def fetch(feed, settings=None):
     name, url, op_feed = feed[:3]
     headers = feed[3] if len(feed) > 3 else UA
     opts = feed[4] if len(feed) > 4 else {}
@@ -164,8 +167,11 @@ def fetch(feed):
             continue
         if opts.get("byline") and opts["byline"].lower() not in (author or "").lower():
             continue
-        out.append(dict(max_age_hours=opts.get("max_age_hours"), title=title, link=link, desc=html.unescape(desc), author=author,
-                        cats=cats, when=when, source=name, opinion=op_feed or "/opinion/" in link or "/commentary/" in link))
+        item = dict(max_age_hours=opts.get("max_age_hours"), title=title, link=link, desc=html.unescape(desc), author=author,
+                    cats=cats, when=when, source=name, opinion=op_feed or "/opinion/" in link or "/commentary/" in link)
+        if settings is not None and not lean.keep(item, name, settings, outlet=name, author=author):
+            continue
+        out.append(item)
     print(f"FEED OK {name}: {len(out)} items")
     return out
 
@@ -495,17 +501,20 @@ def main():
     now = datetime.now(timezone.utc)
     with cf.ThreadPoolExecutor(12) as ex:
         feeds = FEEDS + (PAYWALLED_FEEDS if settings.get("archive", {}).get("enabled") and settings["archive"].get("ingest_paywalled_feeds") else [])
-        stories = [s for batch in ex.map(fetch, feeds) for s in batch]
+        stories = [s for batch in ex.map(lambda f: fetch(f, settings), feeds) for s in batch]
     # Curated aggregator picks: mark matching feed items, add the rest as original-URL items.
     by_link = {canon(s["link"]): s for s in stories}
     added = marked = 0
-    for c in curators.fetch_all(settings):
+    for c in curators.fetch_all(settings, blocked=is_paywalled_domain):
         hit = by_link.get(canon(c["link"]))
         if hit:
             hit["curated"] = hit.get("curated", []) + c["curated"]; marked += 1
         else:
             stories.append(c); by_link[canon(c["link"])] = c; added += 1
     print(f"curated picks: {marked} matched feed items, {added} added as new originals")
+    for src, (k, f) in sorted(lean.STATS.items()):
+        if lean.mode(src, settings) != "all" or src in ("First Things",):
+            print(f"LEAN {src}: kept {k}, filtered {f} (mode {lean.mode(src, settings)})")
     seen, uniq, seen_items = set(), [], {}
     max_age = settings["recency"]["max_age_hours"] * 3600
     for s in stories:

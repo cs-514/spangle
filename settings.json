@@ -62,7 +62,8 @@
       "private feed": 0.75,
       "LifeZette": 0.55,
       "Courthouse News": 0.85,
-      "Not the Bee": 0.5
+      "Not the Bee": 0.5,
+      "RealClearPolitics": 0.75
     }
   },
   "social": {
@@ -126,10 +127,34 @@
     "bongino_report": {
       "enabled": true,
       "url": "https://bonginoreport.com/"
+    },
+    "realclearpolitics": {
+      "enabled": true,
+      "label": "RealClearPolitics",
+      "feeds": [
+        "https://www.realclearpolitics.com/index.xml",
+        "https://feeds.feedburner.com/realclearpolitics/qlMj"
+      ],
+      "skip_domains": [
+        "newsweek.com",
+        "dailycaller.com",
+        "wsj.com",
+        "nytimes.com",
+        "washingtonpost.com",
+        "bloomberg.com",
+        "theatlantic.com",
+        "politico.com",
+        "axios.com",
+        "ft.com"
+      ]
     }
   },
   "curated": {
-    "saturation_curators": 1
+    "saturation_curators": 1,
+    "weights": {
+      "Bongino Report": 1.0,
+      "RealClearPolitics": 0.7
+    }
   },
   "lead": {
     "enabled": true,
@@ -341,7 +366,8 @@
       "SCOTUSblog",
       "Cato Institute",
       "Heritage Foundation",
-      "AEI"
+      "AEI",
+      "First Things"
     ],
     "terms": [
       "symposium",
@@ -372,7 +398,26 @@
       "a note on",
       "remarks at",
       "speech at the",
-      "keynote"
+      "keynote",
+      "poem",
+      "poetry",
+      "poems",
+      "sonnet",
+      "verse",
+      "fiction",
+      "novel",
+      "novelist",
+      "review:",
+      "books in brief",
+      "literary",
+      "liturgy",
+      "liturgical",
+      "patristic",
+      "exegesis",
+      "homily",
+      "lectionary",
+      "psalm",
+      "hymn"
     ],
     "national_hooks": [
       "supreme court",
@@ -402,5 +447,50 @@
       "major questions",
       "nationwide"
     ]
+  },
+  "lean_filter": {
+    "threshold": 1,
+    "outlet_weight": 2,
+    "author_weight": 2,
+    "sources": {
+      "RealClearPolitics": "right_only",
+      "RealClearPolitics Picks": "right_only",
+      "First Things": "all"
+    },
+    "right_outlets": [
+      "Fox News",
+      "NY Post",
+      "Washington Examiner",
+      "The Federalist",
+      "Daily Wire",
+      "Daily Signal",
+      "Washington Free Beacon",
+      "Breitbart",
+      "Just the News",
+      "The Blaze",
+      "Townhall",
+      "Hot Air",
+      "PJ Media",
+      "RedState",
+      "The American Conservative",
+      "First Things",
+      "Christian Post",
+      "Newsmax",
+      "American Greatness",
+      "NewsBusters",
+      "The Post Millennial",
+      "Washington Times",
+      "Twitchy",
+      "National Review",
+      "American Thinker",
+      "City Journal",
+      "The Free Press",
+      "The American Spectator"
+    ],
+    "left_outlets": [],
+    "right_terms": [],
+    "left_terms": [],
+    "right_authors": [],
+    "left_authors": []
   }
 }

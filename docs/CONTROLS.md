@@ -93,6 +93,31 @@ Authors currently in the bank include C. S. Lewis, Thomas Sowell, Robert Bork, A
 George Washington, Ronald Reagan, and Abraham Lincoln. Public mentions of Bork/Scalia are limited
 to this quote feature and are never tied to ranking/alignment.
 
+## Lean filter (`lean_filter`)
+
+Per-source keep rule for sources that publish both sides. `sources` maps a source name to
+`"all"` (default) or `"right_only"`. `"RealClearPolitics Picks"` is the name used for RCP's aggregated links.
+
+| key | default | meaning |
+|---|---|---|
+| `sources` | RCP + RCP Picks `right_only`, First Things `all` | Per-source mode |
+| `threshold` | 1 | Minimum lean score to keep a `right_only` item |
+| `outlet_weight` / `author_weight` | 2 / 2 | Score for a right (+) or left (−) outlet or author |
+| `right_outlets` | generic list | Outlets treated as right-leaning |
+| `left_outlets`, `right_terms`, `left_terms`, `right_authors`, `left_authors` | empty | Public defaults are generic. Real lists are merged from the private config. |
+
+Score = outlet lean + author lean + one point per right term − one per left term, matched on the title and description.
+Feed logs print `LEAN <source>: kept N, filtered M`.
+
+## RealClearPolitics
+
+- **Own commentary:** `realclearpolitics.com/articles/index.xml` is a feed, filtered by `lean_filter`.
+- **Picks (curator `realclearpolitics`):** `index.xml` and the feedburner RSS. Each pick resolves to its
+  `<originalLink>`. Walled or blocked domains (`PAYWALL_DOMAINS` + `skip_domains`) are skipped,
+  and the lean filter is applied. Kept picks count toward `curated_by_aggregators`.
+- **Curator weights:** `curated.weights` (`{"Bongino Report": 1.0, "RealClearPolitics": 0.7}`).
+- **Polling news:** right-favorable poll headlines (for example "GOP leads") score as right through the lexicon.
+
 ## Headlines: style manual, overrides, rewrites
 
 See [STYLE.md](STYLE.md) for the living Drudge-style guide.
@@ -112,8 +137,8 @@ See [STYLE.md](STYLE.md) for the living Drudge-style guide.
 
 ## Niche demotion (`niche`)
 
-Scholarly / inside-baseball posts from configured sources (Volokh, SCOTUSblog, Cato, Heritage, AEI by
-default) are demoted unless the headline also hits a national hook. Tunable in `settings.json`:
+Scholarly / inside-baseball / literary posts from configured sources (Volokh, SCOTUSblog, Cato, Heritage, AEI,
+First Things by default; poetry, fiction, book reviews and niche theology terms are included) are demoted unless the headline also hits a national hook. Tunable in `settings.json`:
 
 | key | default | meaning |
 |---|---|---|

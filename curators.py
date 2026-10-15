@@ -18,6 +18,9 @@ OUTLETS = {
     "thepostmillennial.com": "The Post Millennial", "washingtontimes.com": "Washington Times",
     "twitchy.com": "Twitchy", "nationalreview.com": "National Review", "realclearpolitics.com": "RealClearPolitics",
     "interestingengineering.com": "Interesting Engineering", "zerohedge.com": "ZeroHedge",
+    "americanthinker.com": "American Thinker", "city-journal.org": "City Journal", "thefp.com": "The Free Press",
+    "spectator.org": "The American Spectator", "realclearmarkets.com": "RealClearMarkets",
+    "realclearworld.com": "RealClearWorld", "realclearinvestigations.com": "RealClearInvestigations",
 }
 
 
@@ -61,12 +64,59 @@ def fetch_bongino(cfg):
     return out
 
 
-CURATORS = {"bongino_report": fetch_bongino}
+def fetch_rcp(cfg, settings=None, blocked=None):
+    """RealClearPolitics link lists (RSS). Each item carries <originalLink> (the source
+    article) and <author>"Name, Outlet"</author>. Keep only free, right-leaning or
+    right-favorable picks (lean filter, source "RealClearPolitics Picks")."""
+    import xml.etree.ElementTree as ET
+    from email.utils import parsedate_to_datetime
+    from ranking import lean
+    label = cfg.get("label", "RealClearPolitics")
+    out, seen, skipped_wall, total = [], set(), 0, 0
+    for url in cfg.get("feeds", ["https://www.realclearpolitics.com/index.xml"]):
+        try:
+            data = urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=20).read()
+            root = ET.fromstring(data)
+        except Exception as e:
+            print(f"CURATOR FAIL {label} {url[:60]}: {e!r}"[:160]); continue
+        for it in root.findall(".//item"):
+            orig = (it.findtext("originalLink") or "").strip()
+            title = html.unescape((it.findtext("title") or "").strip())
+            if not orig.startswith("http") or not title or orig in seen:
+                continue
+            seen.add(orig); total += 1
+            host = urllib.parse.urlparse(orig).netloc.lower()
+            if any(s in host for s in SKIP_HOSTS) or "realclear" in host:
+                continue
+            if (blocked and blocked(orig)) or any(host.endswith(d) for d in cfg.get("skip_domains", [])):
+                skipped_wall += 1; continue
+            au = html.unescape(it.findtext("author") or "")
+            name, _, outlet_txt = au.partition(",")
+            item = dict(title=title, link=orig, desc=html.unescape(it.findtext("description") or "").strip(),
+                        author=name.strip(), cats=it.findtext("category") or "", when=None,
+                        source=outlet_name(orig), opinion="/opinion/" in orig or "/columnists/" in orig,
+                        curated=[label])
+            try:
+                item["when"] = parsedate_to_datetime(it.findtext("pubDate"))
+            except Exception:
+                pass
+            if settings is not None and not lean.keep(item, label + " Picks", settings,
+                                                       outlet=item["source"], author=item["author"]):
+                continue
+            out.append(item)
+    print(f"CURATOR OK {label}: {len(out)} kept of {total} picks ({skipped_wall} walled/blocked skipped)")
+    return out
 
 
-def fetch_all(settings):
+CURATORS = {"bongino_report": fetch_bongino, "realclearpolitics": fetch_rcp}
+
+
+def fetch_all(settings, blocked=None):
     items = []
     for name, cfg in settings.get("curators", {}).items():
         if cfg.get("enabled") and name in CURATORS:
-            items += CURATORS[name](cfg)
+            if name == "realclearpolitics":
+                items += fetch_rcp(cfg, settings, blocked)
+            else:
+                items += CURATORS[name](cfg)
     return items
