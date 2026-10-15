@@ -257,6 +257,8 @@ To block another domain, add it to `PAYWALL_DOMAINS` and commit. To catch a new 
 
 Public feeds are listed in `FEEDS` in `aggregator.py`. Additional feeds can come from the private config key `private_feeds` (`[{"name", "url", "opinion", "ua": "feed"|"browser", "options": {...}}]`); their names never appear in the repo and their log lines read `private feed #n`. Their source tiers go in the private key `source_tiers` (merged over `sources.tiers` at build time). A feed can carry options: `byline` keeps only items whose author contains that text, `max_age_hours` overrides `recency.max_age_hours` (placement still applies the column age limit), and `substack_free_only` checks each Substack post through Substack's public post API and skips paid-only posts.
 
+Feeds added Oct 2026: **Judicial Watch** (`judicialwatch.org/feed/`, press releases and blog; tier 0.8) and **O’Keefe Media Group** (tier 0.7). OMG has RSS turned off, so it is read from its public WordPress REST API (`format: "wp_json"`); posts in the paid "full-access" category (`exclude_categories: [210]`) are skipped, and the feed uses the feed-reader user agent because the site returns 403 to browser-like agents. Its posts are infrequent, so `max_age_hours` is 168 (the 36-hour column limit still applies at placement). Substack and Rumble were not used: the Substack feed is empty and Rumble has no feed.
+
 ## `sources`
 | key | default | meaning |
 |---|---|---|

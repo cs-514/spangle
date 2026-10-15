@@ -54,6 +54,11 @@ FEEDS = [
     ("AEI", "https://www.aei.org/feed/", False, FEED_UA),
     # Further feeds (with byline / Substack options and tiers) come from the private config
     # key "private_feeds"; see private_feed_list(). Their names are never logged.
+    ("Judicial Watch", "https://www.judicialwatch.org/feed/", False),
+    # O’Keefe Media Group has RSS disabled; its public WordPress REST API lists posts. Paid
+    # "full-access" posts (category 210) are skipped; the site 403s browser agents but serves feed readers.
+    ("O’Keefe Media Group", "https://okeefemediagroup.com/wp-json/wp/v2/posts?per_page=20&_fields=date_gmt,link,title,excerpt,categories",
+     False, FEED_UA, {"format": "wp_json", "exclude_categories": [210], "max_age_hours": 168}),
     ("LifeZette", "https://www.lifezette.com/feed/", False),
     ("Courthouse News", "https://www.courthousenews.com/feed/", False),
     ("Not the Bee", "https://notthebee.com/feed", True),  # satirical commentary on real news
@@ -145,6 +150,8 @@ def fetch(feed, settings=None):
     opts = feed[4] if len(feed) > 4 else {}
     try:
         data = urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=25).read()
+        if opts.get("format") == "wp_json":
+            return wp_json_items(json.loads(data), name, op_feed, opts, settings)
         root = ET.fromstring(data)
     except Exception as e:
         print(f"FEED FAIL {opts.get('log_name', name)}: {e!r}"[:160])
@@ -171,6 +178,28 @@ def fetch(feed, settings=None):
         out.append(item)
     print(f"FEED OK {opts.get('log_name', name)}: {len(out)} items")
     return out
+
+def wp_json_items(posts, name, op_feed, opts, settings=None):
+    """Items from a WordPress REST API post list (for sites with RSS turned off)."""
+    skip = set(opts.get("exclude_categories") or [])
+    out = []
+    for p in posts if isinstance(posts, list) else []:
+        if skip & set(p.get("categories") or []):
+            continue
+        title = html.unescape(re.sub(r"<[^>]+>", "", (p.get("title") or {}).get("rendered", ""))).strip()
+        link = p.get("link") or ""
+        if not title or not link.startswith("http"):
+            continue
+        desc = html.unescape(re.sub(r"<[^>]+>", " ", (p.get("excerpt") or {}).get("rendered", "")))[:600]
+        when = parse_date((p.get("date_gmt") or "") + "+00:00") if p.get("date_gmt") else None
+        item = dict(max_age_hours=opts.get("max_age_hours"), title=title, link=link, desc=desc, author="", cats="",
+                    when=when, source=name, opinion=op_feed)
+        if settings is not None and not lean.keep(item, name, settings, outlet=name, author=""):
+            continue
+        out.append(item)
+    print(f"FEED OK {opts.get('log_name', name)}: {len(out)} items")
+    return out
+
 
 def private_feed_list(cfg):
     """Feeds from the private config key "private_feeds":
