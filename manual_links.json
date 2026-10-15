@@ -1,0 +1,4 @@
+{
+  "_help": "Hand-picked links. position: lead | top | column. archive_url optional (shown instead of url if set). expires optional ISO date; ignored after it.",
+  "links": []
+}

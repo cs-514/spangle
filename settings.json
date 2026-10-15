@@ -1,0 +1,97 @@
+{
+  "weights": {
+    "recency": 0.25,
+    "coverage": 0.25,
+    "source": 0.1,
+    "alignment": 0.2,
+    "google_news": 0.08,
+    "reddit": 0.08,
+    "hackernews": 0.04,
+    "x": 0.0
+  },
+  "recency": {
+    "half_life_hours": 8,
+    "max_age_hours": 72
+  },
+  "coverage": {
+    "similarity_threshold": 0.34,
+    "saturation_outlets": 6
+  },
+  "sources": {
+    "default_tier": 0.5,
+    "tiers": {
+      "Fox News": 0.9,
+      "Fox News Politics": 0.9,
+      "Fox News Opinion": 0.8,
+      "NY Post": 0.85,
+      "NY Post Opinion": 0.75,
+      "Washington Examiner": 0.8,
+      "The Federalist": 0.8,
+      "Daily Wire": 0.8,
+      "Daily Signal": 0.7,
+      "Washington Free Beacon": 0.75,
+      "Breitbart": 0.7,
+      "Daily Caller": 0.7,
+      "Just the News": 0.65,
+      "The Blaze": 0.65,
+      "Townhall": 0.6,
+      "Hot Air": 0.6,
+      "PJ Media": 0.55,
+      "RedState": 0.55,
+      "The American Conservative": 0.65,
+      "First Things": 0.7,
+      "Christian Post": 0.6
+    }
+  },
+  "social": {
+    "candidates": 40,
+    "timeout_seconds": 10,
+    "google_news": {
+      "enabled": true,
+      "saturation": 40
+    },
+    "reddit": {
+      "enabled": true,
+      "subreddits": [
+        "Conservative",
+        "conservatives",
+        "Republican",
+        "ConservativeNews"
+      ],
+      "saturation": 1500
+    },
+    "hackernews": {
+      "enabled": true,
+      "saturation": 200
+    },
+    "x": {
+      "enabled": false,
+      "max_requests": 20,
+      "saturation": 500
+    }
+  },
+  "placement": {
+    "top_stories": 5,
+    "column_items": 45,
+    "columns": 3,
+    "max_per_outlet_top": 1,
+    "max_per_outlet_total": 5,
+    "opinion_tag": true,
+    "check_links": true
+  },
+  "archive": {
+    "enabled": true,
+    "min_outlets": 3,
+    "providers": [
+      "archive_today",
+      "wayback"
+    ],
+    "timeout_seconds": 6,
+    "max_lookups": 12,
+    "ingest_paywalled_feeds": true
+  },
+  "manual_links": {
+    "enabled": true,
+    "file": "manual_links.json"
+  }
+}
