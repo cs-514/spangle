@@ -6,9 +6,9 @@ from ranking.headline import clean, trim_quoted_labels
 class QuotedLabels(unittest.TestCase):
     def test_user_example(self):
         self.assertEqual(clean("Trump says Abdul el Sayed is ‘100%’ a ‘Muslim Brotherhood guy’")[0],
-                         "Trump says Abdul el Sayed is ‘100%’ ‘Muslim Brotherhood’")
+                         "Trump Says Abdul el Sayed Is ‘100%’ ‘Muslim Brotherhood’")
         self.assertEqual(clean("Trump says Abdul el Sayed is '100%' a 'Muslim Brotherhood guy'")[0],
-                         "Trump says Abdul el Sayed is ‘100%’ ‘Muslim Brotherhood’")
+                         "Trump Says Abdul el Sayed Is ‘100%’ ‘Muslim Brotherhood’")
 
     def test_prefix_and_keep(self):
         self.assertEqual(trim_quoted_labels("Biden Calls Plan ‘kind of a joke’"), "Biden Calls Plan ‘joke’")

@@ -1,6 +1,6 @@
 import os, sys, unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from ranking.headline import clean, numerals, lowercase_small_words
+from ranking.headline import clean, numerals, title_case
 
 
 class NumeralsCase(unittest.TestCase):
@@ -13,11 +13,11 @@ class NumeralsCase(unittest.TestCase):
             self.assertEqual(numerals(t), t, t)
 
     def test_lowercase(self):
-        self.assertEqual(lowercase_small_words("The Tribal Story Of The Year At A Glance"),
+        self.assertEqual(title_case("The Tribal Story Of The Year At A Glance"),
                          "The Tribal Story of the Year at a Glance")
-        self.assertEqual(lowercase_small_words("Biden: The End"), "Biden: The End")
-        self.assertEqual(lowercase_small_words("Trump Picks Plan A"), "Trump Picks Plan A")
-        self.assertEqual(lowercase_small_words("BREAKING IN THE NEWS"), "BREAKING IN THE NEWS")
+        self.assertEqual(title_case("Biden: The End"), "Biden: The End")
+        self.assertEqual(title_case("Trump Picks Plan A"), "Trump Picks Plan A")
+        self.assertEqual(title_case("BREAKING IN THE NEWS"), "BREAKING IN THE NEWS")
 
 
 if __name__ == "__main__":

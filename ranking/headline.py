@@ -70,7 +70,7 @@ def clean(title, styl=None):
     t = re.sub(r"\s+", " ", t).strip(" -–—:")
     t = drop_possessives(t, sty)
     t = numerals(t, sty)
-    t = lowercase_small_words(t, sty)
+    t = title_case(t, sty)
     if sty.get("smart_quotes", True):
         t = smartquotes(t)
     t = trim_quoted_labels(t, sty)
@@ -313,3 +313,38 @@ def lowercase_small_words(title, sty=None):
             continue
         toks[i] = w.lower()
     return " ".join(toks)
+
+
+def title_case(title, sty=None):
+    """AP/Chicago-style title case. Lowercase small words (a, an, the, and, but, or, nor, as, at,
+    by, for, if, in, of, on, to, vs) except first/last word or after ':', '—', '–', '|' or an
+    opening quote; capitalize every other lowercase word (incl. hyphen parts). Never lowercases
+    words with internal capitals (acronyms, McConnell, iPhone) and keeps lowercase name particles
+    before a capitalized name ('el Sayed'). 'Up' stays capitalized (phrasal particles: 'Take Up')."""
+    cfg = (sty or style()).get("title_case") or {}
+    if not cfg.get("enabled"):
+        return title
+    small = {w.lower() for w in cfg.get("small_words", [])}
+    parts_ = {w.lower() for w in cfg.get("name_particles", [])}
+    keep = set(cfg.get("preserve", []))
+    toks = title.split(" ")
+    n = len(toks)
+    out = []
+    for i, w in enumerate(toks):
+        m = re.match(r"^([^A-Za-z0-9]*)(.*?)([^A-Za-z0-9.%’']*)$", w)
+        lead, core, trail = (m.group(1), m.group(2), m.group(3)) if m else ("", w, "")
+        if not core or not core[0].isalpha() or w in keep or core in keep:
+            out.append(w); continue
+        prev = toks[i - 1] if i else ""
+        boundary = i == 0 or i == n - 1 or prev[-1:] in (":", "—", "–", "|") or prev in ("-", "—", "–") \
+            or lead[-1:] in ("‘", "“", "(", "[")
+        low = core.lower()
+        if not boundary and low in small and (core == low or core == core.capitalize()):
+            out.append(lead + low + trail); continue
+        if low in parts_ and core == low and i + 1 < n and toks[i + 1][:1].isupper():
+            out.append(w); continue  # el Sayed, bin Salman
+        if core != low:  # has capitals already (Title, ACRONYM, McConnell, iPhone): keep
+            out.append(w); continue
+        cap = "-".join(p[:1].upper() + p[1:] for p in core.split("-"))
+        out.append(lead + cap + trail)
+    return " ".join(out)
