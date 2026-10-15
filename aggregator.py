@@ -52,11 +52,8 @@ FEEDS = [
     ("Cato Institute", "https://www.cato.org/rss/blog", True, FEED_UA),
     ("Heritage Foundation", "https://www.heritage.org/rss", False, FEED_UA),
     ("AEI", "https://www.aei.org/feed/", False, FEED_UA),
-    # AEI author pages have no working feed; use AEI's site-search feed filtered to the byline.
-    # Author output is infrequent, so items stay eligible longer.
-    ("AEI", "https://example.invalid/private-feed", False, FEED_UA, {"byline": "private feed", "max_age_hours": 336}),
-    # Substack: paid-only posts are skipped (checked via the public post API).
-    ("private feed", "https://example.invalid/private-feed", True, UA, {"substack_free_only": True, "max_age_hours": 168}),
+    # Further feeds (with byline / Substack options and tiers) come from the private config
+    # key "private_feeds"; see private_feed_list(). Their names are never logged.
     ("LifeZette", "https://www.lifezette.com/feed/", False),
     ("Courthouse News", "https://www.courthousenews.com/feed/", False),
     ("Not the Bee", "https://notthebee.com/feed", True),  # satirical commentary on real news
@@ -150,7 +147,7 @@ def fetch(feed, settings=None):
         data = urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=25).read()
         root = ET.fromstring(data)
     except Exception as e:
-        print(f"FEED FAIL {name}: {e!r}"[:160])
+        print(f"FEED FAIL {opts.get('log_name', name)}: {e!r}"[:160])
         return []
     out = []
     items = root.findall(".//item") or root.findall(f".//{A}entry")
@@ -172,8 +169,20 @@ def fetch(feed, settings=None):
         if settings is not None and not lean.keep(item, name, settings, outlet=name, author=author):
             continue
         out.append(item)
-    print(f"FEED OK {name}: {len(out)} items")
+    print(f"FEED OK {opts.get('log_name', name)}: {len(out)} items")
     return out
+
+def private_feed_list(cfg):
+    """Feeds from the private config key "private_feeds":
+    [{"name", "url", "opinion", "ua": "feed"|"browser", "options": {...}}]. Logged only as "private feed #n"."""
+    out = []
+    for i, f in enumerate(cfg.get("private_feeds") or [], 1):
+        if not isinstance(f, dict) or not f.get("url") or not f.get("name"):
+            continue
+        opts = dict(f.get("options") or {}); opts["log_name"] = f"private feed #{i}"
+        out.append((f["name"], f["url"], bool(f.get("opinion")), FEED_UA if f.get("ua") == "feed" else UA, opts))
+    return out
+
 
 def substack_free(link):
     """True only if Substack's public post API says the post is open to everyone."""
@@ -234,6 +243,7 @@ def apply_manual(out, settings):
         s = dict(title=l["title"], link=l.get("archive_url") or l["url"], source=l.get("source", domain(l["url"])),
                  when=parse_date(l.get("time", "")) or now, opinion=bool(l.get("opinion")), archived="manual" if l.get("archive_url") else None)
         out = [x for x in out if x["link"] != s["link"]]
+        s["manual"] = True
         out.insert(pos.get(l.get("position", "top"), 1), s); n += 1
     print(f"manual links: {n} pinned")
     return out
@@ -243,9 +253,28 @@ def best_item(c, tiers, default):
     return max(c["items"], key=lambda s: (tiers.get(s["source"], default), s["when"].timestamp() if s["when"] else 0))
 
 
+def age_hours(s, now):
+    return (now - s["when"]).total_seconds() / 3600 if s.get("when") else None
+
+
+def age_limits(settings):
+    a = settings.get("age_limits") or {}
+    return float(a.get("lead_hours", 12)), float(a.get("top_hours", 18)), float(a.get("column_hours", 36))
+
+
+def fits(s, slot, settings, now):
+    """Age gate per slot. Undated items may appear only in the columns."""
+    lead_h, top_h, col_h = age_limits(settings)
+    age = age_hours(s, now)
+    if slot == "column":
+        return age is None or age < col_h
+    return age is not None and age < (lead_h if slot == "lead" else top_h)
+
+
 def place(clusters, settings, ctx):
     pl, tiers, d = settings["placement"], settings["sources"]["tiers"], settings["sources"]["default_tier"]
-    count, out, budget = {}, [], [0]
+    now = ctx.get("now") or datetime.now(timezone.utc)
+    count, picked, budget = {}, [], [0]
     if pl.get("lead_respects_exclusions", True):  # promote the best non-excluded cluster to the lead slot
         i = next((i for i, c in enumerate(clusters) if not c.get("lead_excluded")), 0)
         clusters = [clusters[i]] + clusters[:i] + clusters[i + 1:]
@@ -254,36 +283,59 @@ def place(clusters, settings, ctx):
     if clusters:  # retreat top_exclude: keep the lead, push flagged stories after everything else
         clusters = [clusters[0]] + [c for c in clusters[1:] if not c.get("top_excluded")] \
             + [c for c in clusters[1:] if c.get("top_excluded")]
-    want = 1 + pl["top_stories"] + pl["column_items"]
+    n_top, n_cols = pl["top_stories"], pl["columns"]
+    want = 1 + n_top + pl["column_items"]
+    life_cap = int((settings.get("lifestyle") or {}).get("max_per_column", 1)) * n_cols
+    life_n = 0
     for c in clusters:
-        if len(out) >= want:
+        if len(picked) >= want + 8:  # small surplus so age gating can still fill every slot
             break
-        cap = pl["max_per_outlet_top"] if len(out) < 1 + pl["top_stories"] else pl["max_per_outlet_total"]
-        free = [x for x in c["items"] if not x.get("paywalled")]
+        cap = pl["max_per_outlet_top"] if len(picked) < 1 + n_top else pl["max_per_outlet_total"]
+        if c.get("lifestyle") and life_n >= life_cap:
+            continue
+        free = [x for x in c["items"] if not x.get("paywalled") and fits(x, "column", settings, now)]
         ar = settings.get("archive", {})
         dated = [x for x in c["items"] if x["when"]]
         orig = min(dated, key=lambda x: x["when"]) if dated else c["items"][0]
         if (orig.get("paywalled") or not free) and ar.get("enabled") and len(c["outlets"]) >= ar["min_outlets"] \
-                and budget[0] < ar["max_lookups"]:
-            p = orig if orig.get("paywalled") else next(x for x in c["items"] if x.get("paywalled"))
-            budget[0] += 1
-            link, prov = archive.find(p["link"], ar)
-            if link:  # original scoop available via an existing snapshot
-                free = [dict(p, link=link, archived=prov, paywalled=False)]
+                and budget[0] < ar["max_lookups"] and fits(orig, "column", settings, now):
+            p = orig if orig.get("paywalled") else next((x for x in c["items"] if x.get("paywalled")), None)
+            if p is not None:
+                budget[0] += 1
+                link, prov = archive.find(p["link"], ar)
+                if link:  # original scoop available via an existing snapshot
+                    free = [dict(p, link=link, archived=prov, paywalled=False)]
         if not free:
             continue
+        # freshest coverage first among equal tiers, so a live story shows its latest report
         alts = sorted([x for x in free if count.get(OUTLET(x), 0) < cap],
                       key=lambda x: (tiers.get(x["source"], d), x["when"].timestamp() if x["when"] else 0), reverse=True)
         s = next((x for x in alts[:2] if x.get("archived") or not pl["check_links"] or url_ok(x)), None)
         if s is None:
             continue
         s["outlets_n"] = len(c["outlets"])
-        out.append(s); count[OUTLET(s)] = count.get(OUTLET(s), 0) + 1
-    out = apply_manual(out, settings)
-    lead, top, rest = out[0], out[1:1 + pl["top_stories"]], out[1 + pl["top_stories"]:]
-    n = pl["columns"]
-    per = -(-len(rest) // n)
-    return lead, top, [rest[i * per:(i + 1) * per] for i in range(n)]
+        s["lifestyle"] = bool(c.get("lifestyle"))
+        s["top_excluded"] = bool(c.get("top_excluded"))
+        life_n += s["lifestyle"]
+        picked.append(s); count[OUTLET(s)] = count.get(OUTLET(s), 0) + 1
+    picked = apply_manual(picked, settings)
+    manual = {id(x) for x in picked if x.get("manual")}
+    ok_front = lambda x, slot: id(x) in manual or (not x.get("lifestyle") and not x.get("top_excluded") and fits(x, slot, settings, now))
+    lead = next((x for x in picked if ok_front(x, "lead")), None)
+    if lead is None:  # nothing fresh enough: the freshest dated, non-lifestyle story
+        pool = [x for x in picked if x.get("when") and not x.get("lifestyle")] or picked
+        lead = max(pool, key=lambda x: x["when"].timestamp() if x.get("when") else 0)
+    rest = [x for x in picked if x is not lead]
+    top = [x for x in rest if ok_front(x, "top")][:n_top]
+    top_ids = {id(x) for x in top}
+    rest = [x for x in rest if id(x) not in top_ids][:pl["column_items"]]
+    life = [x for x in rest if x.get("lifestyle")][:life_cap]
+    body = [x for x in rest if not x.get("lifestyle")]
+    per = -(-len(body) // n_cols) if body else 0
+    cols = [body[i * per:(i + 1) * per] for i in range(n_cols)]
+    for i, x in enumerate(life):  # at most max_per_column per column, placed low
+        cols[i % n_cols].append(x)
+    return lead, top, cols
 
 
 CSS = """
@@ -311,8 +363,9 @@ header{text-align:center;border-bottom:3px double var(--ink);padding:18px 0 10px
 .col li{padding:11px 0;border-bottom:1px solid var(--rule)}
 .col a{font-weight:600;font-size:19px;line-height:1.3;overflow:visible;text-overflow:clip;white-space:normal}
 .meta{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:5px;letter-spacing:.02em}
+.kicker{font-family:var(--sans);line-height:1;margin-bottom:4px}
 .qt{font-family:var(--serif);font-style:italic;font-size:16.5px;line-height:1.4;color:var(--ink);margin-top:5px}
-.tag{font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;color:var(--red);margin-right:6px}
+.tag{font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;color:var(--red);margin-right:2px}
 footer{font-family:var(--sans);font-size:13px;color:var(--muted);border-top:3px double var(--ink);margin-top:36px;padding-top:14px;line-height:1.6}
 @media(max-width:900px){.cols{grid-template-columns:1fr 1fr}.col:nth-child(3){grid-column:1/-1;border-left:0;padding-left:0}}
 @media(max-width:620px){body{font-size:18px}.wrap{padding:0 16px 32px}.cols{grid-template-columns:1fr}.col{border-left:0;padding-left:0}.top a{font-size:21px}}
@@ -327,14 +380,16 @@ ICONS = ('<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type=
          '<meta name="apple-mobile-web-app-title" content="Spangle"><meta name="theme-color" content="#0A3161">')
 
 
-def decorate_headlines(lead, top, cols, clusters):
+def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
     """For each placed story: prefer a non-bland, under-max-length sibling headline
     (and its URL); always apply deterministic style cleanup (never truncate);
     queue a rewrite when every candidate is bland OR the chosen display is still
     over max length. Returns (lead, top, cols, stats)."""
     by_id = {id(s): c for c in clusters for s in c["items"]}
     by_link = {s["link"]: c for c in clusters for s in c["items"]}
-    stats = {"kept": 0, "swapped": 0, "queued_bland": 0, "queued_too_long": 0, "styled": 0, "override": 0, "queue": []}
+    stats = {"kept": 0, "swapped": 0, "queued_bland": 0, "queued_too_long": 0, "styled": 0, "override": 0,
+             "shortened": 0, "queue": []}
+    slot = {id(lead): "lead", **{id(x): "top" for x in top}}
     placed = [lead] + top + [s for col in cols for s in col]
     sty = headline_mod.style()
     ov = headline_mod.overrides()
@@ -355,7 +410,10 @@ def decorate_headlines(lead, top, cols, clusters):
             s["display"], s["original_title"] = cleaned or disp, s["title"]
             stats["override"] += 1
             continue
-        cands = [x for x in candidates(s) if not x.get("paywalled")] or [s]
+        sl = slot.get(id(s), "column")
+        # a sibling may replace the story only if it also passes the slot's age limit
+        cands = [x for x in candidates(s) if not x.get("paywalled")
+                 and (x is s or settings is None or fits(x, sl, settings, now))] or [s]
         ranked = []
         for x in cands:
             cleaned, changed, bland, long = prep(x)
@@ -407,6 +465,10 @@ def decorate_headlines(lead, top, cols, clusters):
             stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
                                    "reason": "bland",
                                    "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
+        elif headline_mod.too_long(s["display"], sty) and \
+                not headline_mod.too_long(headline_mod.shorten(s["display"], sty), sty):
+            s["display"] = headline_mod.shorten(s["display"], sty)  # safe trims only, never truncation
+            stats["shortened"] += 1
         elif long or (all_long and not any(not r[8] for r in ranked)):
             # display stays full (no truncation); ask for a trim rewrite
             stats["queued_too_long"] += 1
@@ -415,7 +477,7 @@ def decorate_headlines(lead, top, cols, clusters):
                                    "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
     print(f"headlines: kept {stats['kept']}, swapped {stats['swapped']}, "
           f"queued_bland {stats['queued_bland']}, queued_too_long {stats['queued_too_long']}, "
-          f"styled {stats['styled']}, overrides {stats['override']}")
+          f"styled {stats['styled']}, overrides {stats['override']}, shortened {stats['shortened']}")
     try:
         with open(os.path.join(HERE, "..", "rewrite_queue.json"), "w") as f:
             json.dump({"generated": datetime.now(timezone.utc).isoformat(), "items": stats["queue"]}, f, indent=1)
@@ -428,16 +490,58 @@ def decorate_headlines(lead, top, cols, clusters):
     return lead, top, cols, stats
 
 
-def load_daily_quote(filename="quote_of_the_day.json"):
-    path = os.path.join(HERE, filename)
+_SITE_NAME = re.compile(r'<meta[^>]+property=["\']og:site_name["\'][^>]+content=["\']([^"\']{2,40})["\']', re.I)
+
+
+def display_outlets(items):
+    """No raw domains on the page: map known hosts, else og:site_name, else a prettified host label."""
+    for s in items:
+        src = s.get("source") or ""
+        if s.get("quote_item") or "." not in src or " " in src:
+            continue
+        name = curators.outlet_name("https://" + src)
+        if "." in name:
+            try:
+                body = urllib.request.urlopen(urllib.request.Request(s["link"], headers=UA), timeout=8).read(200000).decode("utf-8", "ignore")
+                m = _SITE_NAME.search(body)
+                name = html.unescape(m.group(1)).strip() if m else ""
+            except Exception:
+                name = ""
+            name = name or curators.pretty_host(src)
+        s["source"] = name
+
+
+def load_daily_quote(filename="quote_of_the_day.json", today=None, bank_file="qotd_bank.json"):
+    """Today's quote. If the file is missing, invalid, or dated another day (the box routine did not
+    run), fall back to a deterministic pick from the public, primary-source-verified bank, so a stale
+    quote is never shown."""
+    today = today or datetime.now(timezone.utc).strftime("%Y-%m-%d")
     try:
-        with open(path) as f:
+        with open(os.path.join(HERE, filename)) as f:
             q = json.load(f)
-        if not q.get("quote") or not q.get("author"):
-            return None
-        return q
+        if q.get("quote") and q.get("author") and q.get("date") == today:
+            return q
+        print(f"quote of the day: file dated {q.get('date')!r}, not {today}; using bank fallback")
+    except Exception:
+        print("quote of the day: file unreadable; using bank fallback")
+    return fallback_quote(today, bank_file)
+
+
+def fallback_quote(today, bank_file="qotd_bank.json"):
+    try:
+        with open(os.path.join(HERE, bank_file)) as f:
+            bank = [q for q in json.load(f)["quotes"] if q.get("verified") and q.get("source_type") in ("primary", "column")
+                    and len(q["quote"].split()) <= 60]
     except Exception:
         return None
+    if not bank:
+        return None
+    import hashlib
+    q = dict(bank[int(hashlib.sha256(today.encode()).hexdigest(), 16) % len(bank)])
+    words = q["quote"].replace("—", " ").replace(";", ".").split()
+    q["headline"] = headline_mod.clean(" ".join(words[:8]).rstrip(".,;:"))[0]
+    q["date"] = today
+    return q
 
 
 def quote_as_story(q):
@@ -495,10 +599,11 @@ def render(lead, top, cols, now, sources, settings):
 
     def meta(s):
         if s.get("quote_item"):
-            return f'<div class="meta"><span class="tag">Quote</span>{t(OUTLET(s))}</div>'
+            return f'<div class="meta">{t(OUTLET(s))}</div>'
         ts = s["when"].strftime("%b %-d, %H:%M UTC") if s["when"] else ""
-        more = f' · {s["outlets_n"]} outlets' if s.get("outlets_n", 1) > 1 else ""
-        op = '<span class="tag">Opinion</span>' if tag and s["opinion"] else ""
+        extra = s.get("outlets_n", 1) - 1
+        more = f' · +{extra} outlet{"s" if extra > 1 else ""}' if extra > 0 else ""
+        op = '<span class="tag">Opinion</span> · ' if tag and s["opinion"] else ""
         arc = " · archived copy" if s.get("archived") else ""
         parts = " · ".join(x for x in (OUTLET(s), ts) if x)
         return f'<div class="meta">{op}{t(parts)}{e(more)}{arc}</div>'
@@ -514,7 +619,8 @@ def render(lead, top, cols, now, sources, settings):
     def li(s):
         if s.get("quote_item"):
             body = f'<div class="qt">“{t(s.get("quote_text", ""))}”</div>' if s.get("quote_text") else ""
-            return f'<li>{show(s)}{body}{meta(s)}</li>'
+            kicker = '<div class="kicker"><span class="tag">Quote</span></div>'
+            return f'<li class="qotd">{kicker}{show(s)}{body}{meta(s)}</li>'
         return f'<li>{show(s)}{meta(s)}</li>'
 
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)
@@ -532,8 +638,13 @@ def main():
     with open(os.path.join(HERE, "settings.json")) as f:
         settings = json.load(f)
     now = datetime.now(timezone.utc)
+    ctx = {"now": now}
+    pcfg = ranking.private.load(ctx)
+    settings["sources"]["tiers"].update(pcfg.get("source_tiers") or {})  # private feed tiers stay out of settings.json
+    if pcfg.get("lifestyle"):
+        settings["lifestyle"] = {"max_per_column": pcfg["lifestyle"].get("max_per_column", 1)}
     with cf.ThreadPoolExecutor(12) as ex:
-        feeds = FEEDS + (PAYWALLED_FEEDS if settings.get("archive", {}).get("enabled") and settings["archive"].get("ingest_paywalled_feeds") else [])
+        feeds = FEEDS + private_feed_list(pcfg) + (PAYWALLED_FEEDS if settings.get("archive", {}).get("enabled") and settings["archive"].get("ingest_paywalled_feeds") else [])
         stories = [s for batch in ex.map(lambda f: fetch(f, settings), feeds) for s in batch]
     # Curated aggregator picks: mark matching feed items, add the rest as original-URL items.
     by_link = {canon(s["link"]): s for s in stories}
@@ -566,11 +677,11 @@ def main():
         uniq.append(s)
     clusters = coverage.cluster(uniq, settings["coverage"]["similarity_threshold"])
     print(f"{len(uniq)} stories in {len(clusters)} clusters; {sum(1 for c in clusters if len(c['outlets']) > 1)} multi-outlet")
-    ctx = {"now": now}
     ranking.rank(clusters, settings, ctx)
     lead, top, cols = place(clusters, settings, ctx)
-    lead, top, cols, _hl = decorate_headlines(lead, top, cols, clusters)
+    lead, top, cols, _hl = decorate_headlines(lead, top, cols, clusters, settings, now)
     cols = inject_quote(cols, settings)
+    display_outlets([lead] + top + [s for c in cols for s in c])
     allp = [lead] + top + [s for c in cols for s in c]
     sources = sorted({OUTLET(s) for s in allp if not s.get("archived")})
     os.makedirs("site", exist_ok=True)
