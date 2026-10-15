@@ -69,6 +69,8 @@ def clean(title, styl=None):
         t = re.sub(rf"\bthe\s+{re.escape(tok)}\b", tok, t, flags=re.I)
     t = re.sub(r"\s+", " ", t).strip(" -–—:")
     t = drop_possessives(t, sty)
+    t = numerals(t, sty)
+    t = lowercase_small_words(t, sty)
     if sty.get("smart_quotes", True):
         t = smartquotes(t)
     t = trim_quoted_labels(t, sty)
@@ -266,3 +268,48 @@ def page_title(url, timeout=10):
         if m:
             return re.sub(r"\s+", " ", _html.unescape(re.sub(r"<[^>]+>", "", m.group(1)))).strip()
     return ""
+
+
+def numerals(title, sty=None):
+    """Digits for one..nine ('In One Night' -> 'In 1 Night'). Pronoun 'one' stays a word:
+    'No One', 'One of Them', 'One Another', 'Someone'. Only whole words followed by another word."""
+    cfg = (sty or style()).get("numerals") or {}
+    if not cfg.get("enabled"):
+        return title
+    words = {k.lower(): v for k, v in cfg.get("words", {}).items()}
+    sp = {w.lower() for w in cfg.get("skip_prev", [])}
+    sn = {w.lower() for w in cfg.get("skip_next", [])}
+    toks = title.split(" ")
+    for i, w in enumerate(toks):
+        core = w.lower()
+        if core not in words or i + 1 >= len(toks):
+            continue
+        nxt = re.sub(r"[^a-z0-9-]", "", toks[i + 1].lower())
+        prev = re.sub(r"[^a-z-]", "", toks[i - 1].lower()) if i else ""
+        if not nxt or nxt in sn or prev in sp:
+            continue
+        if core == "one" and not toks[i + 1][:1].isalnum():
+            continue
+        toks[i] = words[core]
+    return " ".join(toks)
+
+
+def lowercase_small_words(title, sty=None):
+    """Lowercase Title-Case short prepositions/articles (In, Of, To, On, At, For, A, The) except
+    as the first word or right after ':', '—', '–', '|' or an opening quote. All-caps tokens are left alone,
+    and 'A' is kept when it ends the line or is followed by punctuation (Plan A)."""
+    cfg = (sty or style()).get("lowercase_small_words") or {}
+    if not cfg.get("enabled"):
+        return title
+    small = {w.lower() for w in cfg.get("words", [])}
+    toks = title.split(" ")
+    for i in range(1, len(toks)):
+        w = toks[i]
+        if w.lower() not in small or w == w.lower() or (len(w) > 1 and w.isupper()):
+            continue
+        if toks[i - 1][-1:] in (":", "—", "–", "|", "‘", "“", "'", '"') or toks[i - 1] in ("-", "—", "–"):
+            continue
+        if w == "A" and (i + 1 >= len(toks) or not toks[i + 1][:1].isalnum()):
+            continue
+        toks[i] = w.lower()
+    return " ".join(toks)

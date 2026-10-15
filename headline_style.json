@@ -266,7 +266,26 @@
       "children",
       "parents",
       "brother",
-      "sister"
+      "sister",
+      "day",
+      "turn",
+      "due",
+      "place",
+      "moment",
+      "share",
+      "mark",
+      "toll",
+      "mind",
+      "word",
+      "part",
+      "name",
+      "life",
+      "lives",
+      "fault",
+      "hand",
+      "hands",
+      "back",
+      "seat"
     ],
     "generic_starters": [
       "the",
@@ -344,6 +363,58 @@
       "sort of an",
       "sort of",
       "type of"
+    ]
+  },
+  "numerals": {
+    "enabled": true,
+    "words": {
+      "one": "1",
+      "two": "2",
+      "three": "3",
+      "four": "4",
+      "five": "5",
+      "six": "6",
+      "seven": "7",
+      "eight": "8",
+      "nine": "9"
+    },
+    "skip_prev": [
+      "no",
+      "any",
+      "every",
+      "some",
+      "the",
+      "which",
+      "this",
+      "that",
+      "each",
+      "anyone",
+      "someone",
+      "no-"
+    ],
+    "skip_next": [
+      "of",
+      "another",
+      "more",
+      "day",
+      "and",
+      "or",
+      "thing",
+      "way",
+      "another,"
+    ]
+  },
+  "lowercase_small_words": {
+    "enabled": true,
+    "words": [
+      "in",
+      "of",
+      "to",
+      "on",
+      "at",
+      "for",
+      "a",
+      "the"
     ]
   }
 }

@@ -14,7 +14,9 @@ class Possessives(unittest.TestCase):
         for t in ["Trump Slams Omar Over Her Remarks",          # after preposition: ambiguous
                   "The Senate Passes Its Budget",               # generic starter
                   "Omar Probe Aims to Deport Her",              # object pronoun at end
-                  "Musk Fires His Own Team",                    # 'own'
+                  "Musk Fires His Own Team",
+                  "DOGE Gets Its Day at SCOTUS",               # idiom: 'gets its day'
+                  "Trump Makes His Mark on Fed",                    # 'own'
                   "She Says Her Plan Works"]:                   # pronoun subject
             self.assertEqual(drop_possessives(t), t, t)
 

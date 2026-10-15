@@ -94,6 +94,15 @@ of a joke’ → ‘joke’). Only curly-quoted spans are touched, and the label
 `trim_quoted_labels` in `headline_style.json`. Tests: `tests/test_quoted_labels.py`. (Smart quotes also
 treat ‘100%’ as a quote, while ’90s and ’24 stay elisions.)
 
+## Numerals and small words
+
+- **Use digits, even for 1–9.** *5 Positions Talarico Abandoned in 1 Night*, not *…In One Night*. Pronoun *one*
+  stays a word (*No One*, *One of Them*, *One Another*, *Someone*).
+- **Lowercase short prepositions and articles** (*in, of, to, on, at, for, a, the*) except as the first word,
+  after a colon or dash, at the start of a quote, in ALL-CAPS lines, or as a label (*Plan A*).
+
+Config: `numerals` and `lowercase_small_words` in `headline_style.json`. Tests: `tests/test_numerals_case.py`.
+
 ## No contentless headlines
 
 A headline of three words or fewer with no verb, or a bare proper name (e.g. *Angie Nixon*), counts as
