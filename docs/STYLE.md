@@ -15,6 +15,23 @@ A living Drudge-style guide for every displayed headline. Extend it freely; the 
 9. **No trailing site names, tags or clickbait chrome.** Strip "[WATCH]", "[VIDEO]", "Opinion:", "— Exclusive", " | Fox News".
 10. **All-caps is fine for the lead.** The page already uppercases the lead visually via CSS weight and color; keep the text Title Case or ALL CAPS as the rewrite prefers. Columns stay mixed case.
 
+
+## Trim rule (over-length headlines)
+
+If a headline still exceeds ~70 characters / 10–12 words **after** deterministic cleanup
+(abbreviations, strip `Opinion:` / `[WATCH]` / trailing site names / chrome parentheticals):
+
+1. Prefer a shorter non-bland sibling headline from another outlet covering the same story.
+2. Otherwise queue it for a **trim rewrite** (`reason: "too_long"` in the rewrite queue).
+3. **Never truncate mid-phrase on the page.** Headlines wrap; they are not ellipsized.
+
+When trimming by hand or AI:
+- Cut filler ("This", "Brought to You by", "Everything We Know About", "Here's Why").
+- Keep the **subject** and the **punchy verb / adjectives**.
+- No loss of meaning — the rewrite must still describe the linked article.
+- Example: *This Condescending, Preachy, Woke Political Lecture Brought to You by Ticketmaster*
+  → *Condescending, Preachy, Woke Political Lectures from TicketMaster*
+
 ## Abbreviations (use these when they shorten)
 
 | Write | For |

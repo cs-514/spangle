@@ -125,7 +125,12 @@
     "Report:",
     "REPORT:",
     "Editorial:",
-    "EDITORIAL:"
+    "EDITORIAL:",
+    "EXCLUSIVE \u2014 ",
+    "EXCLUSIVE - ",
+    "Exclusive: ",
+    "BREAKING \u2014 ",
+    "BREAKING - "
   ],
   "trailing_tags": [
     "[WATCH]",
@@ -183,5 +188,6 @@
       "reflections on"
     ],
     "needs_verb": true
-  }
+  },
+  "strip_parentheticals": true
 }

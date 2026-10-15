@@ -65,6 +65,34 @@ Picks have no timestamp, so recency uses `recency.undated_curated_score`. The bu
 | `similarity_threshold` | 0.34 | Headline similarity (IDF-weighted) needed to join a cluster. Lower merges more stories together. Higher splits them apart. |
 | `saturation_outlets` | 6 | Number of outlets at which the coverage score reaches 1.0 |
 
+## Daily quotes (C. S. Lewis & Thomas Sowell)
+
+Public editorial features, independent of ranking.
+
+| File | Apply script | Input scratch |
+|---|---|---|
+| `quote_of_the_day.json` | `/workspace/csl_quote.py apply` | `/workspace/csl_today.json` |
+| `sowell_quote_of_the_day.json` | `/workspace/sowell_quote.py apply` | `/workspace/sowell_today.json` |
+
+Schema (both): `date`, `headline`, `quote`, `author`, `work`, optional `chapter_or_page`, optional `bank_id`.
+Verified banks live on the box as `/workspace/csl_quote_bank.json` and `/workspace/sowell_quote_bank.json`.
+Used ids are tracked in `/workspace/quote_used.json` to avoid repeats. Prefer ≤60 words.
+
+## Daily C. S. Lewis quote (details)
+
+Public editorial feature. The build reads `quote_of_the_day.json` and, when present, renders a
+quote box under the lead (punchy headline, italic quote, small-caps `C. S. LEWIS · <Work>`).
+
+Schema:
+```json
+{"date":"YYYY-MM-DD","headline":"…","quote":"…","author":"C. S. Lewis",
+ "work":"The Screwtape Letters","chapter_or_page":"Letter XXIX"}
+```
+
+Box helper (hourly): write `/workspace/csl_today.json`, then
+`python3 /workspace/csl_quote.py apply` to commit and trigger the workflow.
+Prefer short, verified quotations (≤60 words). This feature is independent of ranking.
+
 ## Headlines: style manual, overrides, rewrites
 
 See [STYLE.md](STYLE.md) for the living Drudge-style guide.

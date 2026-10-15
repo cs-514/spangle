@@ -289,20 +289,25 @@ header{text-align:center;border-bottom:3px double var(--ink);padding:18px 0 10px
 .date{font-family:var(--sans);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:8px}
 .label{font-family:var(--sans);font-weight:800;font-size:12px;letter-spacing:.14em;text-transform:uppercase;border-top:1px solid var(--ink);padding-top:6px;margin:28px 0 4px}
 .lead{text-align:center;padding:26px 0 22px;border-bottom:1px solid var(--rule)}
-.lead a{font-family:var(--display);font-weight:900;color:var(--red);font-size:clamp(32px,5.4vw,60px);line-height:1.08;display:inline-block;max-width:22ch}
+.lead a{font-family:var(--display);font-weight:900;color:var(--red);font-size:clamp(28px,4.6vw,52px);line-height:1.12;display:inline;max-width:none;overflow:visible;text-overflow:clip;white-space:normal;hyphens:manual}
 .lead a:visited{color:var(--red)}
 .lead .meta{margin-top:12px}
 .top ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 28px}
 .top li{padding:10px 0 14px;border-bottom:1px solid var(--rule)}
-.top a{font-weight:700;font-size:22px;line-height:1.22}
+.top a{font-weight:700;font-size:22px;line-height:1.22;overflow:visible;text-overflow:clip;white-space:normal}
 .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:0 32px}
 .col{border-left:1px solid var(--rule);padding-left:20px} .col:first-child{border-left:0;padding-left:0}
 .col ul{list-style:none;margin:0;padding:0}
 .col li{padding:11px 0;border-bottom:1px solid var(--rule)}
-.col a{font-weight:600;font-size:19px;line-height:1.3}
+.col a{font-weight:600;font-size:19px;line-height:1.3;overflow:visible;text-overflow:clip;white-space:normal}
 .meta{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:5px;letter-spacing:.02em}
 .tag{font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;color:var(--red);margin-right:6px}
 footer{font-family:var(--sans);font-size:13px;color:var(--muted);border-top:3px double var(--ink);margin-top:36px;padding-top:14px;line-height:1.6}
+.quote-box{margin:22px 0 8px;padding:18px 22px 16px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);text-align:center;max-width:42rem;margin-left:auto;margin-right:auto}
+.quote-box .qh{font-family:var(--display);font-weight:700;font-size:clamp(22px,3.2vw,32px);line-height:1.2;margin:0 0 12px;color:var(--ink)}
+.quote-box blockquote{font-family:var(--serif);font-style:italic;font-size:clamp(17px,2.2vw,20px);line-height:1.45;margin:0 0 12px;color:var(--ink);font-weight:400}
+.quote-box .qs{font-family:var(--sans);font-weight:800;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+.quote-box + .quote-box{margin-top:8px;border-top:0}
 @media(max-width:900px){.cols{grid-template-columns:1fr 1fr}.col:nth-child(3){grid-column:1/-1;border-left:0;padding-left:0}}
 @media(max-width:620px){body{font-size:18px}.wrap{padding:0 16px 32px}.cols{grid-template-columns:1fr}.col{border-left:0;padding-left:0}.top a{font-size:21px}}
 """
@@ -317,52 +322,49 @@ ICONS = ('<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type=
 
 
 def decorate_headlines(lead, top, cols, clusters):
-    """For each placed story: prefer a non-bland sibling headline (and its URL),
-    always apply deterministic style cleanup, queue a rewrite only when every
-    candidate in the cluster is bland. Returns (lead, top, cols, stats)."""
+    """For each placed story: prefer a non-bland, under-max-length sibling headline
+    (and its URL); always apply deterministic style cleanup (never truncate);
+    queue a rewrite when every candidate is bland OR the chosen display is still
+    over max length. Returns (lead, top, cols, stats)."""
     by_id = {id(s): c for c in clusters for s in c["items"]}
-    # also index by link for stories that were copied/archived
-    by_link = {}
-    for c in clusters:
-        for s in c["items"]:
-            by_link[s["link"]] = c
-    stats = {"kept": 0, "swapped": 0, "queued": 0, "styled": 0, "override": 0, "queue": []}
+    by_link = {s["link"]: c for c in clusters for s in c["items"]}
+    stats = {"kept": 0, "swapped": 0, "queued_bland": 0, "queued_too_long": 0, "styled": 0, "override": 0, "queue": []}
     placed = [lead] + top + [s for col in cols for s in col]
+    sty = headline_mod.style()
+    ov = headline_mod.overrides()
 
     def candidates(s):
         c = by_id.get(id(s)) or by_link.get(s["link"])
         return list(c["items"]) if c else [s]
 
+    def prep(x):
+        cleaned, changed = headline_mod.clean(x["title"], sty)
+        return cleaned, changed, headline_mod.needs_rewrite(cleaned, sty), headline_mod.too_long(cleaned, sty)
+
     for s in placed:
-        # manual / AI override wins outright
-        ov = headline_mod.overrides()
         url, base = s["link"], s["link"].split("?", 1)[0]
         if (url in ov and ov[url]) or (base in ov and ov[base]):
             disp = ov.get(url) or ov[base]
             s["display"], s["original_title"] = disp, s["title"]
             stats["override"] += 1
             continue
-        cands = [x for x in candidates(s) if not x.get("paywalled")]
-        if not cands:
-            cands = [s]
-        # score: non-bland first, then shorter cleaned length, then higher source tier
-        tiers = {}  # filled below from settings at call site via closure? pass tiers
-        def score(x, sty):
-            cleaned, _ = headline_mod.clean(x["title"], sty)
-            bland = headline_mod.needs_rewrite(cleaned, sty)
-            return (0 if bland else 1, -len(cleaned), x.get("when").timestamp() if x.get("when") else 0)
-
-        sty = headline_mod.style()
-        ranked = sorted(cands, key=lambda x: score(x, sty), reverse=True)
-        best = ranked[0]
-        cleaned, changed = headline_mod.clean(best["title"], sty)
-        bland = headline_mod.needs_rewrite(cleaned, sty)
-        if bland and all(headline_mod.needs_rewrite(headline_mod.clean(x["title"], sty)[0], sty) for x in cands):
-            stats["queued"] += 1
-            stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
-                                   "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
-        elif best["link"] != s["link"]:
-            # swap to the punchier sibling's article
+        cands = [x for x in candidates(s) if not x.get("paywalled")] or [s]
+        ranked = []
+        for x in cands:
+            cleaned, changed, bland, long = prep(x)
+            # prefer: not bland, not too long, shorter, newer
+            ranked.append(((0 if bland else 1), (0 if long else 1), -len(cleaned),
+                           x.get("when").timestamp() if x.get("when") else 0, x, cleaned, changed, bland, long))
+        ranked.sort(reverse=True)
+        _a, _b, _c, _d, best, cleaned, changed, bland, long = ranked[0]
+        all_bland = all(r[7] for r in ranked)
+        all_long = all(r[8] for r in ranked)
+        # if best is long but a shorter non-bland sibling exists, pick that
+        if long:
+            shorter = [r for r in ranked if not r[7] and not r[8]]
+            if shorter:
+                _a, _b, _c, _d, best, cleaned, changed, bland, long = shorter[0]
+        if best["link"] != s["link"]:
             s["link"], s["title"], s["source"], s["opinion"] = best["link"], best["title"], best["source"], best.get("opinion", False)
             if best.get("when"):
                 s["when"] = best["when"]
@@ -372,9 +374,21 @@ def decorate_headlines(lead, top, cols, clusters):
         if changed:
             stats["styled"] += 1
         s["display"], s["original_title"] = cleaned, best["title"]
-    print(f"headlines: kept {stats['kept']}, swapped {stats['swapped']}, queued {stats['queued']}, "
+        # queue only when still a problem after sibling pick
+        if all_bland or (bland and not any(not r[7] for r in ranked)):
+            stats["queued_bland"] += 1
+            stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
+                                   "reason": "bland",
+                                   "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
+        elif long or (all_long and not any(not r[8] for r in ranked)):
+            # display stays full (no truncation); ask for a trim rewrite
+            stats["queued_too_long"] += 1
+            stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
+                                   "reason": "too_long", "chars": len(cleaned), "words": len(cleaned.split()),
+                                   "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
+    print(f"headlines: kept {stats['kept']}, swapped {stats['swapped']}, "
+          f"queued_bland {stats['queued_bland']}, queued_too_long {stats['queued_too_long']}, "
           f"styled {stats['styled']}, overrides {stats['override']}")
-    # persist queue for the box rewriter
     try:
         with open(os.path.join(HERE, "..", "rewrite_queue.json"), "w") as f:
             json.dump({"generated": datetime.now(timezone.utc).isoformat(), "items": stats["queue"]}, f, indent=1)
@@ -383,9 +397,22 @@ def decorate_headlines(lead, top, cols, clusters):
     return lead, top, cols, stats
 
 
+def load_daily_quote(filename="quote_of_the_day.json"):
+    path = os.path.join(HERE, filename)
+    try:
+        with open(path) as f:
+            q = json.load(f)
+        if not q.get("quote") or not q.get("author"):
+            return None
+        return q
+    except Exception:
+        return None
+
+
 def render(lead, top, cols, now, sources, settings):
     e = html.escape
     tag = settings["placement"]["opinion_tag"]
+    quotes = [q for q in (load_daily_quote("quote_of_the_day.json"), load_daily_quote("sowell_quote_of_the_day.json")) if q]
 
     def meta(s):
         ts = s["when"].strftime("%b %-d, %H:%M UTC") if s["when"] else ""
@@ -405,10 +432,20 @@ def render(lead, top, cols, now, sources, settings):
         return f'<li>{show(s)}{meta(s)}</li>'
 
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)
+    quote_parts = []
+    for quote in quotes:
+        work = quote.get("work") or ""
+        sub = e(quote["author"].upper()) + (f" · {e(work)}" if work else "")
+        quote_parts.append(
+            f'<aside class="quote-box"><div class="qh">{e(quote.get("headline") or "")}</div>'
+            f'<blockquote>“{e(quote["quote"])}”</blockquote>'
+            f'<p class="qs">{sub}</p></aside>')
+    quote_html = "".join(quote_parts)
     return (f'<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<meta http-equiv="refresh" content="1800"><title>Spangle</title>{ICONS}{FONTS}<style>{CSS}</style></head><body><div class="wrap">'
             f'<header><h1 class="mast">Spangle</h1><div class="date">{now.strftime("%A, %B %-d, %Y")} · Updated {now.strftime("%H:%M")} UTC</div></header>'
             f'<div class="lead">{show(lead)}{meta(lead)}</div>'
+            f'{quote_html}'
             f'<div class="label">Top Stories</div><div class="top"><ul>{"".join(li(s) for s in top)}</ul></div>'
             f'<div class="label">More Headlines</div><div class="cols">{col_html}</div>'
             f'<footer>Every headline links to its original publisher. Free-to-read sources only. Updated hourly.<br>'
@@ -457,7 +494,8 @@ def main():
     allp = [lead] + top + [s for c in cols for s in c]
     sources = sorted({OUTLET(s) for s in allp if not s.get("archived")})
     os.makedirs("site", exist_ok=True)
-    shutil.copytree("static", "site", dirs_exist_ok=True)
+    if os.path.isdir("static"):
+        shutil.copytree("static", "site", dirs_exist_ok=True)
     with open("site/index.html", "w") as f:
         f.write(render(lead, top, cols, now, sources, settings))
     print("archive lookups (found/tried): " + ", ".join(f"{k} {v[0]}/{v[1]}" for k, v in archive.STATS.items()))
