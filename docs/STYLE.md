@@ -57,6 +57,7 @@ When trimming by hand or AI:
 | Sen. | Senator (before a name) |
 | Pentagon | Department of Defense / Defense Department |
 | Hill | Congress (when speaking of Capitol Hill) |
+| VDH | Victor Davis Hanson (person-specific; possessive → VDH’s) |
 
 Prefer the short form only when it is clear in context. "GOP Senators Pass Bill" is fine; "GOP" alone as a subject usually is too.
 
