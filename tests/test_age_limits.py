@@ -80,3 +80,11 @@ class MonthlyReserved(unittest.TestCase):
         self.assertNotIn("Old Archive Piece", flat)
         self.assertNotEqual(lead["source"], "Imprimis")
         self.assertFalse(any(x["source"] == "Imprimis" for x in top))
+
+
+class LeadIsNews(unittest.TestCase):
+    def test_lead_non_opinion(self):
+        items = [story("Hot Take", 1, opinion=True), story("Another Take", 1.5, opinion=True), story("Reported News", 3)]
+        lead, top, cols = A.place(clusters(items), settings(), {"now": NOW})
+        self.assertEqual(lead["title"], "Reported News")
+        self.assertIn("Hot Take", [x["title"] for x in top])  # opinion still allowed in Top Stories

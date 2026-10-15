@@ -76,6 +76,23 @@ their founding headlines:
 The page shows one headline per merged story; its meta line adds "+N outlets" for the other outlets
 that ran it.
 
+## Opinion (internal only, never displayed)
+The page shows no Opinion tags (Drudge-style). `ranking/opinion.py` still classifies every story so
+that **the lead is always reported news**: the lead slot takes the best fresh non-opinion story (an
+opinion piece leads only if no news story qualifies), and the lead's sibling-headline swap uses only
+non-opinion siblings when any exist. Everywhere else, swaps prefer non-opinion siblings. Opinion can
+still appear in Top Stories and the columns. A story is opinion when any of these hold:
+- its feed is opinion-only, or a curator marked it (Bongino OPINION section, RCP columnists);
+- its URL has an opinion section: `/opinion/`, `/commentary/`, `/columnist(s)/`, `/columns/`, `/blog/`,
+  `/shows/`, `/op-ed/`, `/editorial/`, `/perspective/`, `/voices/`, `/analysis/`, `/ideas/`;
+- an RSS category says Opinion, Commentary, Column(s), Columnist, Op-Ed, or Editorial;
+- its outlet is mostly commentary (RedState, Hot Air, PJ Media, American Thinker, The Federalist,
+  American Greatness, Townhall, Twitchy, Not the Bee, Volokh Conspiracy, Imprimis, Hollywood in Toto)
+  and the URL has no news section (e.g. Townhall `/news/` counts as news);
+- the headline has 2+ opinion cues: a question, first person, loaded words ("Witch Hunt", "Hoax",
+  "Crazy", "Must Be Stopped", "Should"...), "Name: claim", or a "Why…/How…" opener.
+The flag is kept through sibling swaps (opinion if either the original or the sibling is).
+
 ## Age limits (`age_limits`)
 | key | default | meaning |
 |---|---|---|
@@ -110,9 +127,9 @@ and never printed). Builds run at :07 and :37 each hour; a running build is queu
 ## Quote of the Day
 
 One public editorial feature (independent of ranking). Rendered as a **regular column item**
-with the same markup as other headlines: a `QUOTE` tag (same style as `OPINION`) and a
-meta line `Author · Work, locator`. The link goes to `verification_url` when present; the
-full quote text is the link `title` tooltip. No separate quote box.
+with the same markup as other headlines: a small red `QUOTE` kicker above the headline, the
+full quote text below it, then the source line `Author · Work, locator`. The link goes to
+`verification_url` when present. It is the only tag shown on the page.
 
 | File | Apply script | Input scratch |
 |---|---|---|
@@ -289,7 +306,6 @@ Feeds added Oct 2026: **Judicial Watch** (`judicialwatch.org/feed/`, press relea
 | `columns` | 3 | Number of columns |
 | `max_per_outlet_top` | 1 | Maximum items per outlet in the lead and Top Stories |
 | `max_per_outlet_total` | 5 | Maximum items per outlet on the whole page |
-| `opinion_tag` | true | Shows a small "Opinion" tag, but only for opinion-only feeds (Fox News Opinion, NY Post Opinion, Volokh Conspiracy, Cato op-eds and blog, Not the Bee, and any private feed marked opinion) or `/opinion/` and `/commentary/` URLs, which catches Heritage commentary. Heritage reports and SCOTUSblog are treated as news. |
 | `lead_respects_exclusions` | true | Keeps clusters flagged by the framing signal out of the lead slot |
 | `check_links` | true | Checks each chosen link for a 200 response with no paywall marker |
 

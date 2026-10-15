@@ -39,14 +39,17 @@ class QuotePlacement(unittest.TestCase):
 class Render(unittest.TestCase):
     def html(self):
         lead = story("Lead Story", 1, outlets_n=3)
-        top = [story("Top Opinion", 2, opinion=True)]
+        top = [story("Top Take", 2, opinion=True)]
         q = A.quote_as_story({"quote": "Q text.", "author": "George Washington", "work": "Farewell Address"})
-        return A.render(lead, top, [[q], [], []], NOW, [], {"placement": {"opinion_tag": True}})
+        return A.render(lead, top, [[q], [], []], NOW, [], {"placement": {}})
 
     def test_meta(self):
         h = self.html()
         self.assertIn("+2 outlets", h)
-        self.assertIn('<span class="tag">Opinion</span> · ', h)
+        self.assertNotIn("Opinion", h)  # Drudge-style: no opinion tag text anywhere on the page
+        self.assertNotIn("OPINION", h)
+        self.assertNotIn('<div class="meta"> · ', h)
+        self.assertIn('<div class="kicker"><span class="tag">Quote</span></div>', h)
         # QUOTE kicker sits above the headline; source line stays below the quote text
         k, a, qt, src = (h.index('<div class="kicker"><span class="tag">Quote</span></div>'), h.index('>Q text.<') if '>Q text.<' in h else h.index('Q text.'),
                          h.index('<div class="qt">'), h.index('George Washington · Farewell Address'))
@@ -87,3 +90,18 @@ class WpJson(unittest.TestCase):
         out = A.wp_json_items(posts, "O’Keefe Media Group", False, {"exclude_categories": [210]})
         self.assertEqual([x["title"] for x in out], ["O’Keefe Files Motion"])
         self.assertEqual(out[0]["when"].hour, 20)
+
+
+class OpinionInternal(unittest.TestCase):
+    def test_classify(self):
+        from ranking import opinion as O
+        self.assertTrue(O.classify(story("Will Bill and Hillary Clinton Please Just Go Away?", source="RedState",
+                                         link="https://redstate.com/wardclark/2026/10/15/x")))
+        self.assertTrue(O.classify(story("Is Rep. Omar a U.S. Citizen?", source="American Thinker",
+                                         link="https://www.americanthinker.com/blog/2026/10/x/")))
+        self.assertTrue(O.classify(story("Whitlock on Entitlement", source="The Blaze", link="https://www.theblaze.com/shows/x")))
+        self.assertTrue(O.classify(story("Some Headline", cats="News Opinion")))
+        self.assertFalse(O.classify(story("Pentagon Sends Hundreds of Troops South", source="Fox News",
+                                          link="https://www.foxnews.com/politics/x")))
+        self.assertFalse(O.classify(story("SCOTUS Hands the RNC Another Election Win", source="Townhall",
+                                          link="https://townhall.com/news/amy-curtis/2026/10/15/x")))

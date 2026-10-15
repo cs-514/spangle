@@ -13,6 +13,7 @@ from ranking import headline as headline_mod
 from ranking import lean
 import curators
 from ranking import coverage
+from ranking import opinion as opinion_mod
 
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/120 Safari/537.36 Spangle/1.0"}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -358,7 +359,9 @@ def place(clusters, settings, ctx):
     picked = apply_manual(picked, settings)
     manual = {id(x) for x in picked if x.get("manual")}
     ok_front = lambda x, slot: id(x) in manual or (not x.get("lifestyle") and not x.get("top_excluded") and fits(x, slot, settings, now))
-    lead = next((x for x in picked if ok_front(x, "lead")), None)
+    lead = next((x for x in picked if ok_front(x, "lead") and not x.get("opinion")), None)  # lead = reported news
+    if lead is None:
+        lead = next((x for x in picked if ok_front(x, "lead")), None)
     if lead is None:  # nothing fresh enough: the freshest dated, non-lifestyle story
         pool = [x for x in picked if x.get("when") and not x.get("lifestyle")] or picked
         lead = max(pool, key=lambda x: x["when"].timestamp() if x.get("when") else 0)
@@ -464,23 +467,25 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
         # a sibling may replace the story only if it also passes the slot's age limit
         cands = [x for x in candidates(s) if not x.get("paywalled")
                  and (x is s or settings is None or fits(x, sl, settings, now))] or [s]
+        if sl == "lead":  # the lead stays reported news: only non-opinion siblings when any exist
+            cands = [x for x in cands if not x.get("opinion")] or cands
         ranked = []
         for x in cands:
             cleaned, changed, bland, long = prep(x)
             # prefer: not bland, not too long, shorter, newer
-            ranked.append(((0 if bland else 1), (0 if long else 1), -len(cleaned),
+            ranked.append(((0 if bland else 1), (0 if x.get("opinion") else 1), (0 if long else 1), -len(cleaned),
                            x.get("when").timestamp() if x.get("when") else 0, x, cleaned, changed, bland, long))
         ranked.sort(reverse=True)
-        _a, _b, _c, _d, best, cleaned, changed, bland, long = ranked[0]
-        all_bland = all(r[7] for r in ranked)
-        all_long = all(r[8] for r in ranked)
+        _a, _o, _b, _c, _d, best, cleaned, changed, bland, long = ranked[0]
+        all_bland = all(r[8] for r in ranked)
+        all_long = all(r[9] for r in ranked)
         # if best is long but a shorter non-bland sibling exists, pick that
         if long:
-            shorter = [r for r in ranked if not r[7] and not r[8]]
+            shorter = [r for r in ranked if not r[8] and not r[9]]
             if shorter:
-                _a, _b, _c, _d, best, cleaned, changed, bland, long = shorter[0]
+                _a, _o, _b, _c, _d, best, cleaned, changed, bland, long = shorter[0]
         if best["link"] != s["link"]:
-            s["link"], s["title"], s["source"], s["opinion"] = best["link"], best["title"], best["source"], best.get("opinion", False)
+            s["link"], s["title"], s["source"], s["opinion"] = best["link"], best["title"], best["source"], bool(s.get("opinion") or best.get("opinion"))
             if best.get("when"):
                 s["when"] = best["when"]
             stats["swapped"] += 1
@@ -491,9 +496,9 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
         s["display"], s["original_title"] = cleaned, best["title"]
         if headline_mod.contentless(cleaned):
             # siblings with real content beat a bare name / fragment
-            alt = next((r for r in ranked if not headline_mod.contentless(r[5])), None)
+            alt = next((r for r in ranked if not headline_mod.contentless(r[6])), None)
             if alt:
-                best, cleaned = alt[4], alt[5]
+                best, cleaned = alt[5], alt[6]
                 s["link"], s["title"], s["source"] = best["link"], best["title"], best["source"]
                 s["display"], s["original_title"] = cleaned, best["title"]
             else:
@@ -510,7 +515,7 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
                                            "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
                     continue
         # queue only when still a problem after sibling pick
-        if all_bland or (bland and not any(not r[7] for r in ranked)):
+        if all_bland or (bland and not any(not r[8] for r in ranked)):
             stats["queued_bland"] += 1
             stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
                                    "reason": "bland",
@@ -519,7 +524,7 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
                 not headline_mod.too_long(headline_mod.shorten(s["display"], sty), sty):
             s["display"] = headline_mod.shorten(s["display"], sty)  # safe trims only, never truncation
             stats["shortened"] += 1
-        elif long or (all_long and not any(not r[8] for r in ranked)):
+        elif long or (all_long and not any(not r[9] for r in ranked)):
             # display stays full (no truncation); ask for a trim rewrite
             stats["queued_too_long"] += 1
             stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
@@ -645,7 +650,6 @@ def render(lead, top, cols, now, sources, settings):
     _sq = headline_mod.smartquotes if headline_mod.style().get("smart_quotes", True) else (lambda x: x)
     e = html.escape          # URLs / raw attributes
     t = lambda x: html.escape(_sq(x or ""))   # visible text (incl. title tooltips)
-    tag = settings["placement"]["opinion_tag"]
 
     def meta(s):
         if s.get("quote_item"):
@@ -653,10 +657,9 @@ def render(lead, top, cols, now, sources, settings):
         ts = s["when"].strftime("%b %-d, %H:%M UTC") if s["when"] else ""
         extra = s.get("outlets_n", 1) - 1
         more = f' · +{extra} outlet{"s" if extra > 1 else ""}' if extra > 0 else ""
-        op = '<span class="tag">Opinion</span> · ' if tag and s["opinion"] else ""
         arc = " · archived copy" if s.get("archived") else ""
         parts = " · ".join(x for x in (OUTLET(s), ts) if x)
-        return f'<div class="meta">{op}{t(parts)}{e(more)}{arc}</div>'
+        return f'<div class="meta">{t(parts)}{e(more)}{arc}</div>'
 
     def show(s):
         disp = s.get("display") or s["title"]
@@ -725,6 +728,8 @@ def main():
             continue
         seen.update({k, s["link"]}); seen_items[k] = seen_items[s["link"]] = s
         uniq.append(s)
+    for s in uniq:
+        s["opinion"] = opinion_mod.classify(s)  # internal only; never displayed
     clusters = coverage.cluster(uniq, settings["coverage"]["similarity_threshold"])
     print(f"{len(uniq)} stories in {len(clusters)} clusters; {sum(1 for c in clusters if len(c['outlets']) > 1)} multi-outlet")
     ranking.rank(clusters, settings, ctx)

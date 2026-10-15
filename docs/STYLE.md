@@ -43,9 +43,9 @@ Example: "A Trans Substitute Teacher Was Just Convicted for Threatening ‘Murde
 School" → "Trans Substitute Teacher Convicted for Threatening ‘Murder Spree’".
 
 ## Meta line
-Tag, then " · ", then the outlet's display name (never a raw domain such as "lifezette.com"), then
-the time, then "+N outlets" when other outlets ran the story: "OPINION · American Greatness · Oct 15,
-14:02 UTC · +3 outlets". The Quote of the Day shows a small QUOTE kicker above its headline, then the quote text, then the source line "Author · Work, locator".
+The outlet's display name (never a raw domain such as "lifezette.com"), then the time, then
+"+N outlets" when other outlets ran the story: "American Greatness · Oct 15, 14:02 UTC · +3 outlets".
+No Opinion tags (Drudge-style); no leading or doubled "·". The Quote of the Day shows a small QUOTE kicker above its headline, then the quote text, then the source line "Author · Work, locator".
 
 ## Abbreviations (use these when they shorten)
 
