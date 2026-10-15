@@ -45,7 +45,7 @@ class Render(unittest.TestCase):
 
     def test_meta(self):
         h = self.html()
-        self.assertIn("+2 outlets", h)
+        self.assertNotRegex(h, r"\+\d+ outlet")  # coverage counts are internal only
         self.assertNotIn("Opinion", h)  # Drudge-style: no opinion tag text anywhere on the page
         self.assertNotIn("OPINION", h)
         self.assertNotIn('<div class="meta"> · ', h)
