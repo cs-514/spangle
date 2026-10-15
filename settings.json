@@ -10,7 +10,8 @@
     "hackernews": 0.04,
     "x": 0.0,
     "amplifiers": 0.0,
-    "framing": 0.0
+    "framing": 0.0,
+    "niche": 0.08
   },
   "recency": {
     "half_life_hours": 8,
@@ -323,6 +324,76 @@
       "brand",
       "ad campaign",
       "local"
+    ]
+  },
+  "niche": {
+    "enabled": true,
+    "demotion": 0.4,
+    "sources": [
+      "Volokh Conspiracy",
+      "SCOTUSblog",
+      "Cato Institute",
+      "Heritage Foundation",
+      "AEI"
+    ],
+    "terms": [
+      "symposium",
+      "law review",
+      "book review",
+      "podcast episode",
+      "short circuit",
+      "today in supreme court history",
+      "jurisprudential",
+      "tribal supreme court project",
+      "cert. grant",
+      "certiorari grant",
+      "cert petition",
+      "amicus brief",
+      "oral argument preview",
+      "case preview",
+      "petitions to watch",
+      "relist",
+      "gvrs",
+      "grant, vacate",
+      "law professor",
+      "academic paper",
+      "working paper",
+      "policy analysis",
+      "research report:",
+      "footnotes",
+      "concluding thoughts",
+      "a note on",
+      "remarks at",
+      "speech at the",
+      "keynote"
+    ],
+    "national_hooks": [
+      "supreme court",
+      "scotus",
+      "ruling",
+      "decision",
+      "opinion",
+      "strikes down",
+      "upholds",
+      "blocks",
+      "injunction",
+      "nominee",
+      "confirmation",
+      "senate",
+      "congress",
+      "trump",
+      "biden",
+      "white house",
+      "election",
+      "border",
+      "immigration",
+      "second amendment",
+      "first amendment",
+      "abortion",
+      "dobbs",
+      "chevron",
+      "major questions",
+      "nationwide"
     ]
   }
 }

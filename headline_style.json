@@ -1,0 +1,187 @@
+{
+  "max_chars": 70,
+  "max_words": 12,
+  "abbreviations": [
+    [
+      "Supreme Court of the United States",
+      "SCOTUS"
+    ],
+    [
+      "U.S. Supreme Court",
+      "SCOTUS"
+    ],
+    [
+      "US Supreme Court",
+      "SCOTUS"
+    ],
+    [
+      "Supreme Court",
+      "SCOTUS"
+    ],
+    [
+      "Department of Justice",
+      "DOJ"
+    ],
+    [
+      "Justice Department",
+      "DOJ"
+    ],
+    [
+      "Federal Bureau of Investigation",
+      "FBI"
+    ],
+    [
+      "Department of Homeland Security",
+      "DHS"
+    ],
+    [
+      "Homeland Security",
+      "DHS"
+    ],
+    [
+      "Immigration and Customs Enforcement",
+      "ICE"
+    ],
+    [
+      "Customs and Border Protection",
+      "CBP"
+    ],
+    [
+      "Secretary of State",
+      "SEC/STATE"
+    ],
+    [
+      "Department of Defense",
+      "Pentagon"
+    ],
+    [
+      "Defense Department",
+      "Pentagon"
+    ],
+    [
+      "Federal Reserve",
+      "Fed"
+    ],
+    [
+      "Washington, D.C.",
+      "D.C."
+    ],
+    [
+      "Washington DC",
+      "D.C."
+    ],
+    [
+      "District of Columbia",
+      "D.C."
+    ],
+    [
+      "New York City",
+      "NYC"
+    ],
+    [
+      "United States of America",
+      "USA"
+    ],
+    [
+      "Vice President",
+      "VP"
+    ],
+    [
+      "Attorney General",
+      "AG"
+    ]
+  ],
+  "party_abbrev": [
+    [
+      "Republicans",
+      "GOP"
+    ],
+    [
+      "Republican Party",
+      "GOP"
+    ],
+    [
+      "Democrats",
+      "DEMS"
+    ],
+    [
+      "Democratic Party",
+      "DEMS"
+    ]
+  ],
+  "title_prefixes": [
+    "Opinion:",
+    "OPINION:",
+    "Analysis:",
+    "ANALYSIS:",
+    "Exclusive:",
+    "EXCLUSIVE:",
+    "Breaking:",
+    "BREAKING:",
+    "Watch:",
+    "WATCH:",
+    "Video:",
+    "VIDEO:",
+    "Report:",
+    "REPORT:",
+    "Editorial:",
+    "EDITORIAL:"
+  ],
+  "trailing_tags": [
+    "[WATCH]",
+    "[Watch]",
+    "[VIDEO]",
+    "[Video]",
+    "[OPINION]",
+    "[Opinion]",
+    "[EXCLUSIVE]",
+    "[Exclusive]",
+    "(OPINION)",
+    "(Opinion)"
+  ],
+  "trailing_site_sep": [
+    " | ",
+    " \u2014 ",
+    " \u2013 ",
+    " - "
+  ],
+  "filler_phrases": [
+    "Here's Why",
+    "Heres Why",
+    "Here Is Why",
+    "Everything We Know About",
+    "What to Know About",
+    "What You Need to Know About",
+    "A Closer Look At",
+    "A Closer Look at",
+    "The Truth About",
+    "Why It Matters That"
+  ],
+  "rewrite_triggers": {
+    "max_chars": 90,
+    "max_words": 15,
+    "academic_terms": [
+      "approach",
+      "framework",
+      "analysis",
+      "jurisprudential",
+      "symposium",
+      "considerations",
+      "perspectives",
+      "methodology",
+      "theoretical",
+      "interdisciplinary",
+      "scholarship",
+      "law review",
+      "book review",
+      "podcast episode",
+      "short circuit",
+      "today in supreme court history",
+      "project:",
+      "a note on",
+      "remarks on",
+      "reflections on"
+    ],
+    "needs_verb": true
+  }
+}

@@ -24,3 +24,7 @@ and metadata (Libre Franklin, a free revival of Franklin Gothic, which NYT uses 
 Retina fills). Other borrowed techniques: tracked small-caps sans section labels over a hairline rule, thin
 rules between items, a double rule under the masthead, roughly 19–22px headline sizes with 1.2–1.3 line-height, a
 constrained measure for the lead (about 22ch), near-black ink on white, and a 3 → 2 → 1 column grid as the screen narrows.
+
+## Headline style
+
+See [docs/STYLE.md](docs/STYLE.md). Display overrides live in `headline_overrides.json`.

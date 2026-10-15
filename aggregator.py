@@ -9,6 +9,7 @@ import ranking
 from ranking.util import canon
 from ranking import archive
 from ranking import lead as lead_mod
+from ranking import headline as headline_mod
 import curators
 from ranking import coverage
 
@@ -314,6 +315,74 @@ ICONS = ('<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type=
          '<link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="manifest.webmanifest">'
          '<meta name="apple-mobile-web-app-title" content="Spangle"><meta name="theme-color" content="#0A3161">')
 
+
+def decorate_headlines(lead, top, cols, clusters):
+    """For each placed story: prefer a non-bland sibling headline (and its URL),
+    always apply deterministic style cleanup, queue a rewrite only when every
+    candidate in the cluster is bland. Returns (lead, top, cols, stats)."""
+    by_id = {id(s): c for c in clusters for s in c["items"]}
+    # also index by link for stories that were copied/archived
+    by_link = {}
+    for c in clusters:
+        for s in c["items"]:
+            by_link[s["link"]] = c
+    stats = {"kept": 0, "swapped": 0, "queued": 0, "styled": 0, "override": 0, "queue": []}
+    placed = [lead] + top + [s for col in cols for s in col]
+
+    def candidates(s):
+        c = by_id.get(id(s)) or by_link.get(s["link"])
+        return list(c["items"]) if c else [s]
+
+    for s in placed:
+        # manual / AI override wins outright
+        ov = headline_mod.overrides()
+        url, base = s["link"], s["link"].split("?", 1)[0]
+        if (url in ov and ov[url]) or (base in ov and ov[base]):
+            disp = ov.get(url) or ov[base]
+            s["display"], s["original_title"] = disp, s["title"]
+            stats["override"] += 1
+            continue
+        cands = [x for x in candidates(s) if not x.get("paywalled")]
+        if not cands:
+            cands = [s]
+        # score: non-bland first, then shorter cleaned length, then higher source tier
+        tiers = {}  # filled below from settings at call site via closure? pass tiers
+        def score(x, sty):
+            cleaned, _ = headline_mod.clean(x["title"], sty)
+            bland = headline_mod.needs_rewrite(cleaned, sty)
+            return (0 if bland else 1, -len(cleaned), x.get("when").timestamp() if x.get("when") else 0)
+
+        sty = headline_mod.style()
+        ranked = sorted(cands, key=lambda x: score(x, sty), reverse=True)
+        best = ranked[0]
+        cleaned, changed = headline_mod.clean(best["title"], sty)
+        bland = headline_mod.needs_rewrite(cleaned, sty)
+        if bland and all(headline_mod.needs_rewrite(headline_mod.clean(x["title"], sty)[0], sty) for x in cands):
+            stats["queued"] += 1
+            stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
+                                   "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
+        elif best["link"] != s["link"]:
+            # swap to the punchier sibling's article
+            s["link"], s["title"], s["source"], s["opinion"] = best["link"], best["title"], best["source"], best.get("opinion", False)
+            if best.get("when"):
+                s["when"] = best["when"]
+            stats["swapped"] += 1
+        else:
+            stats["kept"] += 1
+        if changed:
+            stats["styled"] += 1
+        s["display"], s["original_title"] = cleaned, best["title"]
+    print(f"headlines: kept {stats['kept']}, swapped {stats['swapped']}, queued {stats['queued']}, "
+          f"styled {stats['styled']}, overrides {stats['override']}")
+    # persist queue for the box rewriter
+    try:
+        with open(os.path.join(HERE, "..", "rewrite_queue.json"), "w") as f:
+            json.dump({"generated": datetime.now(timezone.utc).isoformat(), "items": stats["queue"]}, f, indent=1)
+    except Exception as ex:
+        print(f"rewrite queue write skipped: {type(ex).__name__}")
+    return lead, top, cols, stats
+
+
 def render(lead, top, cols, now, sources, settings):
     e = html.escape
     tag = settings["placement"]["opinion_tag"]
@@ -326,14 +395,20 @@ def render(lead, top, cols, now, sources, settings):
         parts = " · ".join(x for x in (OUTLET(s), ts) if x)
         return f'<div class="meta">{op}{e(parts)}{e(more)}{arc}</div>'
 
+    def show(s):
+        disp = s.get("display") or s["title"]
+        orig = s.get("original_title") or s["title"]
+        title_attr = f' title="{e(orig)}"' if orig != disp else ""
+        return f'<a href="{e(s["link"])}" rel="noopener"{title_attr}>{e(disp)}</a>'
+
     def li(s):
-        return f'<li><a href="{e(s["link"])}" rel="noopener">{e(s["title"])}</a>{meta(s)}</li>'
+        return f'<li>{show(s)}{meta(s)}</li>'
 
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)
     return (f'<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<meta http-equiv="refresh" content="1800"><title>Spangle</title>{ICONS}{FONTS}<style>{CSS}</style></head><body><div class="wrap">'
             f'<header><h1 class="mast">Spangle</h1><div class="date">{now.strftime("%A, %B %-d, %Y")} · Updated {now.strftime("%H:%M")} UTC</div></header>'
-            f'<div class="lead"><a href="{e(lead["link"])}" rel="noopener">{e(lead["title"])}</a>{meta(lead)}</div>'
+            f'<div class="lead">{show(lead)}{meta(lead)}</div>'
             f'<div class="label">Top Stories</div><div class="top"><ul>{"".join(li(s) for s in top)}</ul></div>'
             f'<div class="label">More Headlines</div><div class="cols">{col_html}</div>'
             f'<footer>Every headline links to its original publisher. Free-to-read sources only. Updated hourly.<br>'
@@ -378,6 +453,7 @@ def main():
     ctx = {"now": now}
     ranking.rank(clusters, settings, ctx)
     lead, top, cols = place(clusters, settings, ctx)
+    lead, top, cols, _hl = decorate_headlines(lead, top, cols, clusters)
     allp = [lead] + top + [s for c in cols for s in c]
     sources = sorted({OUTLET(s) for s in allp if not s.get("archived")})
     os.makedirs("site", exist_ok=True)

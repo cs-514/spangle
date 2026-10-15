@@ -65,6 +65,37 @@ Picks have no timestamp, so recency uses `recency.undated_curated_score`. The bu
 | `similarity_threshold` | 0.34 | Headline similarity (IDF-weighted) needed to join a cluster. Lower merges more stories together. Higher splits them apart. |
 | `saturation_outlets` | 6 | Number of outlets at which the coverage score reaches 1.0 |
 
+## Headlines: style manual, overrides, rewrites
+
+See [STYLE.md](STYLE.md) for the living Drudge-style guide.
+
+- **`headline_style.json`:** machine-applicable rules (abbreviation replacements, banned filler,
+  trailing-tag stripping, max length). Applied deterministically to every displayed headline on every build.
+- **`headline_overrides.json`:** `{ "https://…/article": "Punchy Display Headline" }`. Wins over the
+  original (and over style cleanup). Public and fine to commit; it's just display text. The original
+  stays in the link's `title` attribute.
+- **Cluster sibling pick:** after placement, if the chosen outlet's headline is bland but another
+  free outlet in the same story-cluster has a punchier non-bland headline, Spangle displays (and links
+  to) that sibling instead. Only when *every* candidate is bland is the story queued for a rewrite.
+- **Box rewriter (hourly):** `/workspace/rewrite_queue.py` builds the site locally and writes
+  `/workspace/rewrite_queue.json`. The parent agent writes punchy replacements to
+  `/workspace/rewrites_done.json`, then runs `python3 /workspace/rewrite_queue.py apply` to commit
+  them as `headline_overrides.json` and trigger the workflow.
+
+## Niche demotion (`niche`)
+
+Scholarly / inside-baseball posts from configured sources (Volokh, SCOTUSblog, Cato, Heritage, AEI by
+default) are demoted unless the headline also hits a national hook. Tunable in `settings.json`:
+
+| key | default | meaning |
+|---|---|---|
+| `enabled` | true | |
+| `demotion` | 0.4 | Score (0–1) when flagged; 1.0 means no demotion |
+| `sources` | Volokh, SCOTUSblog, Cato, Heritage, AEI | |
+| `terms` | symposium, law review, book review, short circuit, jurisprudential, … | Triggers the demotion |
+| `national_hooks` | SCOTUS, ruling, nominee, Trump, border, … | Saves the story from demotion |
+| `weights.niche` | 0.08 | Ranking weight |
+
 ## `lead`: lead eligibility (`ranking/lead.py`)
 
 The lead slot needs a story that passes a **hard topic gate**, meets the **national-significance** minimums (enough outlets, at least one major outlet, a national topic, and a score of at least `sig_min`), and has a **lead signal** at or above `threshold`.
