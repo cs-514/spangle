@@ -127,3 +127,13 @@ class Truncated(unittest.TestCase):
         items = [story("Cut Off Headline Investigatio", 1, truncated=True), story("Whole Headline Here", 2)]
         lead, top, cols = A.place(T.clusters(items), T.settings(), {"now": NOW})
         self.assertEqual(lead["title"], "Whole Headline Here")
+
+
+class OverrideAfterSwap(unittest.TestCase):
+    def test_sibling_override_and_cut_sibling_avoided(self):
+        u = Truncated.U
+        lead = story("Ilhan Omar's husband snaps over rumors she fled US after federal immigration fraud raid", 1,
+                     link="https://www.foxnews.com/politics/x")
+        cut = story(Truncated.T, 1, link=u, source="Breitbart")
+        l, t, c, st = A.decorate_headlines(lead, [], [[], [], []], [{"items": [lead, cut]}])
+        self.assertNotIn("Investigatio", l["display"].split()[-1] + " ")  # never shows the cut-off form

@@ -453,7 +453,8 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
 
     def prep(x):
         cleaned, changed = headline_mod.clean(x["title"], sty)
-        return cleaned, changed, headline_mod.needs_rewrite(cleaned, sty) or bool(x.get("truncated")), \
+        cut = bool(x.get("truncated")) or headline_mod.truncated(x["title"], x["link"])
+        return cleaned, changed, headline_mod.needs_rewrite(cleaned, sty) or cut, \
             headline_mod.too_long(cleaned, sty)
 
     for s in placed:
@@ -495,6 +496,11 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
         if changed:
             stats["styled"] += 1
         s["display"], s["original_title"] = cleaned, best["title"]
+        fu, fb = s["link"], s["link"].split("?", 1)[0]
+        if ov.get(fu) or ov.get(fb):  # the swapped-in sibling has a hand-written headline
+            s["display"] = headline_mod.clean(ov.get(fu) or ov[fb], sty)[0]
+            stats["override"] += 1
+            continue
         if headline_mod.contentless(cleaned):
             # siblings with real content beat a bare name / fragment
             alt = next((r for r in ranked if not headline_mod.contentless(r[6])), None)
@@ -728,6 +734,7 @@ def main():
         seen.update({k, s["link"]}); seen_items[k] = seen_items[s["link"]] = s
         uniq.append(s)
     vocab = headline_mod.vocabulary(f'{x["title"]} {x.get("desc", "")}' for x in uniq)
+    headline_mod.VOCAB = vocab
     fixed = cut = 0
     for s in uniq:
         s["opinion"] = opinion_mod.classify(s)  # internal only; never displayed
