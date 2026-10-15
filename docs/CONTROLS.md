@@ -259,6 +259,8 @@ Public feeds are listed in `FEEDS` in `aggregator.py`. Additional feeds can come
 
 Feeds added Oct 2026: **Judicial Watch** (`judicialwatch.org/feed/`, press releases and blog; tier 0.8) and **O’Keefe Media Group** (tier 0.7). OMG has RSS turned off, so it is read from its public WordPress REST API (`format: "wp_json"`); posts in the paid "full-access" category (`exclude_categories: [210]`) are skipped, and the feed uses the feed-reader user agent because the site returns 403 to browser-like agents. Its posts are infrequent, so `max_age_hours` is 168 (the 36-hour column limit still applies at placement). Substack and Rumble were not used: the Substack feed is empty and Rumble has no feed.
 
+**Imprimis** (Hillsdale, `imprimis.hillsdale.edu/feed/`, tier 0.8, tagged Opinion) is monthly, so it has its own freshness window via feed options: `max_age_hours`/`column_age_hours` 840 (35 days: the current or most recent issue only; older archive pieces are excluded), `no_front` (never the lead or a Top Story), and `reserved_slot` (its freshest eligible piece always gets one column slot, replacing the lowest-ranked column item if the columns are full). A single-outlet monthly piece would otherwise never outrank same-day news. Any feed can use these options.
+
 ## `sources`
 | key | default | meaning |
 |---|---|---|

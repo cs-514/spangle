@@ -59,6 +59,10 @@ FEEDS = [
     # "full-access" posts (category 210) are skipped; the site 403s browser agents but serves feed readers.
     ("O’Keefe Media Group", "https://okeefemediagroup.com/wp-json/wp/v2/posts?per_page=20&_fields=date_gmt,link,title,excerpt,categories",
      False, FEED_UA, {"format": "wp_json", "exclude_categories": [210], "max_age_hours": 168}),
+    # Imprimis (Hillsdale) is monthly: only the current/most recent issue (<= 35 days), exempt from the
+    # 36h column limit, never lead/Top, and guaranteed one reserved column slot (see place()).
+    ("Imprimis", "https://imprimis.hillsdale.edu/feed/", True, FEED_UA,
+     {"max_age_hours": 840, "column_age_hours": 840, "no_front": True, "reserved_slot": True}),
     ("LifeZette", "https://www.lifezette.com/feed/", False),
     ("Courthouse News", "https://www.courthousenews.com/feed/", False),
     ("Not the Bee", "https://notthebee.com/feed", True),  # satirical commentary on real news
@@ -171,7 +175,9 @@ def fetch(feed, settings=None):
             continue
         if opts.get("byline") and opts["byline"].lower() not in (author or "").lower():
             continue
-        item = dict(max_age_hours=opts.get("max_age_hours"), title=title, link=link, desc=html.unescape(desc), author=author,
+        item = dict(max_age_hours=opts.get("max_age_hours"), column_age_hours=opts.get("column_age_hours"),
+                    no_front=bool(opts.get("no_front")), reserved_slot=bool(opts.get("reserved_slot")),
+                    title=title, link=link, desc=html.unescape(desc), author=author,
                     cats=cats, when=when, source=name, opinion=op_feed or "/opinion/" in link or "/commentary/" in link)
         if settings is not None and not lean.keep(item, name, settings, outlet=name, author=author):
             continue
@@ -296,7 +302,9 @@ def fits(s, slot, settings, now):
     lead_h, top_h, col_h = age_limits(settings)
     age = age_hours(s, now)
     if slot == "column":
-        return age is None or age < col_h
+        return age is None or age < (s.get("column_age_hours") or col_h)
+    if s.get("no_front"):
+        return False
     return age is not None and age < (lead_h if slot == "lead" else top_h)
 
 
@@ -358,6 +366,19 @@ def place(clusters, settings, ctx):
     top = [x for x in rest if ok_front(x, "top")][:n_top]
     top_ids = {id(x) for x in top}
     rest = [x for x in rest if id(x) not in top_ids][:pl["column_items"]]
+    # Reserved slot: a source flagged reserved_slot (e.g. monthly Imprimis) always gets its freshest
+    # eligible piece into the columns, replacing the lowest-ranked column item if needed.
+    for src in {x["source"] for c in clusters for x in c["items"] if x.get("reserved_slot")}:
+        if any(x["source"] == src for x in [lead] + top + rest):
+            continue
+        cands = [x for c in clusters if not c.get("dropped") for x in c["items"]
+                 if x["source"] == src and fits(x, "column", settings, now)]
+        if cands:
+            r = max(cands, key=lambda x: x["when"].timestamp() if x.get("when") else 0)
+            r.setdefault("outlets_n", 1)
+            if len(rest) >= pl["column_items"]:
+                rest.pop()
+            rest.append(r)
     life = [x for x in rest if x.get("lifestyle")][:life_cap]
     body = [x for x in rest if not x.get("lifestyle")]
     per = -(-len(body) // n_cols) if body else 0
