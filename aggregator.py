@@ -307,6 +307,7 @@ header{text-align:center;border-bottom:3px double var(--ink);padding:18px 0 10px
 .col li{padding:11px 0;border-bottom:1px solid var(--rule)}
 .col a{font-weight:600;font-size:19px;line-height:1.3;overflow:visible;text-overflow:clip;white-space:normal}
 .meta{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:5px;letter-spacing:.02em}
+.qt{font-family:var(--serif);font-style:italic;font-size:16.5px;line-height:1.4;color:var(--ink);margin-top:5px}
 .tag{font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;color:var(--red);margin-right:6px}
 footer{font-family:var(--sans);font-size:13px;color:var(--muted);border-top:3px double var(--ink);margin-top:36px;padding-top:14px;line-height:1.6}
 @media(max-width:900px){.cols{grid-template-columns:1fr 1fr}.col:nth-child(3){grid-column:1/-1;border-left:0;padding-left:0}}
@@ -435,6 +436,7 @@ def quote_as_story(q):
         "when": None,
         "opinion": False,
         "quote_item": True,
+        "quote_text": quote_text,
         "outlets_n": 1,
     }
 
@@ -482,6 +484,9 @@ def render(lead, top, cols, now, sources, settings):
         return f'<a href="{e(href)}" rel="noopener"{title_attr}>{t(disp)}</a>'
 
     def li(s):
+        if s.get("quote_item"):
+            body = f'<div class="qt">“{t(s.get("quote_text", ""))}”</div>' if s.get("quote_text") else ""
+            return f'<li>{show(s)}{body}{meta(s)}</li>'
         return f'<li>{show(s)}{meta(s)}</li>'
 
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)
