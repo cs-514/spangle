@@ -1,8 +1,10 @@
 """Amplifier signal: stories linked to or echoed by configured public feeds
 (e.g. a public figure's post archive RSS). Feed list and weights come from the
 private config key "amplifiers": [{"name", "url", "weight", "max_age_hours"}].
+Optional AMPLIFIER_ITEMS env var supplies a JSON list of
+[{"url", "text", "ts"}] posts (weight from private "amplifier_items_weight").
 Exact link match = full credit; strong headline-term overlap = partial credit."""
-import re, html, urllib.request
+import json, os, re, html, urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -31,18 +33,56 @@ def _posts(feed, timeout):
     return out
 
 
+def _items_from_env(max_age_hours=48):
+    raw = os.environ.get("AMPLIFIER_ITEMS", "").strip()
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+    except Exception:
+        print("  amplifier items: invalid JSON")
+        return []
+    if not isinstance(data, list):
+        print("  amplifier items: expected a JSON list")
+        return []
+    now = datetime.now(timezone.utc)
+    out = []
+    for it in data:
+        if not isinstance(it, dict):
+            continue
+        url = (it.get("url") or "").strip()
+        text = (it.get("text") or "").strip()
+        if not url and not text:
+            continue
+        ts = it.get("ts")
+        if ts:
+            try:
+                when = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+                if (now - when).total_seconds() > max_age_hours * 3600:
+                    continue
+            except Exception:
+                pass
+        links = {canon(url)} if url else set()
+        out.append((links, set(tokens(text or url))))
+    return out
+
+
 def compute(clusters, settings, ctx):
-    cfg = private.load(ctx).get("amplifiers", [])
-    if not cfg:
-        return None
+    cfg = private.load(ctx)
+    feed_cfg = cfg.get("amplifiers", [])
     timeout = settings.get("social", {}).get("timeout_seconds", 10)
     feeds, ok = [], 0
-    for i, f in enumerate(cfg):
+    for i, f in enumerate(feed_cfg):
         try:
             feeds.append((f.get("weight", 1.0), _posts(f, timeout))); ok += 1
             print(f"  amplifier feed {i + 1}: ok, {len(feeds[-1][1])} recent posts")
         except Exception as e:
             print(f"  amplifier feed {i + 1}: unavailable ({getattr(e, 'code', type(e).__name__)})")
+    items = _items_from_env(cfg.get("amplifier_items_max_age_hours", 48))
+    if items:
+        w = float(cfg.get("amplifier_items_weight", 1.0))
+        feeds.append((w, items)); ok += 1
+        print(f"  amplifier items: ok, {len(items)} recent posts")
     if not ok:
         return None
     total_w = sum(w for w, _ in feeds) or 1.0

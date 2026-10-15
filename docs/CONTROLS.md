@@ -168,6 +168,7 @@ Without it, generic defaults are used. To update it from the maintainer's machin
 
 ```
 gh secret set ALIGNMENT_CONFIG -R cs-514/spangle < /path/to/alignment_config.json
+gh secret set AMPLIFIER_ITEMS -R cs-514/spangle < /path/to/amplifier_items.json
 ```
 
 Schema (all keys optional):
@@ -183,6 +184,8 @@ Schema (all keys optional):
   "scale": 8,
   "signal_weights":  {"amplifiers": 0.15, "framing": 0.15},
   "amplifiers": [{"name": "label", "url": "https://example.com/feed.rss", "weight": 1.0, "max_age_hours": 48}],
+  "amplifier_items_weight": 1.0,
+  "amplifier_items_max_age_hours": 48,
   "framing": {"entities": ["entity"], "negative_terms": ["term"], "window_words": 6, "lead_exclude": true,
               "court": {"actors": ["court"], "actions": ["blocks"]}}
 }
@@ -194,5 +197,6 @@ Schema (all keys optional):
 - **`lead_topics`:** a phrase in the title adds `lead_topic_bonus`.
 - **`signal_weights`:** overrides the public `weights` for any signal.
 - **`amplifiers`:** public RSS feeds. A story whose URL a feed links to gets full credit; strong headline-term overlap gets half. Feeds that fail are skipped and logged only as `amplifier feed N`.
+- **`amplifier_items_weight` / `amplifier_items_max_age_hours`:** optional boost for posts supplied via the private `AMPLIFIER_ITEMS` Actions secret (JSON `[{"url","text","ts"}]`). Same match rules as RSS amplifiers; logged as `amplifier items`.
 - **`framing`:** a negative term within `window_words` of an entity, or a court actor plus an adverse action plus an entity anywhere in the headline, lowers the score. With `lead_exclude`, those stories are also kept out of the lead.
 - **`scale`:** the raw sum is squashed to 0–1 with `0.5 + 0.5*tanh(raw/scale)`. A larger scale gives a softer effect.

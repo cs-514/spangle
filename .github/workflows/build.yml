@@ -22,6 +22,7 @@ jobs:
       - name: Build site
         env:
           ALIGNMENT_CONFIG: ${{ secrets.ALIGNMENT_CONFIG }}
+          AMPLIFIER_ITEMS: ${{ secrets.AMPLIFIER_ITEMS }}
         run: python -u aggregator.py
       - uses: actions/upload-pages-artifact@v3
         with:
