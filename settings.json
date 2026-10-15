@@ -100,7 +100,12 @@
     "max_per_outlet_total": 5,
     "opinion_tag": true,
     "check_links": true,
-    "lead_respects_exclusions": true
+    "lead_respects_exclusions": true,
+    "quote_of_the_day": {
+      "enabled": true,
+      "column": 1,
+      "index": 7
+    }
   },
   "archive": {
     "enabled": true,

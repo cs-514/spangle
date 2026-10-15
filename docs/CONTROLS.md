@@ -67,17 +67,27 @@ Picks have no timestamp, so recency uses `recency.undated_curated_score`. The bu
 
 ## Quote of the Day
 
-One modest public editorial feature (independent of ranking), rendered after the columns /
-above the footer — never as dual top boxes. Subordinate to the news.
+One public editorial feature (independent of ranking). Rendered as a **regular column item**
+with the same markup as other headlines: a `QUOTE` tag (same style as `OPINION`) and a
+meta line `Author · Work, locator`. The link goes to `verification_url` when present; the
+full quote text is the link `title` tooltip. No separate quote box.
 
 | File | Apply script | Input scratch |
 |---|---|---|
 | `quote_of_the_day.json` | `/workspace/qotd.py apply` | `/workspace/qotd_today.json` |
 
-Schema: `date`, `headline`, `quote`, `author`, `work`, `locator`.
+Schema: `date`, `headline`, `quote`, `author`, `work`, `locator`, optional `verification_url`.
 Unified verified bank: `/workspace/qotd_bank.json` (extensible `authors[]` + `quotes[]`).
 Rotation: one author per day, no consecutive same author, no quote-id repeats
 (`python3 /workspace/qotd.py pick`). Usage: `/workspace/quote_used.json`. Prefer ≤60 words.
+
+Placement (in `settings.json` → `placement.quote_of_the_day`):
+
+| key | default | meaning |
+|---|---|---|
+| `enabled` | true | Insert the daily quote into a column |
+| `column` | 1 | 0-based column index (1 = middle of three) |
+| `index` | 7 | 0-based row within that column |
 
 Authors currently in the bank include C. S. Lewis, Thomas Sowell, Robert Bork, Antonin Scalia,
 George Washington, Ronald Reagan, and Abraham Lincoln. Public mentions of Bork/Scalia are limited

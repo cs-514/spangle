@@ -7,11 +7,23 @@
       "SCOTUS"
     ],
     [
+      "the U.S. Supreme Court",
+      "SCOTUS"
+    ],
+    [
+      "the US Supreme Court",
+      "SCOTUS"
+    ],
+    [
       "U.S. Supreme Court",
       "SCOTUS"
     ],
     [
       "US Supreme Court",
+      "SCOTUS"
+    ],
+    [
+      "the Supreme Court",
       "SCOTUS"
     ],
     [
@@ -189,5 +201,8 @@
     ],
     "needs_verb": true
   },
-  "strip_parentheticals": true
+  "strip_parentheticals": true,
+  "no_article_before": [
+    "SCOTUS"
+  ]
 }

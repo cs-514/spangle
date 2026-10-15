@@ -64,6 +64,9 @@ def clean(title, styl=None):
     for long, short in sty.get("abbreviations", []):
         t = re.sub(re.escape(long), short, t, flags=re.I)
     t = _party_abbrev(t, sty.get("party_abbrev", []))
+    # Never "the SCOTUS" — strip the article before listed tokens (case-insensitive).
+    for tok in sty.get("no_article_before", ["SCOTUS"]):
+        t = re.sub(rf"\bthe\s+{re.escape(tok)}\b", tok, t, flags=re.I)
     t = re.sub(r"\s+", " ", t).strip(" -–—:")
     return t, t != orig
 

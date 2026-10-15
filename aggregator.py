@@ -303,11 +303,6 @@ header{text-align:center;border-bottom:3px double var(--ink);padding:18px 0 10px
 .meta{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:5px;letter-spacing:.02em}
 .tag{font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;color:var(--red);margin-right:6px}
 footer{font-family:var(--sans);font-size:13px;color:var(--muted);border-top:3px double var(--ink);margin-top:36px;padding-top:14px;line-height:1.6}
-.qotd{margin:28px 0 0;padding:14px 16px 12px;border:1px solid var(--rule);border-radius:2px;max-width:36rem;margin-left:auto;margin-right:auto;text-align:left;background:#fafafa}
-.qotd .ql{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.14em;font-variant:small-caps;color:var(--muted);margin:0 0 6px}
-.qotd .qh{font-family:var(--display);font-weight:700;font-size:clamp(15px,2vw,18px);line-height:1.25;margin:0 0 8px;color:var(--ink)}
-.qotd blockquote{font-family:var(--serif);font-style:italic;font-size:clamp(14px,1.8vw,16px);line-height:1.4;margin:0 0 8px;color:var(--ink);font-weight:400}
-.qotd .qs{font-family:var(--sans);font-weight:600;font-size:11px;letter-spacing:.04em;color:var(--muted);margin:0}
 @media(max-width:900px){.cols{grid-template-columns:1fr 1fr}.col:nth-child(3){grid-column:1/-1;border-left:0;padding-left:0}}
 @media(max-width:620px){body{font-size:18px}.wrap{padding:0 16px 32px}.cols{grid-template-columns:1fr}.col{border-left:0;padding-left:0}.top a{font-size:21px}}
 """
@@ -345,7 +340,8 @@ def decorate_headlines(lead, top, cols, clusters):
         url, base = s["link"], s["link"].split("?", 1)[0]
         if (url in ov and ov[url]) or (base in ov and ov[base]):
             disp = ov.get(url) or ov[base]
-            s["display"], s["original_title"] = disp, s["title"]
+            cleaned, _ = headline_mod.clean(disp, sty)
+            s["display"], s["original_title"] = cleaned or disp, s["title"]
             stats["override"] += 1
             continue
         cands = [x for x in candidates(s) if not x.get("paywalled")] or [s]
@@ -409,12 +405,59 @@ def load_daily_quote(filename="quote_of_the_day.json"):
         return None
 
 
+def quote_as_story(q):
+    """Turn quote_of_the_day.json into a column item shaped like any other story."""
+    work = (q.get("work") or "").strip()
+    loc = (q.get("locator") or q.get("chapter_or_page") or "").strip()
+    if work and loc:
+        source = f"{q['author']} · {work}, {loc}"
+    elif work:
+        source = f"{q['author']} · {work}"
+    else:
+        source = q["author"]
+    quote_text = q["quote"].strip()
+    headline = (q.get("headline") or "").strip()
+    if not headline:
+        headline = quote_text if len(quote_text.split()) <= 12 else " ".join(quote_text.split()[:10])
+    link = (q.get("verification_url") or "").strip() or "#"
+    return {
+        "title": headline,
+        "display": headline,
+        "original_title": quote_text,
+        "link": link,
+        "source": source,
+        "when": None,
+        "opinion": False,
+        "quote_item": True,
+        "outlets_n": 1,
+    }
+
+
+def inject_quote(cols, settings):
+    """Insert the daily quote into a column at placement.quote_of_the_day.{column,index}."""
+    slot = (settings.get("placement") or {}).get("quote_of_the_day") or {}
+    if slot.get("enabled") is False:
+        return cols
+    q = load_daily_quote("quote_of_the_day.json")
+    if not q or not cols:
+        return cols
+    story = quote_as_story(q)
+    col_i = int(slot.get("column", 1))
+    idx = int(slot.get("index", 7))
+    col_i = max(0, min(col_i, len(cols) - 1))
+    idx = max(0, min(idx, len(cols[col_i])))
+    cols = [list(c) for c in cols]
+    cols[col_i].insert(idx, story)
+    return cols
+
+
 def render(lead, top, cols, now, sources, settings):
     e = html.escape
     tag = settings["placement"]["opinion_tag"]
-    quote = load_daily_quote("quote_of_the_day.json")
 
     def meta(s):
+        if s.get("quote_item"):
+            return f'<div class="meta"><span class="tag">Quote</span>{e(OUTLET(s))}</div>'
         ts = s["when"].strftime("%b %-d, %H:%M UTC") if s["when"] else ""
         more = f' · {s["outlets_n"]} outlets' if s.get("outlets_n", 1) > 1 else ""
         op = '<span class="tag">Opinion</span>' if tag and s["opinion"] else ""
@@ -425,35 +468,21 @@ def render(lead, top, cols, now, sources, settings):
     def show(s):
         disp = s.get("display") or s["title"]
         orig = s.get("original_title") or s["title"]
-        title_attr = f' title="{e(orig)}"' if orig != disp else ""
-        return f'<a href="{e(s["link"])}" rel="noopener"{title_attr}>{e(disp)}</a>'
+        # Always expose the full quote (or original title) on hover for quote items.
+        title_attr = f' title="{e(orig)}"' if orig and orig != disp else ""
+        href = s.get("link") or "#"
+        return f'<a href="{e(href)}" rel="noopener"{title_attr}>{e(disp)}</a>'
 
     def li(s):
         return f'<li>{show(s)}{meta(s)}</li>'
 
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)
-    quote_html = ""
-    if quote:
-        work = quote.get("work") or ""
-        loc = quote.get("locator") or quote.get("chapter_or_page") or ""
-        atr = e(quote["author"])
-        if work:
-            atr += f", {e(work)}"
-        if loc:
-            atr += f" · {e(loc)}"
-        quote_html = (
-            f'<aside class="qotd" aria-label="Quote of the Day">'
-            f'<div class="ql">Quote of the Day</div>'
-            f'<div class="qh">{e(quote.get("headline") or "")}</div>'
-            f'<blockquote>“{e(quote["quote"])}”</blockquote>'
-            f'<p class="qs">— {atr}</p></aside>')
     return (f'<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<meta http-equiv="refresh" content="1800"><title>Spangle</title>{ICONS}{FONTS}<style>{CSS}</style></head><body><div class="wrap">'
             f'<header><h1 class="mast">Spangle</h1><div class="date">{now.strftime("%A, %B %-d, %Y")} · Updated {now.strftime("%H:%M")} UTC</div></header>'
             f'<div class="lead">{show(lead)}{meta(lead)}</div>'
             f'<div class="label">Top Stories</div><div class="top"><ul>{"".join(li(s) for s in top)}</ul></div>'
             f'<div class="label">More Headlines</div><div class="cols">{col_html}</div>'
-            f'{quote_html}'
             f'<footer>Every headline links to its original publisher. Free-to-read sources only. Updated hourly.<br>'
             f'Sources: {e(", ".join(sources))}.</footer></div></body></html>')
 
@@ -497,6 +526,7 @@ def main():
     ranking.rank(clusters, settings, ctx)
     lead, top, cols = place(clusters, settings, ctx)
     lead, top, cols, _hl = decorate_headlines(lead, top, cols, clusters)
+    cols = inject_quote(cols, settings)
     allp = [lead] + top + [s for c in cols for s in c]
     sources = sorted({OUTLET(s) for s in allp if not s.get("archived")})
     os.makedirs("site", exist_ok=True)

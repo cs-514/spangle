@@ -60,6 +60,20 @@ When trimming by hand or AI:
 
 Prefer the short form only when it is clear in context. "GOP Senators Pass Bill" is fine; "GOP" alone as a subject usually is too.
 
+### SCOTUS — never "the SCOTUS"
+
+**Never put "the" before SCOTUS.** Write `SCOTUS`, not `the SCOTUS`.
+
+Deterministic cleanup in `headline_style.json` (applied to every displayed headline and override):
+
+| From | To |
+|---|---|
+| the Supreme Court / The Supreme Court | SCOTUS |
+| the U.S. Supreme Court / U.S. Supreme Court | SCOTUS |
+| the SCOTUS / The SCOTUS | SCOTUS |
+
+Examples: *DOGE Gets Its Day at SCOTUS* · *Kamala: DEMS Will Pack SCOTUS* · *SCOTUS Crushes DEM Challenges*.
+
 ## Patterns to prefer
 
 - **X Does Y To Z.** "FBI Seizes Omar Phone in Immigration Raid"
