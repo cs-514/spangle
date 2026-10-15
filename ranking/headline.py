@@ -292,6 +292,7 @@ def _slug_words(url):
 
 
 def truncated(title, url="", vocab=None):
+    vocab = vocab if vocab is not None else VOCAB
     """True if a source title looks cut off: ends with an ellipsis, ends mid-word (dangling hyphen
     or apostrophe), or its last word is a strict prefix of a word in the URL slug, or the slug's
     last word itself is cut off at the same point (e.g. "...Fraud Investigatio" / "...-investigatio/")."""
@@ -455,6 +456,9 @@ def title_case(title, sty=None):
         cap = "-".join(p[:1].upper() + p[1:] for p in core.split("-"))
         out.append(lead + cap + trail)
     return " ".join(out)
+
+
+VOCAB = {}  # today's word counts, set by the build
 
 
 def vocabulary(titles):
