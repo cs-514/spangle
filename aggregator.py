@@ -206,6 +206,9 @@ def best_item(c, tiers, default):
 def place(clusters, settings):
     pl, tiers, d = settings["placement"], settings["sources"]["tiers"], settings["sources"]["default_tier"]
     count, out, budget = {}, [], [0]
+    if pl.get("lead_respects_exclusions", True):  # promote the best non-excluded cluster to the lead slot
+        i = next((i for i, c in enumerate(clusters) if not c.get("lead_excluded")), 0)
+        clusters = [clusters[i]] + clusters[:i] + clusters[i + 1:]
     want = 1 + pl["top_stories"] + pl["column_items"]
     for c in clusters:
         if len(out) >= want:

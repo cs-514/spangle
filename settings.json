@@ -8,7 +8,9 @@
     "google_news": 0.08,
     "reddit": 0.08,
     "hackernews": 0.04,
-    "x": 0.0
+    "x": 0.0,
+    "amplifiers": 0.0,
+    "framing": 0.0
   },
   "recency": {
     "half_life_hours": 8,
@@ -94,7 +96,8 @@
     "max_per_outlet_top": 1,
     "max_per_outlet_total": 5,
     "opinion_tag": true,
-    "check_links": true
+    "check_links": true,
+    "lead_respects_exclusions": true
   },
   "archive": {
     "enabled": true,

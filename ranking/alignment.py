@@ -41,7 +41,8 @@ def raw_score(s, cfg):
     return sc
 
 def compute(clusters, settings, ctx):
-    cfg = ctx.setdefault("alignment_cfg", load())
+    from . import private
+    cfg = dict(DEFAULT); cfg.update(private.load(ctx))
     scale = cfg.get("scale", 8)
     out = {}
     for c in clusters:

@@ -25,6 +25,8 @@ Keep the file valid JSON: double quotes, and no trailing commas.
 | `coverage` | 0.25 | How many distinct outlets ran the story |
 | `source` | 0.10 | Tier of the best outlet in the cluster |
 | `alignment` | 0.20 | Editorial alignment from the private config (see below) |
+| `amplifiers` | 0.0 | Stories linked to or echoed by configured public feeds (feed list in the private config) |
+| `framing` | 0.0 | Headline framing toward configured entities (lexicon in the private config). It also marks clusters to keep out of the lead. |
 | `curated_by_aggregators` | 0.15 | A human-curated aggregator (Bongino Report) currently links to the story |
 | `google_news` | 0.08 | Number of Google News results for the story's key terms in the past day (keyless) |
 | `reddit` | 0.08 | Score and comments on posts linking to the story in conservative subreddits (keyless) |
@@ -96,6 +98,7 @@ Feeds are listed in `FEEDS` in `aggregator.py`. A feed can carry options: `bylin
 | `max_per_outlet_top` | 1 | Maximum items per outlet in the lead and Top Stories |
 | `max_per_outlet_total` | 5 | Maximum items per outlet on the whole page |
 | `opinion_tag` | true | Shows a small "Opinion" tag, but only for opinion-only feeds (Fox News Opinion, NY Post Opinion, Volokh Conspiracy, Cato op-eds and blog, private feed, Not the Bee) or `/opinion/` and `/commentary/` URLs, which catches Heritage commentary. Heritage reports and SCOTUSblog are treated as news. |
+| `lead_respects_exclusions` | true | Keeps clusters flagged by the framing signal out of the lead slot |
 | `check_links` | true | Checks each chosen link for a 200 response with no paywall marker |
 
 ## `archive`: archive fallback for paywalled originals (on by default)
@@ -158,7 +161,11 @@ Schema (all keys optional):
   "sources":         {"Outlet Name": 2},
   "lead_topics":     ["phrase"],
   "lead_topic_bonus": 4,
-  "scale": 8
+  "scale": 8,
+  "signal_weights":  {"amplifiers": 0.15, "framing": 0.15},
+  "amplifiers": [{"name": "label", "url": "https://example.com/feed.rss", "weight": 1.0, "max_age_hours": 48}],
+  "framing": {"entities": ["entity"], "negative_terms": ["term"], "window_words": 6, "lead_exclude": true,
+              "court": {"actors": ["court"], "actions": ["blocks"]}}
 }
 ```
 
@@ -166,4 +173,7 @@ Schema (all keys optional):
 - **`authors`:** matched against the feed's author field.
 - **`sources`:** matched against the feed name.
 - **`lead_topics`:** a phrase in the title adds `lead_topic_bonus`.
+- **`signal_weights`:** overrides the public `weights` for any signal.
+- **`amplifiers`:** public RSS feeds. A story whose URL a feed links to gets full credit; strong headline-term overlap gets half. Feeds that fail are skipped and logged only as `amplifier feed N`.
+- **`framing`:** a negative term within `window_words` of an entity, or a court actor plus an adverse action plus an entity anywhere in the headline, lowers the score. With `lead_exclude`, those stories are also kept out of the lead.
 - **`scale`:** the raw sum is squashed to 0–1 with `0.5 + 0.5*tanh(raw/scale)`. A larger scale gives a softer effect.

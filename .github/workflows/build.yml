@@ -13,6 +13,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,7 +22,7 @@ jobs:
       - name: Build site
         env:
           ALIGNMENT_CONFIG: ${{ secrets.ALIGNMENT_CONFIG }}
-        run: python aggregator.py
+        run: python -u aggregator.py
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
