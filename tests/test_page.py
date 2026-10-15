@@ -1,0 +1,78 @@
+import json, os, tempfile, unittest
+from _helpers import ROOT, NOW, story
+import aggregator as A
+from ranking import headline
+
+
+class QuotePlacement(unittest.TestCase):
+    def test_slot(self):
+        cols = [[story(f"c{c}-{i}") for i in range(10)] for c in range(3)]
+        s = {"placement": {"quote_of_the_day": {"enabled": True, "column": 1, "index": 7}}}
+        out = A.inject_quote(cols, s)
+        self.assertTrue(out[1][7].get("quote_item"))
+        self.assertEqual(sum(1 for c in out for x in c if x.get("quote_item")), 1)
+
+    def test_stale_file_falls_back_to_bank(self):
+        d = tempfile.mkdtemp()
+        json.dump({"date": "2000-01-01", "quote": "Stale.", "author": "X", "headline": "Stale"}, open(f"{d}/q.json", "w"))
+        old, A.HERE = A.HERE, d
+        try:
+            json.dump({"quotes": [{"id": "p1", "quote": "Fresh primary quote here.", "author": "Y", "work": "W",
+                                   "verification_url": "https://example.org", "verified": True, "source_type": "primary"},
+                                  {"id": "s1", "quote": "Secondary.", "author": "Z", "verified": False, "source_type": "secondary"}]},
+                      open(f"{d}/b.json", "w"))
+            q = A.load_daily_quote("q.json", today="2026-10-15", bank_file="b.json")
+        finally:
+            A.HERE = old
+        self.assertEqual(q["author"], "Y")
+        self.assertEqual(q["date"], "2026-10-15")
+
+    def test_repo_bank_is_primary_only(self):
+        b = json.load(open(f"{ROOT}/qotd_bank.json"))["quotes"]
+        self.assertTrue(b)
+        for q in b:
+            self.assertTrue(q["verified"])
+            self.assertNotIn("wikiquote", q["verification_url"])
+            self.assertNotIn("azquotes", q["verification_url"])
+
+
+class Render(unittest.TestCase):
+    def html(self):
+        lead = story("Lead Story", 1, outlets_n=3)
+        top = [story("Top Opinion", 2, opinion=True)]
+        q = A.quote_as_story({"quote": "Q text.", "author": "George Washington", "work": "Farewell Address"})
+        return A.render(lead, top, [[q], [], []], NOW, [], {"placement": {"opinion_tag": True}})
+
+    def test_meta(self):
+        h = self.html()
+        self.assertIn("+2 outlets", h)
+        self.assertIn('<span class="tag">Opinion</span> · ', h)
+        # QUOTE kicker sits above the headline; source line stays below the quote text
+        k, a, qt, src = (h.index('<div class="kicker"><span class="tag">Quote</span></div>'), h.index('>Q text.<') if '>Q text.<' in h else h.index('Q text.'),
+                         h.index('<div class="qt">'), h.index('George Washington · Farewell Address'))
+        self.assertTrue(k < a <= qt < src)
+        self.assertNotIn('<span class="tag">Quote</span> · ', h)
+        self.assertIn("All rights belong to their respective publishers. © 2026 Spangle", h)
+
+
+class Shorten(unittest.TestCase):
+    def test_trims(self):
+        t = "A Trans Substitute Teacher Was Just Convicted for Threatening ‘Murder Spree’ at Virginia High School"
+        s = headline.shorten(t)
+        self.assertLessEqual(len(s), 70)
+        self.assertTrue(s.startswith("Trans Substitute Teacher Convicted"))
+        self.assertNotIn("…", s)
+
+    def test_noop_when_short(self):
+        self.assertEqual(headline.shorten("Senate Passes Bill"), "Senate Passes Bill")
+
+
+class Outlets(unittest.TestCase):
+    def test_no_raw_domains(self):
+        items = [story("x", source="lifezette.com"), story("y", source="hollywoodintoto.com")]
+        A.display_outlets(items)
+        self.assertEqual([i["source"] for i in items], ["LifeZette", "Hollywood in Toto"])
+
+
+if __name__ == "__main__":
+    unittest.main()
