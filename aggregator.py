@@ -16,7 +16,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 FEED_UA = {"User-Agent": "Feedly/1.0 (+http://www.feedly.com/fetcher.html; compatible; Spangle/1.0)"}
 
-# (name, url, opinion_only_feed[, headers])
+# (name, url, opinion_only_feed[, headers[, options]])
+# options: byline filter, max_age_hours override, substack_free_only
 FEEDS = [
     ("The Federalist", "https://thefederalist.com/feed/", False),
     ("Daily Wire", "https://www.dailywire.com/feeds/rss.xml", False),
@@ -45,6 +46,13 @@ FEEDS = [
     ("Cato Institute", "https://www.cato.org/rss/recent-opeds", True, FEED_UA),
     ("Cato Institute", "https://www.cato.org/rss/blog", True, FEED_UA),
     ("Heritage Foundation", "https://www.heritage.org/rss", False, FEED_UA),
+    ("AEI", "https://www.aei.org/feed/", False, FEED_UA),
+    # AEI author pages have no working feed; use AEI's site-search feed filtered to the byline.
+    # Author output is infrequent, so items stay eligible longer.
+    ("AEI", "https://example.invalid/private-feed", False, FEED_UA, {"byline": "private feed", "max_age_hours": 336}),
+    # Substack: paid-only posts are skipped (checked via the public post API).
+    ("private feed", "https://example.invalid/private-feed", True, UA, {"substack_free_only": True, "max_age_hours": 168}),
+    ("LifeZette", "https://www.lifezette.com/feed/", False),
 ]
 
 # Paywalled feeds: ingested ONLY when archive fallback is on. They count toward cross-outlet
@@ -106,6 +114,7 @@ DC = "{http://purl.org/dc/elements/1.1/}"
 def fetch(feed):
     name, url, op_feed = feed[:3]
     headers = feed[3] if len(feed) > 3 else UA
+    opts = feed[4] if len(feed) > 4 else {}
     try:
         data = urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=25).read()
         root = ET.fromstring(data)
@@ -123,10 +132,26 @@ def fetch(feed):
         author = txt(it, f"{DC}creator", "author", f"{A}author/{A}name")
         cats = " ".join((c.text or c.get("term") or "") for c in it.findall("category") + it.findall(f"{A}category"))
         when = parse_date(txt(it, "pubDate", f"{DC}date", f"{A}updated", f"{A}published"))
-        out.append(dict(title=title, link=link, desc=html.unescape(desc), author=author,
+        if opts.get("substack_free_only") and not substack_free(link):
+            continue
+        if opts.get("byline") and opts["byline"].lower() not in (author or "").lower():
+            continue
+        out.append(dict(max_age_hours=opts.get("max_age_hours"), title=title, link=link, desc=html.unescape(desc), author=author,
                         cats=cats, when=when, source=name, opinion=op_feed or "/opinion/" in link or "/commentary/" in link))
     print(f"FEED OK {name}: {len(out)} items")
     return out
+
+def substack_free(link):
+    """True only if Substack's public post API says the post is open to everyone."""
+    p = urllib.parse.urlparse(link)
+    slug = p.path.rstrip("/").split("/p/")[-1]
+    try:
+        d = json.loads(urllib.request.urlopen(urllib.request.Request(
+            f"{p.scheme}://{p.netloc}/api/v1/posts/{slug}", headers=UA), timeout=10).read())
+        return d.get("audience") == "everyone"
+    except Exception:
+        return False
+
 
 def url_ok(s):
     try:
@@ -305,7 +330,7 @@ def main():
         s["paywalled"] = is_paywalled_domain(s["link"])
         if s["paywalled"] and not settings.get("archive", {}).get("enabled"):
             continue
-        if s["when"] and (now - s["when"]).total_seconds() > max_age:
+        if s["when"] and (now - s["when"]).total_seconds() > (s.get("max_age_hours") or max_age / 3600) * 3600:
             continue
         seen.update({k, s["link"]}); seen_items[k] = seen_items[s["link"]] = s
         uniq.append(s)

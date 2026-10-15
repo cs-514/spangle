@@ -52,7 +52,10 @@
       "SCOTUSblog": 0.9,
       "Volokh Conspiracy": 0.85,
       "Cato Institute": 0.85,
-      "Heritage Foundation": 0.85
+      "Heritage Foundation": 0.85,
+      "AEI": 0.85,
+      "private feed": 0.75,
+      "LifeZette": 0.55
     }
   },
   "social": {

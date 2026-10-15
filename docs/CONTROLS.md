@@ -63,11 +63,15 @@ Picks have no timestamp, so recency uses `recency.undated_curated_score`. The bu
 | `similarity_threshold` | 0.34 | Headline similarity (IDF-weighted) needed to join a cluster. Lower merges more stories together. Higher splits them apart. |
 | `saturation_outlets` | 6 | Number of outlets at which the coverage score reaches 1.0 |
 
+## Feeds
+
+Feeds are listed in `FEEDS` in `aggregator.py`. A feed can carry options: `byline` keeps only items whose author contains that text (used for AEI's search feed filtered to one author), and `max_age_hours` overrides `recency.max_age_hours` for infrequent writers (the AEI author feed uses 336, which is 14 days). `substack_free_only` checks each Substack post through Substack's public post API and skips paid-only posts (used for private feed's Substack, which is treated as opinion).
+
 ## `sources`
 | key | default | meaning |
 |---|---|---|
 | `default_tier` | 0.5 | Tier for any feed not listed |
-| `tiers` | per outlet, 0.5–0.9 (legal analysis rated high: SCOTUSblog 0.9, Volokh Conspiracy 0.85; think tanks Cato Institute 0.85, Heritage Foundation 0.85) | Source weight (0–1). It also decides which outlet's link represents a cluster. |
+| `tiers` | per outlet, 0.5–0.9 (legal analysis rated high: SCOTUSblog 0.9, Volokh Conspiracy 0.85; think tanks Cato Institute 0.85, Heritage Foundation 0.85, AEI 0.85) | Source weight (0–1). It also decides which outlet's link represents a cluster. |
 
 ## `social`
 | key | default | meaning |
