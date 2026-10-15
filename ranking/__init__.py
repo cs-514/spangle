@@ -1,8 +1,8 @@
 """Pluggable ranking engine. Each signal module exposes NAME and
 compute(clusters, settings, ctx) -> {cluster_id: score in [0,1]} or None if unavailable."""
-from . import recency, coverage, source, alignment, social_gnews, social_reddit, social_hn, social_x
+from . import curated, recency, coverage, source, alignment, social_gnews, social_reddit, social_hn, social_x
 
-BASE = [recency, coverage, source, alignment]
+BASE = [recency, coverage, source, alignment, curated]
 SOCIAL = [social_gnews, social_reddit, social_hn, social_x]
 
 

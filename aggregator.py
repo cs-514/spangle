@@ -5,7 +5,9 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 import ranking
+from ranking.util import canon
 from ranking import archive
+import curators
 from ranking import coverage
 
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/120 Safari/537.36 Spangle/1.0"}
@@ -243,7 +245,8 @@ def render(lead, top, cols, now, sources, settings):
         more = f' · {s["outlets_n"]} outlets' if s.get("outlets_n", 1) > 1 else ""
         op = '<span class="tag">Opinion</span>' if tag and s["opinion"] else ""
         arc = " · archived copy" if s.get("archived") else ""
-        return f'<div class="meta">{op}{e(OUTLET(s))} · {e(ts)}{e(more)}{arc}</div>'
+        parts = " · ".join(x for x in (OUTLET(s), ts) if x)
+        return f'<div class="meta">{op}{e(parts)}{e(more)}{arc}</div>'
 
     def li(s):
         return f'<li><a href="{e(s["link"])}" rel="noopener">{e(s["title"])}</a>{meta(s)}</li>'
@@ -266,18 +269,31 @@ def main():
     with cf.ThreadPoolExecutor(12) as ex:
         feeds = FEEDS + (PAYWALLED_FEEDS if settings.get("archive", {}).get("enabled") and settings["archive"].get("ingest_paywalled_feeds") else [])
         stories = [s for batch in ex.map(fetch, feeds) for s in batch]
-    seen, uniq = set(), []
+    # Curated aggregator picks: mark matching feed items, add the rest as original-URL items.
+    by_link = {canon(s["link"]): s for s in stories}
+    added = marked = 0
+    for c in curators.fetch_all(settings):
+        hit = by_link.get(canon(c["link"]))
+        if hit:
+            hit["curated"] = hit.get("curated", []) + c["curated"]; marked += 1
+        else:
+            stories.append(c); by_link[canon(c["link"])] = c; added += 1
+    print(f"curated picks: {marked} matched feed items, {added} added as new originals")
+    seen, uniq, seen_items = set(), [], {}
     max_age = settings["recency"]["max_age_hours"] * 3600
     for s in stories:
         k = norm(s["title"])
         if k in seen or s["link"] in seen:
+            first = seen_items.get(k) or seen_items.get(s["link"])
+            if first is not None and s.get("curated"):
+                first["curated"] = first.get("curated", []) + s["curated"]
             continue
         s["paywalled"] = is_paywalled_domain(s["link"])
         if s["paywalled"] and not settings.get("archive", {}).get("enabled"):
             continue
         if s["when"] and (now - s["when"]).total_seconds() > max_age:
             continue
-        seen.update({k, s["link"]})
+        seen.update({k, s["link"]}); seen_items[k] = seen_items[s["link"]] = s
         uniq.append(s)
     clusters = coverage.cluster(uniq, settings["coverage"]["similarity_threshold"])
     print(f"{len(uniq)} stories in {len(clusters)} clusters; {sum(1 for c in clusters if len(c['outlets']) > 1)} multi-outlet")

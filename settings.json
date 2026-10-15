@@ -4,6 +4,7 @@
     "coverage": 0.25,
     "source": 0.1,
     "alignment": 0.2,
+    "curated_by_aggregators": 0.15,
     "google_news": 0.08,
     "reddit": 0.08,
     "hackernews": 0.04,
@@ -11,7 +12,8 @@
   },
   "recency": {
     "half_life_hours": 8,
-    "max_age_hours": 72
+    "max_age_hours": 72,
+    "undated_curated_score": 0.7
   },
   "coverage": {
     "similarity_threshold": 0.34,
@@ -40,7 +42,13 @@
       "RedState": 0.55,
       "The American Conservative": 0.65,
       "First Things": 0.7,
-      "Christian Post": 0.6
+      "Christian Post": 0.6,
+      "Newsmax": 0.65,
+      "American Greatness": 0.6,
+      "NewsBusters": 0.55,
+      "The Post Millennial": 0.6,
+      "Washington Times": 0.65,
+      "Twitchy": 0.5
     }
   },
   "social": {
@@ -93,5 +101,14 @@
   "manual_links": {
     "enabled": true,
     "file": "manual_links.json"
+  },
+  "curators": {
+    "bongino_report": {
+      "enabled": true,
+      "url": "https://bonginoreport.com/"
+    }
+  },
+  "curated": {
+    "saturation_curators": 1
   }
 }

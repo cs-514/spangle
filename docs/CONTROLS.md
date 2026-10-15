@@ -25,6 +25,7 @@ Keep the file valid JSON: double quotes, and no trailing commas.
 | `coverage` | 0.25 | How many distinct outlets ran the story |
 | `source` | 0.10 | Tier of the best outlet in the cluster |
 | `alignment` | 0.20 | Editorial alignment from the private config (see below) |
+| `curated_by_aggregators` | 0.15 | A human-curated aggregator (Bongino Report) currently links to the story |
 | `google_news` | 0.08 | Number of Google News results for the story's key terms in the past day (keyless) |
 | `reddit` | 0.08 | Score and comments on posts linking to the story in conservative subreddits (keyless) |
 | `hackernews` | 0.04 | HN points and comments for the URL (keyless; rarely fires on political news) |
@@ -37,6 +38,24 @@ Set a weight to `0` to turn that signal off.
 |---|---|---|
 | `half_life_hours` | 8 | Hours for the recency score to halve |
 | `max_age_hours` | 72 | Items older than this are dropped |
+
+## `curators` / `curated`: aggregator picks (Bongino Report)
+
+Bongino Report's own RSS feed (`/feed`) only lists its in-house clips. So Spangle reads the homepage
+(`curators.bongino_report.url`, default `https://bonginoreport.com/`) and pulls out its headline links. Each one is resolved
+to the **original publisher URL**; Spangle never links to bonginoreport.com. Picks that match a feed item mark that item
+as curated. Other picks are added as new items under the original outlet's name (Newsmax, American Greatness, and so on).
+Paywall rules still apply: paywalled domains are never linked directly, and only an existing archive snapshot can stand in.
+Picks have no timestamp, so recency uses `recency.undated_curated_score`. The build log prints
+`CURATOR OK Bongino Report: N original links` and `curated picks: X matched, Y added`.
+
+| key | default | meaning |
+|---|---|---|
+| `curators.bongino_report.enabled` | true | Turns the source on or off |
+| `curators.bongino_report.url` | https://bonginoreport.com/ | Page to read |
+| `curated.saturation_curators` | 1 | Number of curators linking to a story at which the signal reaches 1.0 |
+| `recency.undated_curated_score` | 0.7 | Recency score for undated curated picks |
+| `weights.curated_by_aggregators` | 0.15 | Signal weight. Set it to 0 to keep the links but drop the boost. |
 
 ## `coverage`
 | key | default | meaning |
