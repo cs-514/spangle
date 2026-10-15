@@ -21,6 +21,23 @@ OUTLETS = {
     "americanthinker.com": "American Thinker", "city-journal.org": "City Journal", "thefp.com": "The Free Press",
     "spectator.org": "The American Spectator", "realclearmarkets.com": "RealClearMarkets",
     "realclearworld.com": "RealClearWorld", "realclearinvestigations.com": "RealClearInvestigations",
+    "lifezette.com": "LifeZette", "hollywoodintoto.com": "Hollywood in Toto", "westernjournal.com": "The Western Journal",
+    "bizpacreview.com": "BizPac Review", "thegatewaypundit.com": "The Gateway Pundit", "dailymail.co.uk": "Daily Mail",
+    "foxbusiness.com": "Fox Business", "outkick.com": "OutKick", "apnews.com": "AP", "reuters.com": "Reuters",
+    "cbsnews.com": "CBS News", "nbcnews.com": "NBC News", "abcnews.go.com": "ABC News", "cnn.com": "CNN",
+    "politico.com": "Politico", "thehill.com": "The Hill", "axios.com": "Axios", "mrctv.org": "MRCTV",
+    "cnsnews.com": "CNS News", "catholicvote.org": "CatholicVote", "lifenews.com": "LifeNews", "cbn.com": "CBN News",
+    "campusreform.org": "Campus Reform", "thecollegefix.com": "The College Fix", "unherd.com": "UnHerd",
+    "semafor.com": "Semafor", "nationalpost.com": "National Post", "dailywire.com": "Daily Wire",
+    "notthebee.com": "Not the Bee", "courthousenews.com": "Courthouse News", "scotusblog.com": "SCOTUSblog",
+    "reason.com": "Reason", "cato.org": "Cato Institute", "heritage.org": "Heritage Foundation", "aei.org": "AEI",
+    "washingtonpost.com": "Washington Post", "wsj.com": "Wall Street Journal", "nytimes.com": "New York Times",
+    "theepochtimes.com": "The Epoch Times", "newsweek.com": "Newsweek", "foxnews.com": "Fox News",
+    "dailycallernewsfoundation.org": "Daily Caller News Foundation", "conservativebrief.com": "Conservative Brief",
+    "insidesources.com": "InsideSources", "thenationalpulse.com": "The National Pulse", "humanevents.com": "Human Events",
+    "thedispatch.com": "The Dispatch", "freebeacon.com": "Washington Free Beacon", "pjmedia.com": "PJ Media",
+    "summit.news": "Summit News", "modernity.news": "Modernity", "rumble.com": "Rumble", "youtube.com": "YouTube",
+    "x.com": "X", "twitter.com": "X", "truthsocial.com": "Truth Social",
 }
 
 
@@ -30,6 +47,12 @@ def outlet_name(url):
         if host == d or host.endswith("." + d):
             return n
     return host
+
+
+def pretty_host(host):
+    """Last-resort display name for an unknown domain: "some-site.com" -> "Some Site"."""
+    label = host.split(".")[-2] if host.count(".") >= 1 else host
+    return " ".join(w.capitalize() for w in label.replace("-", " ").split()) or host
 
 
 def fetch_bongino(cfg):

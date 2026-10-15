@@ -197,6 +197,48 @@ def too_long(title, styl=None):
     return len(title) > sty.get("max_chars", 70) or len(words) > sty.get("max_words", 12)
 
 
+_FILLER = re.compile(r"\b(?:Just|Now|Officially|Actually|Literally|Even)\s+(?=\S)")
+_AUX = re.compile(r"\b(?:Was|Were|Is|Are|Has Been|Have Been)\s+(?=[A-Za-z]+ed\b)")
+_PREP = re.compile(r"\s(?:at|in|on|after|amid|over|during|near|from|with|despite|following|as|across|outside|inside|before|into|against|amid)\s", re.I)
+
+
+def shorten(title, styl=None):
+    """Deterministic, meaning-preserving trims for over-long headlines (never truncation, no ellipsis).
+    Applied in order until the headline fits max_chars/max_words: parentheticals, leading article,
+    filler adverbs, passive auxiliaries ("Was Convicted" -> "Convicted"), a dash/colon tail, then
+    the shortest trailing prepositional phrase or comma clause that makes it fit (>= 6 words kept).
+    Returns the input unchanged if nothing safe applies."""
+    sty = styl or style()
+    fits = lambda t: not too_long(t, sty)
+    t = title.strip()
+    steps = [lambda x: re.sub(r"\s*\([^)]*\)", "", x),
+             lambda x: re.sub(r"^(?:A|An|The)\s+(?=\S)", "", x),
+             lambda x: _FILLER.sub("", x),
+             lambda x: _AUX.sub("", x)]
+    for f in steps:
+        if fits(t):
+            break
+        t = re.sub(r"\s{2,}", " ", f(t)).strip()
+    if not fits(t):
+        for sep in (" — ", " – ", " | ", ": "):
+            if sep in t:
+                left = t.split(sep, 1)[0].strip()
+                if len(left.split()) >= 4 and not contentless(left):
+                    t = left
+                    break
+    if not fits(t):
+        cuts = [m.start() for m in _PREP.finditer(t)] + [m.start() for m in re.finditer(r",\s", t)]
+        for pos in sorted(cuts, reverse=True):  # smallest removal first
+            cand = t[:pos].rstrip(" ,;:")
+            if len(cand.split()) >= 6 and fits(cand) and not contentless(cand):
+                t = cand
+                break
+    t = t.rstrip(" ,;:")
+    if t == title.strip():
+        return title
+    return clean(t, sty)[0] or title
+
+
 def needs_rewrite(title, styl=None):
     """Bland / academic / no-verb detector (does NOT include length — use too_long)."""
     sty = (styl or style()).get("rewrite_triggers", {})
