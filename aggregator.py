@@ -14,7 +14,9 @@ from ranking import coverage
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/120 Safari/537.36 Spangle/1.0"}
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# (name, url, opinion_only_feed)
+FEED_UA = {"User-Agent": "Feedly/1.0 (+http://www.feedly.com/fetcher.html; compatible; Spangle/1.0)"}
+
+# (name, url, opinion_only_feed[, headers])
 FEEDS = [
     ("The Federalist", "https://thefederalist.com/feed/", False),
     ("Daily Wire", "https://www.dailywire.com/feeds/rss.xml", False),
@@ -39,6 +41,10 @@ FEEDS = [
     ("Just the News", "https://justthenews.com/rss.xml", False),
     ("SCOTUSblog", "https://www.scotusblog.com/feed/", False),
     ("Volokh Conspiracy", "https://reason.com/volokh/feed/", True),
+    # Cato and Heritage return 403 to browser-like agents but serve feed readers.
+    ("Cato Institute", "https://www.cato.org/rss/recent-opeds", True, FEED_UA),
+    ("Cato Institute", "https://www.cato.org/rss/blog", True, FEED_UA),
+    ("Heritage Foundation", "https://www.heritage.org/rss", False, FEED_UA),
 ]
 
 # Paywalled feeds: ingested ONLY when archive fallback is on. They count toward cross-outlet
@@ -98,9 +104,10 @@ A = "{http://www.w3.org/2005/Atom}"
 DC = "{http://purl.org/dc/elements/1.1/}"
 
 def fetch(feed):
-    name, url, op_feed = feed
+    name, url, op_feed = feed[:3]
+    headers = feed[3] if len(feed) > 3 else UA
     try:
-        data = urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=25).read()
+        data = urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=25).read()
         root = ET.fromstring(data)
     except Exception as e:
         print(f"FEED FAIL {name}: {e!r}"[:160])
@@ -117,7 +124,7 @@ def fetch(feed):
         cats = " ".join((c.text or c.get("term") or "") for c in it.findall("category") + it.findall(f"{A}category"))
         when = parse_date(txt(it, "pubDate", f"{DC}date", f"{A}updated", f"{A}published"))
         out.append(dict(title=title, link=link, desc=html.unescape(desc), author=author,
-                        cats=cats, when=when, source=name, opinion=op_feed or "/opinion/" in link))
+                        cats=cats, when=when, source=name, opinion=op_feed or "/opinion/" in link or "/commentary/" in link))
     print(f"FEED OK {name}: {len(out)} items")
     return out
 
