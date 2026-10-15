@@ -446,6 +446,39 @@
       "chevron",
       "major questions",
       "nationwide"
+    ],
+    "drop": true,
+    "drop_terms": [
+      "project",
+      "symposium",
+      "series",
+      "podcast",
+      "tribal",
+      "episode",
+      "roundup",
+      "reading list",
+      "book club",
+      "seminar",
+      "colloquium",
+      "conference"
+    ],
+    "drop_hooks": [
+      "trump",
+      "biden",
+      "strikes down",
+      "upholds",
+      "blocks",
+      "rules",
+      "ruling",
+      "injunction",
+      "nominee",
+      "confirmation",
+      "election",
+      "border",
+      "immigration",
+      "abortion",
+      "second amendment",
+      "first amendment"
     ]
   },
   "lean_filter": {

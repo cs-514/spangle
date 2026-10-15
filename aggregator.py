@@ -250,6 +250,10 @@ def place(clusters, settings, ctx):
         i = next((i for i, c in enumerate(clusters) if not c.get("lead_excluded")), 0)
         clusters = [clusters[i]] + clusters[:i] + clusters[i + 1:]
     clusters = lead_mod.order_for_lead(clusters, settings, ctx)
+    clusters = [c for c in clusters if not c.get("dropped")]
+    if clusters:  # retreat top_exclude: keep the lead, push flagged stories after everything else
+        clusters = [clusters[0]] + [c for c in clusters[1:] if not c.get("top_excluded")] \
+            + [c for c in clusters[1:] if c.get("top_excluded")]
     want = 1 + pl["top_stories"] + pl["column_items"]
     for c in clusters:
         if len(out) >= want:
@@ -496,8 +500,8 @@ def render(lead, top, cols, now, sources, settings):
             f'<div class="lead">{show(lead)}{meta(lead)}</div>'
             f'<div class="label">Top Stories</div><div class="top"><ul>{"".join(li(s) for s in top)}</ul></div>'
             f'<div class="label">More Headlines</div><div class="cols">{col_html}</div>'
-            f'<footer>Every headline links to its original publisher. Free-to-read sources only. Updated hourly.<br>'
-            f'Sources: {t(", ".join(sources))}.</footer></div></body></html>')
+            f'<footer>Links to original reporting. All rights belong to their respective publishers. © {now.year} Spangle</footer>'
+            f'</div></body></html>')
 
 
 def main():

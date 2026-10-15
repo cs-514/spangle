@@ -1,6 +1,6 @@
 """Retreat signal: demotes stories where configured actors back down / walk back /
 rule out / cave. Lexicons live in the private config key "retreat":
-  {"actors": [...], "verbs": [...], "demotion": 0.35, "lead_exclude": true}
+  {"actors": [...], "verbs": [...], "demotion": 0.35, "lead_exclude": true, "top_exclude": true}
 Returns 1.0 (fine) or demotion (flagged). Sets c["lead_excluded"] when lead_exclude."""
 import re
 from . import private
@@ -8,7 +8,7 @@ NAME = "retreat"
 
 
 def _hit(title, actors, verbs, win):
-    words = re.findall(r"[a-z0-9'.-]+", title.lower())
+    words = re.findall(r"[a-z0-9'.-]+", title.lower().replace("’", "'").replace("‘", "'"))
     text = " ".join(words)
     apos = []
     for a in actors:
@@ -37,6 +37,8 @@ def compute(clusters, settings, ctx):
             out[c["id"]] = demotion
             if cfg.get("lead_exclude", True):
                 c["lead_excluded"] = True
+            if cfg.get("top_exclude", False):
+                c["top_excluded"] = True  # placed after all unflagged stories (out of Top Stories, bottom of columns)
         else:
             out[c["id"]] = 1.0
     print(f"signal retreat: {n} clusters flagged")

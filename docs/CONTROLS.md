@@ -93,6 +93,13 @@ Authors currently in the bank include C. S. Lewis, Thomas Sowell, Robert Bork, A
 George Washington, Ronald Reagan, and Abraham Lincoln. Public mentions of Bork/Scalia are limited
 to this quote feature and are never tied to ranking/alignment.
 
+## Niche drop
+
+`niche.drop: true` removes a story from the page entirely when its source is a niche source and
+its title contains a `drop_terms` entry (project, symposium, series, podcast, tribal, ...) but no
+`drop_hooks` entry (national hooks, stricter than `national_hooks`, so "Supreme Court" alone does
+not save it). Other niche matches are only demoted.
+
 ## Lean filter (`lean_filter`)
 
 Per-source keep rule for sources that publish both sides. `sources` maps a source name to
