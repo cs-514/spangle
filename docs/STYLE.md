@@ -74,6 +74,16 @@ Deterministic cleanup in `headline_style.json` (applied to every displayed headl
 
 Examples: *DOGE Gets Its Day at SCOTUS* · *Kamala: DEMS Will Pack SCOTUS* · *SCOTUS Crushes DEM Challenges*.
 
+## Smart quotes — always curly
+
+All displayed text (headlines, overrides, rewrites, Quote of the Day headline/text/tooltip,
+attribution, meta lines) uses curly quotes ‘ ’ “ ”, never straight ' ". `smartquotes()` in
+`ranking/headline.py` runs **after** all other style rules (toggle: `"smart_quotes": true` in
+`headline_style.json`). Rules: apostrophes in words and leading elisions (’90s, ’em, ’tis) → ’;
+quotes after start/space/([{—/– open (‘ “); everything else closes (’ ”). HTML entities
+(`&#39;`, `&quot;`) are decoded first; only text is transformed, never URLs or attribute names.
+Tests: `python3 -m unittest tests/test_smartquotes.py`.
+
 ## Patterns to prefer
 
 - **X Does Y To Z.** "FBI Seizes Omar Phone in Immigration Raid"

@@ -4,7 +4,7 @@ plus optional display overrides from headline_overrides.json / manual pins.
 Never truncates. Over-long cleaned headlines are flagged for a TRIM rewrite
 (see needs_trim / decorate_headlines); they still display in full until overridden.
 """
-import json, os, re
+import html as _html, json, os, re
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _STYLE = None
@@ -68,7 +68,61 @@ def clean(title, styl=None):
     for tok in sty.get("no_article_before", ["SCOTUS"]):
         t = re.sub(rf"\bthe\s+{re.escape(tok)}\b", tok, t, flags=re.I)
     t = re.sub(r"\s+", " ", t).strip(" -–—:")
+    if sty.get("smart_quotes", True):
+        t = smartquotes(t)
     return t, t != orig
+
+
+_OPENERS = set(" \t\n([{—–-/“‘\u00a0")
+_ELISIONS = ("em", "tis", "twas", "n", "cause", "til", "bout", "round", "nuff")
+
+
+def smartquotes(text):
+    """Straight ' and " -> curly. Decodes entities (&#39; &quot; &#x27;) first.
+    Operates on plain text; escape for HTML afterwards. Idempotent."""
+    if not text:
+        return text
+    s = _html.unescape(text) if "&" in text else text
+    out = []
+    n = len(s)
+    for i, ch in enumerate(s):
+        if ch not in "'\"":
+            out.append(ch); continue
+        prev = out[-1] if out else None
+        nxt = s[i + 1] if i + 1 < n else None
+        opening = prev is None or prev in _OPENERS
+        if ch == "'":
+            if not opening:
+                out.append("’")                       # contraction / possessive / closing
+            elif nxt and nxt.isdigit():
+                out.append("’")                       # '90s
+            elif any(s[i + 1:i + 1 + len(w)].lower() == w and
+                     (i + 1 + len(w) >= n or not s[i + 1 + len(w)].isalpha()) for w in _ELISIONS):
+                out.append("’")                       # 'em, 'tis
+            elif nxt is None or nxt.isspace():
+                out.append("’")
+            else:
+                out.append("‘")
+        else:
+            out.append("“" if opening and nxt is not None and not nxt.isspace() else "”")
+    return "".join(out)
+
+
+def smartquotes_html(markup):
+    """Apply smartquotes to text nodes only (never tags/attributes/URLs)."""
+    parts = re.split(r"(<[^>]*>)", markup)
+    skip = False
+    for k, part in enumerate(parts):
+        if part.startswith("<"):
+            low = part.lower()
+            if low.startswith(("<script", "<style")):
+                skip = True
+            elif low.startswith(("</script", "</style")):
+                skip = False
+            continue
+        if part and not skip:
+            parts[k] = _html.escape(smartquotes(part), quote=False)
+    return "".join(parts)
 
 
 def too_long(title, styl=None):

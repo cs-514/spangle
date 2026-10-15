@@ -204,5 +204,6 @@
   "strip_parentheticals": true,
   "no_article_before": [
     "SCOTUS"
-  ]
+  ],
+  "smart_quotes": true
 }

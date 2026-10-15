@@ -452,26 +452,28 @@ def inject_quote(cols, settings):
 
 
 def render(lead, top, cols, now, sources, settings):
-    e = html.escape
+    _sq = headline_mod.smartquotes if headline_mod.style().get("smart_quotes", True) else (lambda x: x)
+    e = html.escape          # URLs / raw attributes
+    t = lambda x: html.escape(_sq(x or ""))   # visible text (incl. title tooltips)
     tag = settings["placement"]["opinion_tag"]
 
     def meta(s):
         if s.get("quote_item"):
-            return f'<div class="meta"><span class="tag">Quote</span>{e(OUTLET(s))}</div>'
+            return f'<div class="meta"><span class="tag">Quote</span>{t(OUTLET(s))}</div>'
         ts = s["when"].strftime("%b %-d, %H:%M UTC") if s["when"] else ""
         more = f' · {s["outlets_n"]} outlets' if s.get("outlets_n", 1) > 1 else ""
         op = '<span class="tag">Opinion</span>' if tag and s["opinion"] else ""
         arc = " · archived copy" if s.get("archived") else ""
         parts = " · ".join(x for x in (OUTLET(s), ts) if x)
-        return f'<div class="meta">{op}{e(parts)}{e(more)}{arc}</div>'
+        return f'<div class="meta">{op}{t(parts)}{e(more)}{arc}</div>'
 
     def show(s):
         disp = s.get("display") or s["title"]
         orig = s.get("original_title") or s["title"]
         # Always expose the full quote (or original title) on hover for quote items.
-        title_attr = f' title="{e(orig)}"' if orig and orig != disp else ""
+        title_attr = f' title="{t(orig)}"' if orig and orig != disp else ""
         href = s.get("link") or "#"
-        return f'<a href="{e(href)}" rel="noopener"{title_attr}>{e(disp)}</a>'
+        return f'<a href="{e(href)}" rel="noopener"{title_attr}>{t(disp)}</a>'
 
     def li(s):
         return f'<li>{show(s)}{meta(s)}</li>'
@@ -484,7 +486,7 @@ def render(lead, top, cols, now, sources, settings):
             f'<div class="label">Top Stories</div><div class="top"><ul>{"".join(li(s) for s in top)}</ul></div>'
             f'<div class="label">More Headlines</div><div class="cols">{col_html}</div>'
             f'<footer>Every headline links to its original publisher. Free-to-read sources only. Updated hourly.<br>'
-            f'Sources: {e(", ".join(sources))}.</footer></div></body></html>')
+            f'Sources: {t(", ".join(sources))}.</footer></div></body></html>')
 
 
 def main():
