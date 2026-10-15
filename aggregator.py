@@ -347,7 +347,7 @@ def place(clusters, settings, ctx):
             continue
         # freshest coverage first among equal tiers, so a live story shows its latest report
         alts = sorted([x for x in free if count.get(OUTLET(x), 0) < cap],
-                      key=lambda x: (tiers.get(x["source"], d), x["when"].timestamp() if x["when"] else 0), reverse=True)
+                      key=lambda x: (not x.get("truncated"), tiers.get(x["source"], d), x["when"].timestamp() if x["when"] else 0), reverse=True)
         s = next((x for x in alts[:2] if x.get("archived") or not pl["check_links"] or url_ok(x)), None)
         if s is None:
             continue
@@ -359,9 +359,9 @@ def place(clusters, settings, ctx):
     picked = apply_manual(picked, settings)
     manual = {id(x) for x in picked if x.get("manual")}
     ok_front = lambda x, slot: id(x) in manual or (not x.get("lifestyle") and not x.get("top_excluded") and fits(x, slot, settings, now))
-    lead = next((x for x in picked if ok_front(x, "lead") and not x.get("opinion")), None)  # lead = reported news
+    lead = next((x for x in picked if ok_front(x, "lead") and not x.get("opinion") and not x.get("truncated")), None)  # lead = reported news
     if lead is None:
-        lead = next((x for x in picked if ok_front(x, "lead")), None)
+        lead = next((x for x in picked if ok_front(x, "lead") and not x.get("truncated")), None)
     if lead is None:  # nothing fresh enough: the freshest dated, non-lifestyle story
         pool = [x for x in picked if x.get("when") and not x.get("lifestyle")] or picked
         lead = max(pool, key=lambda x: x["when"].timestamp() if x.get("when") else 0)
@@ -453,7 +453,8 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
 
     def prep(x):
         cleaned, changed = headline_mod.clean(x["title"], sty)
-        return cleaned, changed, headline_mod.needs_rewrite(cleaned, sty), headline_mod.too_long(cleaned, sty)
+        return cleaned, changed, headline_mod.needs_rewrite(cleaned, sty) or bool(x.get("truncated")), \
+            headline_mod.too_long(cleaned, sty)
 
     for s in placed:
         url, base = s["link"], s["link"].split("?", 1)[0]
@@ -728,8 +729,17 @@ def main():
             continue
         seen.update({k, s["link"]}); seen_items[k] = seen_items[s["link"]] = s
         uniq.append(s)
+    vocab = headline_mod.vocabulary(x["title"] for x in uniq)
+    fixed = cut = 0
     for s in uniq:
         s["opinion"] = opinion_mod.classify(s)  # internal only; never displayed
+        if headline_mod.truncated(s["title"], s["link"], vocab):  # cut-off source title
+            r = headline_mod.repair_truncated(s["title"], s["link"], vocab)
+            if r:
+                s["title"] = r; fixed += 1
+            else:
+                s["truncated"] = True; cut += 1  # siblings preferred; queued; never the lead
+    print(f"headlines: {fixed} cut-off titles repaired, {cut} left flagged")
     clusters = coverage.cluster(uniq, settings["coverage"]["similarity_threshold"])
     print(f"{len(uniq)} stories in {len(clusters)} clusters; {sum(1 for c in clusters if len(c['outlets']) > 1)} multi-outlet")
     ranking.rank(clusters, settings, ctx)
