@@ -38,6 +38,7 @@ OUTLETS = {
     "thedispatch.com": "The Dispatch", "freebeacon.com": "Washington Free Beacon", "pjmedia.com": "PJ Media",
     "summit.news": "Summit News", "modernity.news": "Modernity", "rumble.com": "Rumble", "youtube.com": "YouTube",
     "judicialwatch.org": "Judicial Watch", "okeefemediagroup.com": "O’Keefe Media Group",
+    "imprimis.hillsdale.edu": "Imprimis",
     "x.com": "X", "twitter.com": "X", "truthsocial.com": "Truth Social",
 }
 

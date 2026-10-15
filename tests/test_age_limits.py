@@ -56,3 +56,27 @@ class AgeLimits(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MonthlyReserved(unittest.TestCase):
+    def imp(self, title, hours):
+        return story(title, hours, source="Imprimis", opinion=True, column_age_hours=840, no_front=True, reserved_slot=True,
+                     link="https://imprimis.hillsdale.edu/" + title.lower().replace(" ", "-") + "/")
+
+    def test_window_and_slots(self):
+        s = settings()
+        cur, old = self.imp("The Rise of Democratic Socialism", 24 * 10), self.imp("Why We Shouldn't Cancel the Supreme Court", 24 * 44)
+        self.assertTrue(A.fits(cur, "column", s, NOW))
+        self.assertFalse(A.fits(old, "column", s, NOW))
+        self.assertFalse(A.fits(self.imp("Fresh Imprimis", 1), "lead", s, NOW))
+        self.assertFalse(A.fits(self.imp("Fresh Imprimis", 1), "top", s, NOW))
+
+    def test_reserved_slot_reaches_columns(self):
+        news = [story(f"News {i}", 1 + i / 10) for i in range(20)]  # fills every slot
+        cur, old = self.imp("The Rise of Democratic Socialism", 24 * 10), self.imp("Old Archive Piece", 24 * 44)
+        lead, top, cols = A.place(clusters(news + [old, cur]), settings(), {"now": NOW})
+        flat = [x["title"] for c in cols for x in c]
+        self.assertIn("The Rise of Democratic Socialism", flat)
+        self.assertNotIn("Old Archive Piece", flat)
+        self.assertNotEqual(lead["source"], "Imprimis")
+        self.assertFalse(any(x["source"] == "Imprimis" for x in top))
