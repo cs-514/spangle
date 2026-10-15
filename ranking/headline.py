@@ -309,6 +309,10 @@ def truncated(title, url="", vocab=None):
     if slug and slug[-1] != last and slug[-1].startswith(last) and t.split()[-1].lower().strip("’'\"") != slug[-1] \
             and len(slug[-1]) > len(last) + 1 and last in [re.sub(r"[^a-z0-9]", "", x.lower()) for x in t.split()[-1:]]:
         return True  # slug finishes the title's last word ("...Immigra" / "-immigration")
+    prev = re.sub(r"[^a-z0-9]", "", t.split()[-2].lower()) if len(t.split()) > 1 else ""
+    if prev and any(slug[i] == prev and slug[i + 1] != last and slug[i + 1].startswith(last)
+                    and len(slug[i + 1]) > len(last) + 1 for i in range(len(slug) - 1)):
+        return True  # same, mid-slug: "...Votes on Immigra" / "votes-on-immigration-bill"
     # cut-off word: rare in today's headlines while a longer word starting with it is common
     # ("Investigatio" vs "Investigation"); vocab = word counts across all of today's titles
     # slug cut at the same point: a word that never appears in today's titles or descriptions except
@@ -329,6 +333,10 @@ def repair_truncated(title, url="", vocab=None):
     last = re.sub(r"[^a-z0-9]", "", words[-1].lower())
     sl = _slug_words(url)
     full = sl[-1] if sl and sl[-1] != last and sl[-1].startswith(last) and len(last) >= 3 else None
+    prev = re.sub(r"[^a-z0-9]", "", words[-2].lower()) if len(words) > 1 else ""
+    if not full and prev:
+        full = next((sl[i + 1] for i in range(len(sl) - 1) if sl[i] == prev and sl[i + 1] != last
+                     and sl[i + 1].startswith(last) and len(last) >= 3), None)
     if not full and vocab:
         cands = [(n, w) for w, n in vocab.items() if w.startswith(last) and 0 < len(w) - len(last) <= 2 and n >= 3]
         full = max(cands)[1] if cands else None
