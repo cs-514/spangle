@@ -32,6 +32,21 @@ When trimming by hand or AI:
 - Example: *This Condescending, Preachy, Woke Political Lecture Brought to You by Ticketmaster*
   → *Condescending, Preachy, Woke Political Lectures from TicketMaster*
 
+### Automatic shortening (before queueing)
+Headlines over 70 characters or 12 words get safe, meaning-preserving trims in this order, stopping as
+soon as the headline fits: drop parentheticals; drop a leading "A/An/The"; drop filler adverbs (Just,
+Now, Officially, Actually, Literally, Even); drop passive auxiliaries ("Was Convicted" → "Convicted");
+keep the part before a dash or colon if it stands alone; finally cut the shortest trailing
+prepositional phrase or comma clause that makes it fit (at least 6 words stay). Never an ellipsis, never
+a mid-phrase cut. If nothing safe works, the full headline shows and goes to the rewrite queue.
+Example: "A Trans Substitute Teacher Was Just Convicted for Threatening ‘Murder Spree’ at Virginia High
+School" → "Trans Substitute Teacher Convicted for Threatening ‘Murder Spree’".
+
+## Meta line
+Tag, then " · ", then the outlet's display name (never a raw domain such as "lifezette.com"), then
+the time, then "+N outlets" when other outlets ran the story: "OPINION · American Greatness · Oct 15,
+14:02 UTC · +3 outlets". The Quote of the Day shows a small QUOTE kicker above its headline, then the quote text, then the source line "Author · Work, locator".
+
 ## Abbreviations (use these when they shorten)
 
 | Write | For |
