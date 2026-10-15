@@ -11,7 +11,9 @@
     "x": 0.0,
     "amplifiers": 0.0,
     "framing": 0.0,
-    "niche": 0.08
+    "niche": 0.08,
+    "retreat": 0.0,
+    "outrage": 0.0
   },
   "recency": {
     "half_life_hours": 8,

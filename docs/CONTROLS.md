@@ -247,6 +247,8 @@ Schema (all keys optional):
   "amplifiers": [{"name": "label", "url": "https://example.com/feed.rss", "weight": 1.0, "max_age_hours": 48}],
   "amplifier_items_weight": 1.0,
   "amplifier_items_max_age_hours": 48,
+  "outrage": {"terms": ["..."], "intensity": ["..."], "scale": 2.5},
+  "retreat": {"actors": ["..."], "verbs": ["rules out","walks back"], "demotion": 0.3, "lead_exclude": true},
   "lead": {"threshold": 0.4, "win_terms": ["..."], "win_entities": ["..."], "outrage_terms": ["..."], "intensity_terms": ["..."]},
   "framing": {"entities": ["entity"], "negative_terms": ["term"], "window_words": 6, "lead_exclude": true,
               "court": {"actors": ["court"], "actions": ["blocks"]}}
@@ -260,5 +262,7 @@ Schema (all keys optional):
 - **`signal_weights`:** overrides the public `weights` for any signal.
 - **`amplifiers`:** public RSS feeds. A story whose URL a feed links to gets full credit; strong headline-term overlap gets half. Feeds that fail are skipped and logged only as `amplifier feed N`.
 - **`amplifier_items_weight` / `amplifier_items_max_age_hours`:** optional boost for posts supplied via the private `AMPLIFIER_ITEMS` Actions secret (JSON `[{"url","text","ts","weight"}]`; `weight` is optional per item, and items with the same weight are grouped as one source). Same match rules as RSS amplifiers; logged as `amplifier items`.
+- **`outrage`:** term + intensity lists that boost stories (witch hunt, overreach, lawfare, …). Weight via `signal_weights.outrage`.
+- **`retreat`:** actors + verbs for "backing down" headlines. Flagged stories get the demotion score (default 0.3) and, with `lead_exclude`, are kept out of the lead.
 - **`framing`:** a negative term within `window_words` of an entity, or a court actor plus an adverse action plus an entity anywhere in the headline, lowers the score. With `lead_exclude`, those stories are also kept out of the lead.
 - **`scale`:** the raw sum is squashed to 0–1 with `0.5 + 0.5*tanh(raw/scale)`. A larger scale gives a softer effect.
