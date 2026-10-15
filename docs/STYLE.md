@@ -75,6 +75,12 @@ Deterministic cleanup in `headline_style.json` (applied to every displayed headl
 
 Examples: *DOGE Gets Its Day at SCOTUS* · *Kamala: DEMS Will Pack SCOTUS* · *SCOTUS Crushes DEM Challenges*.
 
+## No contentless headlines
+
+A headline of three words or fewer with no verb, or a bare proper name (e.g. *Angie Nixon*), counts as
+bland. Spangle tries a sibling headline first, then the article's `og:title`/`<h1>`. If neither works,
+the item is **dropped from the page** and queued (`reason: "contentless"`) until an override exists.
+
 ## Smart quotes — always curly
 
 All displayed text (headlines, overrides, rewrites, Quote of the Day headline/text/tooltip,

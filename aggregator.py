@@ -381,6 +381,26 @@ def decorate_headlines(lead, top, cols, clusters):
         if changed:
             stats["styled"] += 1
         s["display"], s["original_title"] = cleaned, best["title"]
+        if headline_mod.contentless(cleaned):
+            # siblings with real content beat a bare name / fragment
+            alt = next((r for r in ranked if not headline_mod.contentless(r[5])), None)
+            if alt:
+                best, cleaned = alt[4], alt[5]
+                s["link"], s["title"], s["source"] = best["link"], best["title"], best["source"]
+                s["display"], s["original_title"] = cleaned, best["title"]
+            else:
+                pt = headline_mod.page_title(s["link"])
+                ptc = headline_mod.clean(pt, sty)[0] if pt else ""
+                if ptc and not headline_mod.contentless(ptc):
+                    s["display"] = ptc
+                else:
+                    s["drop"] = True  # never show a bare-name headline
+                    stats.setdefault("dropped_contentless", 0)
+                    stats["dropped_contentless"] = stats["dropped_contentless"] + 1
+                    stats["queue"].append({"url": s["link"], "title": best["title"], "cleaned": cleaned,
+                                           "reason": "contentless", "page_title": pt,
+                                           "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
+                    continue
         # queue only when still a problem after sibling pick
         if all_bland or (bland and not any(not r[7] for r in ranked)):
             stats["queued_bland"] += 1
@@ -401,6 +421,10 @@ def decorate_headlines(lead, top, cols, clusters):
             json.dump({"generated": datetime.now(timezone.utc).isoformat(), "items": stats["queue"]}, f, indent=1)
     except Exception as ex:
         print(f"rewrite queue write skipped: {type(ex).__name__}")
+    top = [s for s in top if not s.get("drop")]
+    cols = [[s for s in c if not s.get("drop")] for c in cols]
+    if stats.get("dropped_contentless"):
+        print(f"headlines: dropped {stats['dropped_contentless']} contentless (queued for rewrite)")
     return lead, top, cols, stats
 
 

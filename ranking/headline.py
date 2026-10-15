@@ -169,3 +169,36 @@ def display(story):
         return ov[base], story["title"]
     cleaned, _ = clean(story["title"])
     return cleaned or story["title"], story["title"]
+
+
+_VERBISH = re.compile(r"(?i)\b(is|are|was|were|has|have|had|says?|said|wins?|won|gets?|got|blocks?|"
+                      r"[a-z]+(ed|ing|es))\b")
+
+
+def contentless(title):
+    """Too short / contentless: <=3 words with no verb, or a bare proper name (every word
+    capitalized, <=4 words, no verb or punctuation suggesting a claim)."""
+    words = [w for w in re.split(r"\s+", (title or "").strip()) if w]
+    if not words:
+        return True
+    has_verb = bool(_VERBISH.search(title))
+    if len(words) <= 3 and not has_verb:
+        return True
+    if len(words) <= 4 and not has_verb and all(w[:1].isupper() for w in words) and not re.search(r"[:?!$0-9]", title):
+        return True
+    return False
+
+
+def page_title(url, timeout=10):
+    """og:title or first <h1> of the article page, or ''."""
+    import urllib.request
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 Spangle/1.0"})
+        body = urllib.request.urlopen(req, timeout=timeout).read(400000).decode("utf-8", "ignore")
+    except Exception:
+        return ""
+    for pat in (r'<meta[^>]+property="og:title"[^>]+content="([^"]+)"', r"<h1[^>]*>(.*?)</h1>"):
+        m = re.search(pat, body, re.S | re.I)
+        if m:
+            return re.sub(r"\s+", " ", _html.unescape(re.sub(r"<[^>]+>", "", m.group(1)))).strip()
+    return ""
