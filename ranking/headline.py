@@ -68,9 +68,42 @@ def clean(title, styl=None):
     for tok in sty.get("no_article_before", ["SCOTUS"]):
         t = re.sub(rf"\bthe\s+{re.escape(tok)}\b", tok, t, flags=re.I)
     t = re.sub(r"\s+", " ", t).strip(" -–—:")
+    t = drop_possessives(t, sty)
     if sty.get("smart_quotes", True):
         t = smartquotes(t)
     return t, t != orig
+
+
+def drop_possessives(title, sty=None):
+    """Drop a redundant possessive (her/his/their/its) before a noun when a named subject
+    opens the headline. Conservative: the first word must look like a name (capitalized, not a
+    generic starter), the pronoun must follow a verb-like word (not a preposition/conjunction),
+    be followed by a noun (not in skip_before), and must not be the last word ('Deport Her').
+    Only the first such pronoun is dropped."""
+    cfg = (sty or style()).get("drop_possessives") or {}
+    if not cfg.get("enabled"):
+        return title
+    pron = {p.lower() for p in cfg.get("pronouns", [])}
+    after = {w.lower() for w in cfg.get("skip_after", [])}
+    before = {w.lower() for w in cfg.get("skip_before", [])}
+    generic = {w.lower() for w in cfg.get("generic_starters", [])}
+    toks = title.split(" ")
+    bare = lambda w: re.sub(r"[^A-Za-z’'-]", "", w)
+    if len(toks) < 4 or not toks[0][:1].isupper() or bare(toks[0]).lower() in generic:
+        return title
+    if any(bare(w).lower() in ("he", "she", "they", "him", "them") for w in toks[:2]):
+        return title
+    for i in range(2, len(toks) - 1):
+        w = toks[i]
+        if bare(w).lower() not in pron or w != bare(w):
+            continue  # must be a clean word (no punctuation/quotes attached)
+        prev, nxt = bare(toks[i - 1]).lower(), toks[i + 1]
+        if not prev or toks[i - 1][-1:] in ",;:—–" or prev in after or prev in pron:
+            continue
+        if not nxt[:1].isalpha() or bare(nxt).lower() in before or bare(nxt).lower() in after:
+            continue
+        return " ".join(toks[:i] + toks[i + 1:])
+    return title
 
 
 _OPENERS = set(" \t\n([{—–-/“‘\u00a0")

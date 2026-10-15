@@ -75,6 +75,15 @@ Deterministic cleanup in `headline_style.json` (applied to every displayed headl
 
 Examples: *DOGE Gets Its Day at SCOTUS* · *Kamala: DEMS Will Pack SCOTUS* · *SCOTUS Crushes DEM Challenges*.
 
+## Drop redundant possessives
+
+When a named subject opens the headline, drop a redundant **her/his/their/its** before a noun:
+*Omar Probe Aims to Strip Her Citizenship, Deport Her* → *Omar Probe Aims to Strip Citizenship, Deport Her*.
+Keep object pronouns (*Deport Her*). Keep the pronoun after a preposition or conjunction (*Over Her Remarks*),
+before *own* or a family word (*His Own Team*, *Her Husband*), before a quoted word, and after a generic
+or pronoun opener (*The…*, *She…*). Only the first match is dropped. Config: `drop_possessives` in
+`headline_style.json`. Tests: `tests/test_possessives.py`.
+
 ## No contentless headlines
 
 A headline of three words or fewer with no verb, or a bare proper name (e.g. *Angie Nixon*), counts as
