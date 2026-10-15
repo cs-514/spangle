@@ -37,6 +37,7 @@ OUTLETS = {
     "insidesources.com": "InsideSources", "thenationalpulse.com": "The National Pulse", "humanevents.com": "Human Events",
     "thedispatch.com": "The Dispatch", "freebeacon.com": "Washington Free Beacon", "pjmedia.com": "PJ Media",
     "summit.news": "Summit News", "modernity.news": "Modernity", "rumble.com": "Rumble", "youtube.com": "YouTube",
+    "judicialwatch.org": "Judicial Watch", "okeefemediagroup.com": "O’Keefe Media Group",
     "x.com": "X", "twitter.com": "X", "truthsocial.com": "Truth Social",
 }
 

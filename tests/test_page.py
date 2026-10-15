@@ -76,3 +76,14 @@ class Outlets(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WpJson(unittest.TestCase):
+    def test_parse_and_skip_paid(self):
+        posts = [{"date_gmt": "2026-10-15T20:28:10", "link": "https://okeefemediagroup.com/a/",
+                  "title": {"rendered": "O\u2019Keefe Files Motion"}, "categories": [213]},
+                 {"date_gmt": "2026-10-14T20:00:00", "link": "https://okeefemediagroup.com/b/",
+                  "title": {"rendered": "Paid Post"}, "categories": [210, 1]}]
+        out = A.wp_json_items(posts, "O’Keefe Media Group", False, {"exclude_categories": [210]})
+        self.assertEqual([x["title"] for x in out], ["O’Keefe Files Motion"])
+        self.assertEqual(out[0]["when"].hour, 20)
