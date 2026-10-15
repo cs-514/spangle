@@ -8,6 +8,7 @@ import shutil
 import ranking
 from ranking.util import canon
 from ranking import archive
+from ranking import lead as lead_mod
 import curators
 from ranking import coverage
 
@@ -235,12 +236,13 @@ def best_item(c, tiers, default):
     return max(c["items"], key=lambda s: (tiers.get(s["source"], default), s["when"].timestamp() if s["when"] else 0))
 
 
-def place(clusters, settings):
+def place(clusters, settings, ctx):
     pl, tiers, d = settings["placement"], settings["sources"]["tiers"], settings["sources"]["default_tier"]
     count, out, budget = {}, [], [0]
     if pl.get("lead_respects_exclusions", True):  # promote the best non-excluded cluster to the lead slot
         i = next((i for i, c in enumerate(clusters) if not c.get("lead_excluded")), 0)
         clusters = [clusters[i]] + clusters[:i] + clusters[i + 1:]
+    clusters = lead_mod.order_for_lead(clusters, settings, ctx)
     want = 1 + pl["top_stories"] + pl["column_items"]
     for c in clusters:
         if len(out) >= want:
@@ -373,8 +375,9 @@ def main():
         uniq.append(s)
     clusters = coverage.cluster(uniq, settings["coverage"]["similarity_threshold"])
     print(f"{len(uniq)} stories in {len(clusters)} clusters; {sum(1 for c in clusters if len(c['outlets']) > 1)} multi-outlet")
-    ranking.rank(clusters, settings, {"now": now})
-    lead, top, cols = place(clusters, settings)
+    ctx = {"now": now}
+    ranking.rank(clusters, settings, ctx)
+    lead, top, cols = place(clusters, settings, ctx)
     allp = [lead] + top + [s for c in cols for s in c]
     sources = sorted({OUTLET(s) for s in allp if not s.get("archived")})
     os.makedirs("site", exist_ok=True)

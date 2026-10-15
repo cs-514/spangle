@@ -65,6 +65,29 @@ Picks have no timestamp, so recency uses `recency.undated_curated_score`. The bu
 | `similarity_threshold` | 0.34 | Headline similarity (IDF-weighted) needed to join a cluster. Lower merges more stories together. Higher splits them apart. |
 | `saturation_outlets` | 6 | Number of outlets at which the coverage score reaches 1.0 |
 
+## `lead`: lead eligibility (`ranking/lead.py`)
+
+The lead slot needs a story that passes a **hard topic gate** and has a **lead signal** at or above `threshold`.
+The lead signal is a lexicon match on the headline, either a "win" (a win term plus an entity, or an opponent-loss phrase)
+or an "outrage" term, with a boost for intensity words. It's averaged across the cluster's headlines, so one stray headline
+can't qualify a story. Eligible stories are ranked by `weights` (signal, coverage, amplifiers, alignment, original rank) among
+the top `candidates` clusters. If none qualify, the highest-ranked eligible political story (one matching `political_terms`)
+becomes the lead. The **soft gate**, which also includes the hard gate, keeps gated stories out of the Top Stories block; they can still appear in the columns.
+
+| key | default | meaning |
+|---|---|---|
+| `enabled` | true | Turns lead eligibility on or off |
+| `threshold` | 0.4 | Minimum lead signal (0–1) |
+| `candidates` | 80 | Number of top-ranked clusters considered |
+| `weights` | signal 0.45, coverage 0.2, amplifiers 0.1, alignment 0.15, rank 0.1 | Lead score mix |
+| `gate_paths` / `gate_categories` / `gate_keywords` | sports, golf, entertainment, lifestyle, weather, obituaries and similar | Hard gate, applied to URL paths, feed categories or curator sections, and headline words |
+| `soft_gate_paths` / `soft_gate_categories` | business, markets, science, tech | Extra exclusions for Top Stories only |
+| `political_terms` | generic politics words | Used by the fallback |
+| `win_terms`, `win_entities`, `opponent_loss_terms`, `outrage_terms`, `intensity_terms` | small generic lists | Lexicons |
+
+The private config can override any of these keys under `"lead"` (see the schema below). The build log prints
+`lead: N eligible candidates above threshold`, or a fallback notice.
+
 ## Paywalls and registration walls
 
 These rules apply to every item, whether it comes from a feed, a curated pick or a cluster. They're defined in `aggregator.py`.
@@ -186,6 +209,7 @@ Schema (all keys optional):
   "amplifiers": [{"name": "label", "url": "https://example.com/feed.rss", "weight": 1.0, "max_age_hours": 48}],
   "amplifier_items_weight": 1.0,
   "amplifier_items_max_age_hours": 48,
+  "lead": {"threshold": 0.4, "win_terms": ["..."], "win_entities": ["..."], "outrage_terms": ["..."], "intensity_terms": ["..."]},
   "framing": {"entities": ["entity"], "negative_terms": ["term"], "window_words": 6, "lead_exclude": true,
               "court": {"actors": ["court"], "actions": ["blocks"]}}
 }
