@@ -4,6 +4,7 @@ import json, os, re, html, sys, urllib.request, urllib.parse, concurrent.futures
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+import shutil
 import ranking
 from ranking.util import canon
 from ranking import archive
@@ -236,6 +237,10 @@ FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="
          '&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">')
 
 
+ICONS = ('<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">'
+         '<link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="manifest.webmanifest">'
+         '<meta name="apple-mobile-web-app-title" content="Spangle"><meta name="theme-color" content="#0A3161">')
+
 def render(lead, top, cols, now, sources, settings):
     e = html.escape
     tag = settings["placement"]["opinion_tag"]
@@ -253,7 +258,7 @@ def render(lead, top, cols, now, sources, settings):
 
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)
     return (f'<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-            f'<meta http-equiv="refresh" content="1800"><title>Spangle</title>{FONTS}<style>{CSS}</style></head><body><div class="wrap">'
+            f'<meta http-equiv="refresh" content="1800"><title>Spangle</title>{ICONS}{FONTS}<style>{CSS}</style></head><body><div class="wrap">'
             f'<header><h1 class="mast">Spangle</h1><div class="date">{now.strftime("%A, %B %-d, %Y")} · Updated {now.strftime("%H:%M")} UTC</div></header>'
             f'<div class="lead"><a href="{e(lead["link"])}" rel="noopener">{e(lead["title"])}</a>{meta(lead)}</div>'
             f'<div class="label">Top Stories</div><div class="top"><ul>{"".join(li(s) for s in top)}</ul></div>'
@@ -302,6 +307,7 @@ def main():
     allp = [lead] + top + [s for c in cols for s in c]
     sources = sorted({OUTLET(s) for s in allp if not s.get("archived")})
     os.makedirs("site", exist_ok=True)
+    shutil.copytree("static", "site", dirs_exist_ok=True)
     with open("site/index.html", "w") as f:
         f.write(render(lead, top, cols, now, sources, settings))
     print("archive lookups (found/tried): " + ", ".join(f"{k} {v[0]}/{v[1]}" for k, v in archive.STATS.items()))
