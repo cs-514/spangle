@@ -1,0 +1,1205 @@
+{
+ "description": "Primary-source-verified quotes used only when quote_of_the_day.json is stale.",
+ "quotes": [
+  {
+   "id": "csl-001",
+   "quote": "If you look for truth, you may find comfort in the end: if you look for comfort you will not get either comfort or truth — only soft soap and wishful thinking to begin with and, in the end, despair.",
+   "author": "C. S. Lewis",
+   "work": "Mere Christianity",
+   "locator": "Book I, Ch. 5",
+   "verification_url": "https://archive.org/download/MereChristianityCSL/MereChristianity_CSL_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-002",
+   "quote": "Enemy-occupied territory — that is what this world is. Christianity is the story of how the rightful king has landed, you might say landed in disguise, and is calling us all to take part in a great campaign of sabotage.",
+   "author": "C. S. Lewis",
+   "work": "Mere Christianity",
+   "locator": "Book II, Ch. 2",
+   "verification_url": "https://archive.org/download/MereChristianityCSL/MereChristianity_CSL_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-003",
+   "quote": "A man who was merely a man and said the sort of things Jesus said would not be a great moral teacher.",
+   "author": "C. S. Lewis",
+   "work": "Mere Christianity",
+   "locator": "Book II, Ch. 3",
+   "verification_url": "https://archive.org/download/MereChristianityCSL/MereChristianity_CSL_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-004",
+   "quote": "I am trying here to prevent anyone saying the really foolish thing that people often say about Him: \"I'm ready to accept Jesus as a great moral teacher, but I don't accept His claim to be God.\" That is the one thing we must not say.",
+   "author": "C. S. Lewis",
+   "work": "Mere Christianity",
+   "locator": "Book II, Ch. 3",
+   "verification_url": "https://archive.org/download/MereChristianityCSL/MereChristianity_CSL_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-005",
+   "quote": "It is no good asking for a simple religion. After all, real things are not simple. They look simple, but they are not.",
+   "author": "C. S. Lewis",
+   "work": "Mere Christianity",
+   "locator": "Book III, Ch. 1",
+   "verification_url": "https://archive.org/download/MereChristianityCSL/MereChristianity_CSL_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-006",
+   "quote": "When a man is getting better he understands more and more clearly the evil that is still left in him.",
+   "author": "C. S. Lewis",
+   "work": "Mere Christianity",
+   "locator": "Book III, Ch. 4",
+   "verification_url": "https://archive.org/download/MereChristianityCSL/MereChristianity_CSL_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-007",
+   "quote": "Pride gets no pleasure out of having something, only out of having more of it than the next man.",
+   "author": "C. S. Lewis",
+   "work": "Mere Christianity",
+   "locator": "Book III, Ch. 8",
+   "verification_url": "https://archive.org/download/MereChristianityCSL/MereChristianity_CSL_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-008",
+   "quote": "Christianity asserts that every individual human being is going to live for ever, and this must be either true or false.",
+   "author": "C. S. Lewis",
+   "work": "Mere Christianity",
+   "locator": "Book III, Ch. 10",
+   "verification_url": "https://archive.org/download/MereChristianityCSL/MereChristianity_CSL_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-009",
+   "quote": "All extremes, except extreme devotion to the Enemy, are to be encouraged. Not always, of course, but at this period.",
+   "author": "C. S. Lewis",
+   "work": "The Screwtape Letters",
+   "locator": "Letter II",
+   "verification_url": "https://gutenberg.ca/ebooks/lewiscs-screwtapeletters/lewiscs-screwtapeletters-00-h.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-010",
+   "quote": "The more often he feels without acting, the less he will be able ever to act, and, in the long run, the less he will be able to feel.",
+   "author": "C. S. Lewis",
+   "work": "The Screwtape Letters",
+   "locator": "Letter IX",
+   "verification_url": "https://gutenberg.ca/ebooks/lewiscs-screwtapeletters/lewiscs-screwtapeletters-00-h.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-011",
+   "quote": "The safest road to Hell is the gradual one—the gentle slope, soft underfoot, without sudden turnings, without milestones, without signposts, Your affectionate uncle Screwtape [66] XIII My dear Wormwood, It seems to me that you take a great many pages to tell a very simple story.",
+   "author": "C. S. Lewis",
+   "work": "The Screwtape Letters",
+   "locator": "Letter XII",
+   "verification_url": "https://gutenberg.ca/ebooks/lewiscs-screwtapeletters/lewiscs-screwtapeletters-00-h.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-012",
+   "quote": "Prosperity knits a man to the World. He feels that he is “finding his place in it”, while really it is finding its place in him.",
+   "author": "C. S. Lewis",
+   "work": "The Screwtape Letters",
+   "locator": "Letter XXVIII",
+   "verification_url": "https://gutenberg.ca/ebooks/lewiscs-screwtapeletters/lewiscs-screwtapeletters-00-h.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-013",
+   "quote": "Courage is not simply one of the virtues, but the form of every virtue at the testing point, which means, at the point of highest reality.",
+   "author": "C. S. Lewis",
+   "work": "The Screwtape Letters",
+   "locator": "Letter XXIX",
+   "verification_url": "https://gutenberg.ca/ebooks/lewiscs-screwtapeletters/lewiscs-screwtapeletters-00-h.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-014",
+   "quote": "Try to exclude the possibility of suffering which the order of nature and the existence of free-wills involve, and you find that you have excluded life itself.",
+   "author": "C. S. Lewis",
+   "work": "The Problem of Pain",
+   "locator": "Ch. 2 (Divine Omnipotence)",
+   "verification_url": "https://gutenberg.ca/ebooks/lewiscs-problemofpain/lewiscs-problemofpain-00-h.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-015",
+   "quote": "Love may forgive all infirmities and love still in spite of them: but Love cannot cease to will their removal.",
+   "author": "C. S. Lewis",
+   "work": "The Problem of Pain",
+   "locator": "Ch. 3 (Divine Goodness)",
+   "verification_url": "https://gutenberg.ca/ebooks/lewiscs-problemofpain/lewiscs-problemofpain-00-h.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-016",
+   "quote": "We are not merely imperfect creatures who must be improved: we are, as Newman said, rebels who must lay down our arms.",
+   "author": "C. S. Lewis",
+   "work": "The Problem of Pain",
+   "locator": "Ch. 4 (Human Wickedness)",
+   "verification_url": "https://gutenberg.ca/ebooks/lewiscs-problemofpain/lewiscs-problemofpain-00-h.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-017",
+   "quote": "God whispers to us in our pleasures, speaks in our conscience, but shouts in our pains: it is His megaphone to rouse a deaf world.",
+   "author": "C. S. Lewis",
+   "work": "The Problem of Pain",
+   "locator": "Ch. 6 (Human Pain)",
+   "verification_url": "https://gutenberg.ca/ebooks/lewiscs-problemofpain/lewiscs-problemofpain-00-h.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-018",
+   "quote": "Pain insists upon being attended to. God whispers to us in our pleasures, speaks in our conscience, but shouts in our pains: it is His megaphone to rouse a deaf world.",
+   "author": "C. S. Lewis",
+   "work": "The Problem of Pain",
+   "locator": "Ch. 6 (Human Pain)",
+   "verification_url": "https://gutenberg.ca/ebooks/lewiscs-problemofpain/lewiscs-problemofpain-00-h.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-019",
+   "quote": "We make men without chests and expect of them virtue and enterprise. We laugh at honour and are shocked to find traitors in our midst.",
+   "author": "C. S. Lewis",
+   "work": "The Abolition of Man",
+   "locator": "Ch. 1 (Men Without Chests)",
+   "verification_url": "https://archive.org/download/in.ernet.dli.2015.88346/2015.88346.The-Abolition-Of-Man_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-020",
+   "quote": "The heart never takes the place of the head: but it can, and should, obey it. Over against this stands the world of The Green Book.",
+   "author": "C. S. Lewis",
+   "work": "The Abolition of Man",
+   "locator": "Ch. 1 (Men Without Chests)",
+   "verification_url": "https://archive.org/download/in.ernet.dli.2015.88346/2015.88346.The-Abolition-Of-Man_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-021",
+   "quote": "You cannot study Pleasure in the moment of the nuptial embrace, nor repentance while repenting, nor analyze the nature of humour while roaring with laughter.",
+   "author": "C. S. Lewis",
+   "work": "God in the Dock",
+   "locator": "Myth Become Fact\" (1970)",
+   "verification_url": "https://wist.info/lewis-cs/15145/",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-022",
+   "quote": "I believe in God, but I detest theocracy. For every Government consists of mere men and is, strictly viewed, a makeshift; if it adds to its commands “Thus saith the Lord,” it lies, and lies dangerously.",
+   "author": "C. S. Lewis",
+   "work": "God in the Dock",
+   "locator": "Is Progress Possible?\" (1958)",
+   "verification_url": "https://wist.info/lewis-cs/2485/",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-023",
+   "quote": "What we call Man's power over Nature turns out to be a power exercised by some men over other men with Nature as its instrument.",
+   "author": "C. S. Lewis",
+   "work": "The Abolition of Man",
+   "locator": "Ch. 3 (The Abolition of Man)",
+   "verification_url": "https://archive.org/download/in.ernet.dli.2015.88346/2015.88346.The-Abolition-Of-Man_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-024",
+   "quote": "The moment you say that one set of moral ideas can be better than another, you are, in faet, measuring them both by a standard, saying that one of them conforms to that standard more nearly than the other.",
+   "author": "C. S. Lewis",
+   "work": "Mere Christianity",
+   "locator": "Book I, Ch. 1",
+   "verification_url": "https://archive.org/download/MereChristianityCSL/MereChristianity_CSL_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-025",
+   "quote": "Every Christian is to become a little Christ. The whole purpose of becoming a Christian is simply nothing else.",
+   "author": "C. S. Lewis",
+   "work": "Mere Christianity",
+   "locator": "Book IV, Ch. 8",
+   "verification_url": "https://archive.org/download/MereChristianityCSL/MereChristianity_CSL_djvu.txt",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "csl-026",
+   "quote": "It sounds as if you supposed that argument was the way to keep him out of the Enemy’s clutches.",
+   "author": "C. S. Lewis",
+   "work": "The Screwtape Letters",
+   "locator": "Letter I",
+   "verification_url": "https://gutenberg.ca/ebooks/lewiscs-screwtapeletters/lewiscs-screwtapeletters-00-h.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "ts-001",
+   "quote": "Political crusades, bureaucratic empires and lucrative personal careers as grievance mongers have been built on the foundation of that assumption, which is almost never tested against any facts.",
+   "author": "Thomas Sowell",
+   "work": "The Dumbest Idea",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/07/19/the-dumbest-idea-n2194262",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-002",
+   "quote": "The answer to that question will affect all Americans, because racial turmoil is to no one's interest, except some politicians and race hustlers.",
+   "author": "Thomas Sowell",
+   "work": "Black Votes Matter",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/07/26/black-votes-matter-n2197651",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-003",
+   "quote": "The Obama Department of Justice has already been looking into ways that anti-racketeering laws can be used to threaten individuals and organizations that challenge the global warming scenario that has been used to promote more government control of what fuels can be used.",
+   "author": "Thomas Sowell",
+   "work": "The Political Picture",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/08/02/the-political-picture-n2200760",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-004",
+   "quote": "People who are looking for grievances are not going to be stopped by facts, especially if they are in politics.",
+   "author": "Thomas Sowell",
+   "work": "Old Lies",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/08/09/old-lies-n2203022",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-005",
+   "quote": "If the government can make free speech illegal, there is virtually nothing else it cannot do, because people will no longer be free to expose their misdeeds.",
+   "author": "Thomas Sowell",
+   "work": "New Critics of Trump",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/08/10/new-critics-of-trump-n2203475",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-006",
+   "quote": "There are in fact whole chains of charter schools where black and Hispanic youngsters score well above the national average on tests.",
+   "author": "Thomas Sowell",
+   "work": "Does Black Success Matter?",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/08/16/does-black-success-matter-n2205360",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-007",
+   "quote": "That was in fact a big mistake that even President Reagan made.",
+   "author": "Thomas Sowell",
+   "work": "Trump and Blacks",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/08/18/trump-and-blacks-n2207012",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-008",
+   "quote": "But the hard fact is that the murder rate in the country as a whole was going down during those very decades when social problems in the slums were supposedly being neglected.",
+   "author": "Thomas Sowell",
+   "work": "A Clash of Police Policies",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/08/23/a-clash-of-police-policies-n2208334",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-009",
+   "quote": "Immigrants from some countries are highly educated -- more so than most Americans -- while immigrants from other countries have little education and few skills.",
+   "author": "Thomas Sowell",
+   "work": "Abstract Immigrants in an Abstract World",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/08/30/abstract-immigrants-in-an-abstract-world-n2211463",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-010",
+   "quote": "But who cares about facts in these politically correct times?",
+   "author": "Thomas Sowell",
+   "work": "A Gem in Chicago",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/08/31/a-gem-in-chicago-n2211471",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-011",
+   "quote": "Why do so many people in the media, in academia and in politics use household income statistics, when the number of people per household can vary so much, while individual income statistics always mean the average income of one person?",
+   "author": "Thomas Sowell",
+   "work": "Misleading Statistics",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/09/06/misleading-statistics-n2214085",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-012",
+   "quote": "But where there are academic successes in black ghettos, they come disproportionately from schools outside the iron grip of the education establishment and the teachers' unions.",
+   "author": "Thomas Sowell",
+   "work": "Racial Issues",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/09/13/racial-issues-n2216611",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-013",
+   "quote": "The economic plight of people on the reservations is by no means the worst of it.",
+   "author": "Thomas Sowell",
+   "work": "Election Year Books",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/09/14/election-year-books-n2216610",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-014",
+   "quote": "Trump has at least supported charter schools, which are one of the few avenues through which the next generation of blacks can get a decent education.",
+   "author": "Thomas Sowell",
+   "work": "Our Political Predicament",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/09/20/our-political-predicament-n2220561",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-015",
+   "quote": "Nor are similar cynical calculations openly expressed today in politics.",
+   "author": "Thomas Sowell",
+   "work": "'Favors' to Blacks",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/09/27/favors-to-blacks-n2223691",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-016",
+   "quote": "Politics can deliver costly \"favors,\" even when it cannot deliver quality education.",
+   "author": "Thomas Sowell",
+   "work": "Dunbar High School After 100 Years",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/10/04/dunbar-high-school-after-100-years-n2227261",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-017",
+   "quote": "Students taught economics by Keynesian economists are unlikely to hear about the 1921 recession, with double-digit unemployment, where the government did nothing, and unemployment fell by more than half, as the economy recovered on its own.",
+   "author": "Thomas Sowell",
+   "work": "The Academic Curtain",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/10/04/the-academic-curtain-n2227794",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-018",
+   "quote": "Government officials can get away with all sorts of abuses, if others are not free to talk about those abuses.",
+   "author": "Thomas Sowell",
+   "work": "Words Versus Deeds",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/10/11/words-versus-deeds-n2230230",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-019",
+   "quote": "Surely the intelligentsia of the left have access to empirical evidence and the wit to understand such evidence.",
+   "author": "Thomas Sowell",
+   "work": "The Left and the Masses",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/10/18/the-left-and-the-masses-n2233536",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-020",
+   "quote": "But, yet again, hard evidence carries very little weight when the left is feeling good about themselves, while leaving havoc in their wake.",
+   "author": "Thomas Sowell",
+   "work": "The Left and the Masses: Part II",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/10/18/the-left-and-the-masses-part-ii-n2233541",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-021",
+   "quote": "What may be more remarkable than these findings is that the left was able to get away with asserting the opposite for years, without evidence being asked for or given.",
+   "author": "Thomas Sowell",
+   "work": "The Left and the Masses: Part III",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/10/18/the-left-and-the-masses-part-iii-n2233542",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-022",
+   "quote": "What is unique are American institutions, American culture and American economic and other achievements within that framework.",
+   "author": "Thomas Sowell",
+   "work": "Immigration Controversies",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/10/25/immigration-controversies-n2236371",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-023",
+   "quote": "Yet there has never been a treaty with more far-reaching -- and potentially fatal -- consequences than this unilateral presidential agreement with a foreign country.",
+   "author": "Thomas Sowell",
+   "work": "Turnout Time",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/10/25/turnout-time-n2236370",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-024",
+   "quote": "Supply and demand is one of the first things taught in introductory economics textbooks.",
+   "author": "Thomas Sowell",
+   "work": "Has Economics Failed?",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/11/01/has-economics-failed-n2239597",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-025",
+   "quote": "Politics has turned the lofty ideal of equality into the ugly reality of resentments of other people's achievements -- and a feeling that the world owes you something, while you owe nobody anything, not even common decency.",
+   "author": "Thomas Sowell",
+   "work": "Random Thoughts",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/11/01/random-thoughts-n2239596",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-026",
+   "quote": "Perhaps it is the left that just doesn't get it -- or cannot face the hard fact that its own vision and policies worsened the very things they claimed would be made better.",
+   "author": "Thomas Sowell",
+   "work": "The Left's Vision",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/11/01/the-lefts-vision-n2239606",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-027",
+   "quote": "Nothing is to be gained by refusing to face the hard facts.",
+   "author": "Thomas Sowell",
+   "work": "Painful Choices",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/11/08/painful-choices-n2242931",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-028",
+   "quote": "This is not to predict that either of them will in fact be impeached by the House and removed by the Senate.",
+   "author": "Thomas Sowell",
+   "work": "Painful Choices: Part II",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/11/08/painful-choices-part-ii-n2242932",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-029",
+   "quote": "But how many politicians or media people care about facts, when the facts go against their preconceptions?",
+   "author": "Thomas Sowell",
+   "work": "What Now?",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/11/14/what-now-n2245644",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-030",
+   "quote": "Too many Republican Supreme Court nominees in the past have been chosen to avoid a confirmation fight in the Senate -- and the country has paid a huge price in bad Supreme Court decisions for decades thereafter.",
+   "author": "Thomas Sowell",
+   "work": "What Now?: Part II",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/11/14/what-now-part-ii-n2245643",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-031",
+   "quote": "That is one of many other examples of the cruel consequences of seemingly compassionate decisions and policies.",
+   "author": "Thomas Sowell",
+   "work": "Backward-Looking 'Progressives'",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/11/22/backwardlooking-progressives-n2248820",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-032",
+   "quote": "Statistics are no substitute for thought -- certainly not in government policies, and especially not in Supreme Court decisions.",
+   "author": "Thomas Sowell",
+   "work": "Football and Fallacies",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/11/23/football-and-fallacies-n2249791",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-033",
+   "quote": "And the left still pays no price when they are wrong.",
+   "author": "Thomas Sowell",
+   "work": "The Left's Gambles",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/12/06/the-lefts-gambles-n2255465",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-034",
+   "quote": "Opportunities are of course also challenges, and few of these challenges can be met without paying a price.",
+   "author": "Thomas Sowell",
+   "work": "Where Are We?",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/12/13/where-are-we-n2258883",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "ts-035",
+   "quote": "But who reads history these days, or checks facts before leading the charge to keep law-abiding people disarmed?",
+   "author": "Thomas Sowell",
+   "work": "A Public Service",
+   "locator": "Townhall column",
+   "verification_url": "https://townhall.com/columnists/thomassowell/2016/12/20/a-public-service-n2261392",
+   "verified": true,
+   "source_type": "column"
+  },
+  {
+   "id": "as-001",
+   "quote": "There seems to us no doubt, on the basis of both text and history, that the Second Amendment conferred an individual right to keep and bear arms.",
+   "author": "Antonin Scalia",
+   "work": "District of Columbia v. Heller",
+   "locator": "554 U.S. 570 (2008)",
+   "verification_url": "https://www.law.cornell.edu/supct/html/07-290.ZO.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-002",
+   "quote": "The inherent right of self-defense has been central to the Second Amendment right.",
+   "author": "Antonin Scalia",
+   "work": "District of Columbia v. Heller",
+   "locator": "554 U.S. 570 (2008)",
+   "verification_url": "https://www.law.cornell.edu/supct/html/07-290.ZO.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-003",
+   "quote": "Putting all of these textual elements together, we find that they guarantee the individual right to possess and carry weapons in case of confrontation.",
+   "author": "Antonin Scalia",
+   "work": "District of Columbia v. Heller",
+   "locator": "554 U.S. 570 (2008)",
+   "verification_url": "https://www.law.cornell.edu/supct/html/07-290.ZO.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-004",
+   "quote": "The Constitution was written to be understood by the voters; its words and phrases were used in their normal and ordinary as distinguished from technical meaning.",
+   "author": "Antonin Scalia",
+   "work": "District of Columbia v. Heller",
+   "locator": "quoting Sprague",
+   "verification_url": "https://www.law.cornell.edu/supct/html/07-290.ZO.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-005",
+   "quote": "Like most rights, the right secured by the Second Amendment is not unlimited.",
+   "author": "Antonin Scalia",
+   "work": "District of Columbia v. Heller",
+   "locator": "554 U.S. 570 (2008)",
+   "verification_url": "https://www.law.cornell.edu/supct/html/07-290.ZO.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-006",
+   "quote": "Frequently an issue of this sort will come before the Court clad, so to speak, in sheep’s clothing … But this wolf comes as a wolf.",
+   "author": "Antonin Scalia",
+   "work": "Morrison v. Olson",
+   "locator": "487 U.S. 654, 699 (1988) (dissenting)",
+   "verification_url": "https://www.law.cornell.edu/supremecourt/text/487/654",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-007",
+   "quote": "Evidently, the governing standard is to be what might be called the unfettered wisdom of a majority of this Court, revealed to an obedient people on a case-by-case basis.",
+   "author": "Antonin Scalia",
+   "work": "Morrison v. Olson",
+   "locator": "487 U.S. 654 (1988) (dissenting)",
+   "verification_url": "https://www.law.cornell.edu/supremecourt/text/487/654",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-008",
+   "quote": "Those who believe that racial preferences can help to “even the score” display, and reinforce, a manner of thinking by race that was the source of the injustice and that will, if it endures within our society, be the source of more injustice still.",
+   "author": "Antonin Scalia",
+   "work": "City of Richmond v. J.A. Croson Co.",
+   "locator": "488 U.S. 469 (1989) (concurring)",
+   "verification_url": "https://www.law.cornell.edu/supremecourt/text/488/469",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-009",
+   "quote": "The Court has taken sides in the culture war, departing from its role of assuring, as neutral observer, that the democratic rules of engagement are observed.",
+   "author": "Antonin Scalia",
+   "work": "Lawrence v. Texas",
+   "locator": "539 U.S. 558 (2003) (dissenting)",
+   "verification_url": "https://www.law.cornell.edu/supct/html/02-102.ZD.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-010",
+   "quote": "I have nothing against homosexuals, or any other group, promoting their agenda through normal democratic means.",
+   "author": "Antonin Scalia",
+   "work": "Lawrence v. Texas",
+   "locator": "539 U.S. 558 (2003) (dissenting)",
+   "verification_url": "https://www.law.cornell.edu/supct/html/02-102.ZD.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-011",
+   "quote": "How frightening it must be to have your own independent counsel and staff appointed, with nothing else to do but to investigate you until investigation is no longer worthwhile.",
+   "author": "Antonin Scalia",
+   "work": "Morrison v. Olson",
+   "locator": "487 U.S. 654 (1988) (dissenting)",
+   "verification_url": "https://www.law.cornell.edu/supremecourt/text/487/654",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-012",
+   "quote": "The Federal Government may not compel the States to implement, by legislation or executive action, federal regulatory programs.",
+   "author": "Antonin Scalia",
+   "work": "Printz v. United States",
+   "locator": "521 U.S. 898 (1997)",
+   "verification_url": "https://www.law.cornell.edu/supct/html/95-1478.ZO.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-014",
+   "quote": "The States may, if they wish, permit abortion-on-demand, but the Constitution does not require them to do so. The permissibility of abortion, and the limitations upon it, are to be resolved like most important questions in our democracy: by citizens trying to persuade one another and then voting.",
+   "author": "Antonin Scalia",
+   "work": "Planned Parenthood v. Casey",
+   "locator": "505 U.S. 833, 979 (1992) (dissenting)",
+   "verification_url": "https://www.law.cornell.edu/supremecourt/text/505/833",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "as-015",
+   "quote": "A prefatory clause does not limit or expand the scope of the operative clause.",
+   "author": "Antonin Scalia",
+   "work": "District of Columbia v. Heller",
+   "locator": "554 U.S. 570 (2008)",
+   "verification_url": "https://www.law.cornell.edu/supct/html/07-290.ZO.html",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-001",
+   "quote": "Of all the dispositions and habits which lead to political prosperity, religion and morality are indispensable supports.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-002",
+   "quote": "It is substantially true that virtue or morality is a necessary spring of popular government.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-003",
+   "quote": "Reason and experience both forbid us to expect that national morality can prevail in exclusion of religious principle.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-004",
+   "quote": "And warn you in the most solemn manner against the baneful effects of the spirit of party generally.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-005",
+   "quote": "The basis of our political systems is the right of the people to make and to alter their constitutions of government.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-006",
+   "quote": "Promote then, as an object of primary importance, institutions for the general diffusion of knowledge.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-007",
+   "quote": "Observe good faith and justice towards all nations; cultivate peace and harmony with all.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-008",
+   "quote": "The great rule of conduct for us in regard to foreign nations is in extending our commercial relations, to have with them as little political connection as possible.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-009",
+   "quote": "Hence, likewise, they will avoid the necessity of those overgrown military establishments which, under any form of government, are inauspicious to liberty.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-010",
+   "quote": "Cherish public credit. One method of preserving it is to use it as sparingly as possible.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-011",
+   "quote": "Reason is of no use to us—the freedom of Speech may be taken away—and, dumb & silent we may be led, like sheep, to the Slaughter.",
+   "author": "George Washington",
+   "work": "Newburgh Address",
+   "locator": "March 15, 1783",
+   "verification_url": "https://www.mountvernon.org/education/primary-source-collections/primary-source-collections/article/newburgh-address-george-washington-to-officers-of-the-army-march-15-1783",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-012",
+   "quote": "The preservation of the sacred fire of liberty and the destiny of the republican model of government are justly considered as deeply, as finally, staked on the experiment entrusted to the hands of the American people.",
+   "author": "George Washington",
+   "work": "First Inaugural Address",
+   "locator": "April 30, 1789",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/wash1.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-013",
+   "quote": "The propitious smiles of Heaven can never be expected on a nation that disregards the eternal rules of order and right which Heaven itself has ordained.",
+   "author": "George Washington",
+   "work": "First Inaugural Address",
+   "locator": "April 30, 1789",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/wash1.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-014",
+   "quote": "In proportion as the structure of a government gives force to public opinion, it is essential that public opinion should be enlightened.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "gw-015",
+   "quote": "So far as we have already formed engagements, let them be fulfilled with perfect good faith. Here let us stop.",
+   "author": "George Washington",
+   "work": "Farewell Address",
+   "locator": "1796",
+   "verification_url": "https://avalon.law.yale.edu/18th_century/washing.asp",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-001",
+   "quote": "In this present crisis, government is not the solution to our problem; government is the problem.",
+   "author": "Ronald Reagan",
+   "work": "First Inaugural Address",
+   "locator": "January 20, 1981",
+   "verification_url": "https://www.reaganlibrary.gov/archives/speech/inaugural-address-1981",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-002",
+   "quote": "We are a nation that has a government—not the other way around. And this makes us special among the nations of the Earth.",
+   "author": "Ronald Reagan",
+   "work": "First Inaugural Address",
+   "locator": "January 20, 1981",
+   "verification_url": "https://www.reaganlibrary.gov/archives/speech/inaugural-address-1981",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-003",
+   "quote": "Our government has no power except that granted it by the people. It is time to check and reverse the growth of government.",
+   "author": "Ronald Reagan",
+   "work": "First Inaugural Address",
+   "locator": "January 20, 1981",
+   "verification_url": "https://www.reaganlibrary.gov/archives/speech/inaugural-address-1981",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-004",
+   "quote": "Mr. Gorbachev, open this gate. Mr. Gorbachev, tear down this wall!",
+   "author": "Ronald Reagan",
+   "work": "Remarks at the Brandenburg Gate",
+   "locator": "June 12, 1987",
+   "verification_url": "https://www.americanrhetoric.com/speeches/ronaldreaganbrandenburggate.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-005",
+   "quote": "If you seek peace, if you seek prosperity for the Soviet Union and Eastern Europe, if you seek liberalization: Come here to this gate.",
+   "author": "Ronald Reagan",
+   "work": "Remarks at the Brandenburg Gate",
+   "locator": "June 12, 1987",
+   "verification_url": "https://www.americanrhetoric.com/speeches/ronaldreaganbrandenburggate.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-006",
+   "quote": "I urge you to speak out against those who would place the United States in a position of military and moral inferiority.",
+   "author": "Ronald Reagan",
+   "work": "Evil Empire speech",
+   "locator": "March 8, 1983",
+   "verification_url": "https://www.presidency.ucsb.edu/documents/remarks-the-annual-convention-the-national-association-evangelicals-orlando-florida",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-007",
+   "quote": "Freedom prospers only where the blessings of God are avidly sought and humbly accepted.",
+   "author": "Ronald Reagan",
+   "work": "Evil Empire speech",
+   "locator": "March 8, 1983",
+   "verification_url": "https://www.presidency.ucsb.edu/documents/remarks-the-annual-convention-the-national-association-evangelicals-orlando-florida",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-008",
+   "quote": "Simple-minded appeasement or wishful thinking about our adversaries is folly. It means the betrayal of our past, the squandering of our freedom.",
+   "author": "Ronald Reagan",
+   "work": "Evil Empire speech",
+   "locator": "March 8, 1983",
+   "verification_url": "https://www.presidency.ucsb.edu/documents/remarks-the-annual-convention-the-national-association-evangelicals-orlando-florida",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-009",
+   "quote": "They are the focus of evil in the modern world.",
+   "author": "Ronald Reagan",
+   "work": "Evil Empire speech",
+   "locator": "March 8, 1983",
+   "verification_url": "https://www.presidency.ucsb.edu/documents/remarks-the-annual-convention-the-national-association-evangelicals-orlando-florida",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-010",
+   "quote": "None of the four wars in my lifetime came about because we were too strong. It's weakness that invites adventurous adversaries to make mistaken judgments.",
+   "author": "Ronald Reagan",
+   "work": "RNC Acceptance Speech",
+   "locator": "August 23, 1984",
+   "verification_url": "https://www.reaganlibrary.gov/archives/speech/remarks-accepting-presidential-nomination-republican-national-convention-dallas",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-011",
+   "quote": "We're not cutting the budget simply for the sake of sounder financial management. This is only a first step toward returning power to the States and communities.",
+   "author": "Ronald Reagan",
+   "work": "CPAC Dinner Remarks",
+   "locator": "1981",
+   "verification_url": "https://www.reaganlibrary.gov/archives/speech/remarks-conservative-political-action-conference-dinner",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-012",
+   "quote": "There is no better way than the line-item veto, now used by Governors in 43 States to cut out waste in government.",
+   "author": "Ronald Reagan",
+   "work": "RNC Acceptance Speech",
+   "locator": "August 23, 1984",
+   "verification_url": "https://www.reaganlibrary.gov/archives/speech/remarks-accepting-presidential-nomination-republican-national-convention-dallas",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-013",
+   "quote": "The choices this year are not just between two different personalities or between two political parties. They're between two different visions of the future.",
+   "author": "Ronald Reagan",
+   "work": "RNC Acceptance Speech",
+   "locator": "August 23, 1984",
+   "verification_url": "https://www.reaganlibrary.gov/archives/speech/remarks-accepting-presidential-nomination-republican-national-convention-dallas",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-014",
+   "quote": "Anyone who seeks success or greatness should first forget about both and seek only the truth, and the rest will follow.",
+   "author": "Ronald Reagan",
+   "work": "CPAC Dinner Remarks",
+   "locator": "1981",
+   "verification_url": "https://www.reaganlibrary.gov/archives/speech/remarks-conservative-political-action-conference-dinner",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "rr-015",
+   "quote": "We hear much of special interest groups. Well, our concern must be for a special interest group that has been too long neglected.",
+   "author": "Ronald Reagan",
+   "work": "First Inaugural Address",
+   "locator": "January 20, 1981",
+   "verification_url": "https://www.reaganlibrary.gov/archives/speech/inaugural-address-1981",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-001",
+   "quote": "Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal.",
+   "author": "Abraham Lincoln",
+   "work": "Gettysburg Address",
+   "locator": "November 19, 1863",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/gettysburg.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-002",
+   "quote": "Government of the people, by the people, for the people, shall not perish from the earth.",
+   "author": "Abraham Lincoln",
+   "work": "Gettysburg Address",
+   "locator": "November 19, 1863",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/gettysburg.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-003",
+   "quote": "It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced.",
+   "author": "Abraham Lincoln",
+   "work": "Gettysburg Address",
+   "locator": "November 19, 1863",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/gettysburg.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-004",
+   "quote": "With malice toward none; with charity for all; with firmness in the right, as God gives us to see the right, let us strive on to finish the work we are in.",
+   "author": "Abraham Lincoln",
+   "work": "Second Inaugural Address",
+   "locator": "March 4, 1865",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/inaug2.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-005",
+   "quote": "Let us judge not that we be not judged. The prayers of both could not be answered; that of neither has been answered fully.",
+   "author": "Abraham Lincoln",
+   "work": "Second Inaugural Address",
+   "locator": "March 4, 1865",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/inaug2.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-006",
+   "quote": "The judgments of the Lord are true and righteous altogether.",
+   "author": "Abraham Lincoln",
+   "work": "Second Inaugural Address",
+   "locator": "March 4, 1865",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/inaug2.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-007",
+   "quote": "A house divided against itself cannot stand. I believe this government cannot endure, permanently half slave and half free.",
+   "author": "Abraham Lincoln",
+   "work": "House Divided Speech",
+   "locator": "June 16, 1858",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/house.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-008",
+   "quote": "Let us have faith that right makes might, and in that faith, let us, to the end, dare to do our duty as we understand it.",
+   "author": "Abraham Lincoln",
+   "work": "Cooper Union Address",
+   "locator": "February 27, 1860",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/cooper.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-009",
+   "quote": "Let reverence for the laws, be breathed by every American mother, to the lisping babe, that prattles on her lap—let it be taught in schools, in seminaries, and in colleges.",
+   "author": "Abraham Lincoln",
+   "work": "Lyceum Address",
+   "locator": "January 27, 1838",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/lyceum.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-010",
+   "quote": "Towering genius distains a beaten path. It seeks regions hitherto unexplored.",
+   "author": "Abraham Lincoln",
+   "work": "Lyceum Address",
+   "locator": "January 27, 1838",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/lyceum.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-011",
+   "quote": "Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure.",
+   "author": "Abraham Lincoln",
+   "work": "Gettysburg Address",
+   "locator": "November 19, 1863",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/gettysburg.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-012",
+   "quote": "The world will little note, nor long remember what we say here, but it can never forget what they did here.",
+   "author": "Abraham Lincoln",
+   "work": "Gettysburg Address",
+   "locator": "November 19, 1863",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/gettysburg.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-013",
+   "quote": "I do not expect the Union to be dissolved—I do not expect the house to fall—but I do expect it will cease to be divided.",
+   "author": "Abraham Lincoln",
+   "work": "House Divided Speech",
+   "locator": "June 16, 1858",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/house.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-014",
+   "quote": "Passion has helped us; but can do so no more. It will in future be our enemy. Reason, cold, calculating, unimpassioned reason, must furnish all the materials for our future support and defence.",
+   "author": "Abraham Lincoln",
+   "work": "Lyceum Address",
+   "locator": "January 27, 1838",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/lyceum.htm",
+   "verified": true,
+   "source_type": "primary"
+  },
+  {
+   "id": "al-015",
+   "quote": "We here highly resolve that these dead shall not have died in vain—that this nation, under God, shall have a new birth of freedom.",
+   "author": "Abraham Lincoln",
+   "work": "Gettysburg Address",
+   "locator": "November 19, 1863",
+   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/gettysburg.htm",
+   "verified": true,
+   "source_type": "primary"
+  }
+ ]
+}
