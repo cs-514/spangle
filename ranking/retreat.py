@@ -7,18 +7,34 @@ from . import private
 NAME = "retreat"
 
 
-def _hit(title, actors, verbs, win):
+def _positions(text, terms, prefix_only=False):
+    pos = []
+    for a in terms:
+        pat = r"\b" + re.escape(a) + ("" if prefix_only else r"\b")
+        for m in re.finditer(pat, text):
+            pos.append(len(text[: m.start()].split()))
+    return pos
+
+
+def _hit(title, actors, verbs, win, blockers=()):
+    """Retreat if a configured actor is near a retreat verb AND the verb's subject is the actor.
+    If the nearest term BEFORE the verb is a blocker (court/judge/Dem), it's their action
+    against the actor (a loss/framing story), not a retreat. With no subject before the verb
+    ("..., Trump Says"), an actor after the verb counts."""
     words = re.findall(r"[a-z0-9'.-]+", title.lower().replace("’", "'").replace("‘", "'"))
     text = " ".join(words)
-    apos = []
-    for a in actors:
-        for m in re.finditer(r"\b" + re.escape(a) + r"\b", text):
-            apos.append(len(text[: m.start()].split()))
-    vpos = []
-    for v in verbs:
-        for m in re.finditer(r"\b" + re.escape(v), text):
-            vpos.append(len(text[: m.start()].split()))
-    return bool(apos and vpos and any(abs(a - b) <= win for a in apos for b in vpos))
+    apos = _positions(text, actors)
+    bpos = _positions(text, blockers) if blockers else []
+    vpos = _positions(text, verbs, prefix_only=True)
+    for v in vpos:
+        before = [(v - a, "A") for a in apos if 0 <= v - a <= win] + [(v - b, "B") for b in bpos if 0 < v - b <= win]
+        if before:
+            if min(before)[1] == "A":
+                return True
+            continue
+        if any(0 < a - v <= win for a in apos):
+            return True
+    return False
 
 
 def compute(clusters, settings, ctx):
@@ -31,7 +47,7 @@ def compute(clusters, settings, ctx):
     demotion = float(cfg.get("demotion", 0.35))
     out, n = {}, 0
     for c in clusters:
-        flagged = any(_hit(s["title"], actors, verbs, win) for s in c["items"])
+        flagged = any(_hit(s["title"], actors, verbs, win, [b.lower() for b in cfg.get("subject_blockers", [])]) for s in c["items"])
         if flagged:
             n += 1
             out[c["id"]] = demotion
