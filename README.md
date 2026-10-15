@@ -29,4 +29,4 @@ constrained measure for the lead (about 22ch), near-black ink on white, and a 3 
 
 See [docs/STYLE.md](docs/STYLE.md). Display overrides live in `headline_overrides.json`.
 
-A daily C. S. Lewis quotation appears under the lead when `quote_of_the_day.json` is set.
+A single modest Quote of the Day appears after the headline columns when `quote_of_the_day.json` is set.

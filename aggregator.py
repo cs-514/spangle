@@ -303,11 +303,11 @@ header{text-align:center;border-bottom:3px double var(--ink);padding:18px 0 10px
 .meta{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:5px;letter-spacing:.02em}
 .tag{font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;color:var(--red);margin-right:6px}
 footer{font-family:var(--sans);font-size:13px;color:var(--muted);border-top:3px double var(--ink);margin-top:36px;padding-top:14px;line-height:1.6}
-.quote-box{margin:22px 0 8px;padding:18px 22px 16px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);text-align:center;max-width:42rem;margin-left:auto;margin-right:auto}
-.quote-box .qh{font-family:var(--display);font-weight:700;font-size:clamp(22px,3.2vw,32px);line-height:1.2;margin:0 0 12px;color:var(--ink)}
-.quote-box blockquote{font-family:var(--serif);font-style:italic;font-size:clamp(17px,2.2vw,20px);line-height:1.45;margin:0 0 12px;color:var(--ink);font-weight:400}
-.quote-box .qs{font-family:var(--sans);font-weight:800;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
-.quote-box + .quote-box{margin-top:8px;border-top:0}
+.qotd{margin:28px 0 0;padding:14px 16px 12px;border:1px solid var(--rule);border-radius:2px;max-width:36rem;margin-left:auto;margin-right:auto;text-align:left;background:#fafafa}
+.qotd .ql{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.14em;font-variant:small-caps;color:var(--muted);margin:0 0 6px}
+.qotd .qh{font-family:var(--display);font-weight:700;font-size:clamp(15px,2vw,18px);line-height:1.25;margin:0 0 8px;color:var(--ink)}
+.qotd blockquote{font-family:var(--serif);font-style:italic;font-size:clamp(14px,1.8vw,16px);line-height:1.4;margin:0 0 8px;color:var(--ink);font-weight:400}
+.qotd .qs{font-family:var(--sans);font-weight:600;font-size:11px;letter-spacing:.04em;color:var(--muted);margin:0}
 @media(max-width:900px){.cols{grid-template-columns:1fr 1fr}.col:nth-child(3){grid-column:1/-1;border-left:0;padding-left:0}}
 @media(max-width:620px){body{font-size:18px}.wrap{padding:0 16px 32px}.cols{grid-template-columns:1fr}.col{border-left:0;padding-left:0}.top a{font-size:21px}}
 """
@@ -412,7 +412,7 @@ def load_daily_quote(filename="quote_of_the_day.json"):
 def render(lead, top, cols, now, sources, settings):
     e = html.escape
     tag = settings["placement"]["opinion_tag"]
-    quotes = [q for q in (load_daily_quote("quote_of_the_day.json"), load_daily_quote("sowell_quote_of_the_day.json")) if q]
+    quote = load_daily_quote("quote_of_the_day.json")
 
     def meta(s):
         ts = s["when"].strftime("%b %-d, %H:%M UTC") if s["when"] else ""
@@ -432,22 +432,28 @@ def render(lead, top, cols, now, sources, settings):
         return f'<li>{show(s)}{meta(s)}</li>'
 
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)
-    quote_parts = []
-    for quote in quotes:
+    quote_html = ""
+    if quote:
         work = quote.get("work") or ""
-        sub = e(quote["author"].upper()) + (f" · {e(work)}" if work else "")
-        quote_parts.append(
-            f'<aside class="quote-box"><div class="qh">{e(quote.get("headline") or "")}</div>'
+        loc = quote.get("locator") or quote.get("chapter_or_page") or ""
+        atr = e(quote["author"])
+        if work:
+            atr += f", {e(work)}"
+        if loc:
+            atr += f" · {e(loc)}"
+        quote_html = (
+            f'<aside class="qotd" aria-label="Quote of the Day">'
+            f'<div class="ql">Quote of the Day</div>'
+            f'<div class="qh">{e(quote.get("headline") or "")}</div>'
             f'<blockquote>“{e(quote["quote"])}”</blockquote>'
-            f'<p class="qs">{sub}</p></aside>')
-    quote_html = "".join(quote_parts)
+            f'<p class="qs">— {atr}</p></aside>')
     return (f'<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<meta http-equiv="refresh" content="1800"><title>Spangle</title>{ICONS}{FONTS}<style>{CSS}</style></head><body><div class="wrap">'
             f'<header><h1 class="mast">Spangle</h1><div class="date">{now.strftime("%A, %B %-d, %Y")} · Updated {now.strftime("%H:%M")} UTC</div></header>'
             f'<div class="lead">{show(lead)}{meta(lead)}</div>'
-            f'{quote_html}'
             f'<div class="label">Top Stories</div><div class="top"><ul>{"".join(li(s) for s in top)}</ul></div>'
             f'<div class="label">More Headlines</div><div class="cols">{col_html}</div>'
+            f'{quote_html}'
             f'<footer>Every headline links to its original publisher. Free-to-read sources only. Updated hourly.<br>'
             f'Sources: {e(", ".join(sources))}.</footer></div></body></html>')
 
