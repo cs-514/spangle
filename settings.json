@@ -7,7 +7,6 @@
     "curated_by_aggregators": 0.15,
     "google_news": 0.08,
     "reddit": 0.08,
-    "hackernews": 0.04,
     "x": 0.0,
     "amplifiers": 0.0,
     "framing": 0.0,
@@ -59,7 +58,6 @@
       "Cato Institute": 0.85,
       "Heritage Foundation": 0.85,
       "AEI": 0.85,
-      "private feed": 0.75,
       "LifeZette": 0.55,
       "Courthouse News": 0.85,
       "Not the Bee": 0.5,
@@ -81,11 +79,8 @@
         "Republican",
         "ConservativeNews"
       ],
-      "saturation": 1500
-    },
-    "hackernews": {
-      "enabled": true,
-      "saturation": 200
+      "saturation": 1500,
+      "rss": true
     },
     "x": {
       "enabled": false,
@@ -525,5 +520,11 @@
     "left_terms": [],
     "right_authors": [],
     "left_authors": []
-  }
+  },
+  "age_limits": {
+    "lead_hours": 12,
+    "top_hours": 18,
+    "column_hours": 36
+  },
+  "amplifier_stale_hours": 6
 }
