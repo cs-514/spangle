@@ -112,7 +112,7 @@ class Truncated(unittest.TestCase):
     T = "Feds Seize Ilhan Omar’s Cellphone in Immigration Fraud Investigatio"
 
     def test_detect_and_repair(self):
-        v = headline.vocabulary([self.T, "Omar Investigation Widens", "FBI investigation into letters", "Trump Signs the Bill"])
+        v = headline.vocabulary([self.T, "Omar Investigation Widens", "FBI investigation into letters", "DOJ Investigation Expands", "Trump Signs the Bill"])
         self.assertTrue(headline.truncated(self.T, self.U, v))
         self.assertEqual(headline.repair_truncated(self.T, self.U, v), self.T[:-len("Investigatio")] + "Investigation")
         self.assertTrue(headline.truncated("Senate Votes on Immigra", "https://x.com/senate-votes-on-immigration-bill/"))

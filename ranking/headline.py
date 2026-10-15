@@ -298,18 +298,23 @@ def truncated(title, url="", vocab=None):
     t = (title or "").strip()
     if not t:
         return False
-    if t.endswith(("…", "...", "-", "–", "'", "’")) or t.endswith(" "):
+    if t.endswith(("…", "-", "–")) or (t.endswith("...") and not re.search(r"['‘’\"“”]\s*$|\.\.\.['’\"”]$", t)):
         return True
+    if re.search(r"['‘’\"“”)]$", t):  # ends with a closing quote: a whole quoted phrase
+        return False
     last = re.sub(r"[^a-z0-9]", "", t.split()[-1].lower())
     if len(last) < 3:
         return False
     slug = _slug_words(url)
-    if any(w != last and w.startswith(last) for w in slug):
-        return True
+    if slug and slug[-1] != last and slug[-1].startswith(last) and t.split()[-1].lower().strip("’'\"") != slug[-1] \
+            and len(slug[-1]) > len(last) + 1 and last in [re.sub(r"[^a-z0-9]", "", x.lower()) for x in t.split()[-1:]]:
+        return True  # slug finishes the title's last word ("...Immigra" / "-immigration")
     # cut-off word: rare in today's headlines while a longer word starting with it is common
     # ("Investigatio" vs "Investigation"); vocab = word counts across all of today's titles
-    if vocab and vocab.get(last, 0) <= 1 and any(w.startswith(last) and len(w) > len(last) and n >= 2
-                                                   for w, n in vocab.items()):
+    # slug cut at the same point: a word that never appears in today's titles or descriptions except
+    # here, while a 1-2 letter longer completion is common ("investigatio" / "investigation")
+    if vocab and slug and slug[-1] == last and len(last) >= 6 and vocab.get(last, 0) <= 1 and any(
+            w.startswith(last) and 0 < len(w) - len(last) <= 2 and n >= 3 for w, n in vocab.items()):
         return True
     return False
 
@@ -322,9 +327,10 @@ def repair_truncated(title, url="", vocab=None):
     if not words:
         return None
     last = re.sub(r"[^a-z0-9]", "", words[-1].lower())
-    full = next((w for w in _slug_words(url) if w != last and w.startswith(last) and len(last) >= 3), None)
+    sl = _slug_words(url)
+    full = sl[-1] if sl and sl[-1] != last and sl[-1].startswith(last) and len(last) >= 3 else None
     if not full and vocab:
-        cands = [(n, w) for w, n in vocab.items() if w.startswith(last) and len(w) > len(last) and n >= 2]
+        cands = [(n, w) for w, n in vocab.items() if w.startswith(last) and 0 < len(w) - len(last) <= 2 and n >= 3]
         full = max(cands)[1] if cands else None
     if full:
         words[-1] = full.capitalize() if words[-1][:1].isupper() else full

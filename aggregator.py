@@ -727,7 +727,7 @@ def main():
             continue
         seen.update({k, s["link"]}); seen_items[k] = seen_items[s["link"]] = s
         uniq.append(s)
-    vocab = headline_mod.vocabulary(x["title"] for x in uniq)
+    vocab = headline_mod.vocabulary(f'{x["title"]} {x.get("desc", "")}' for x in uniq)
     fixed = cut = 0
     for s in uniq:
         s["opinion"] = opinion_mod.classify(s)  # internal only; never displayed
