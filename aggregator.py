@@ -37,6 +37,8 @@ FEEDS = [
     ("Christian Post", "https://www.christianpost.com/rss", False),
     ("Daily Caller", "https://dailycaller.com/feed/", False),
     ("Just the News", "https://justthenews.com/rss.xml", False),
+    ("SCOTUSblog", "https://www.scotusblog.com/feed/", False),
+    ("Volokh Conspiracy", "https://reason.com/volokh/feed/", True),
 ]
 
 # Paywalled feeds: ingested ONLY when archive fallback is on. They count toward cross-outlet
