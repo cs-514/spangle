@@ -1,9 +1,9 @@
 """Pluggable ranking engine. Each signal module exposes NAME and
 compute(clusters, settings, ctx) -> {cluster_id: score in [0,1]} or None if unavailable."""
-from . import private, amplifiers, framing, curated, niche, retreat, outrage, recency, coverage, source, alignment, social_gnews, social_reddit, social_hn, social_x
+from . import private, amplifiers, framing, curated, niche, retreat, outrage, recency, coverage, source, alignment, social_gnews, social_reddit, social_x, lifestyle
 
-BASE = [recency, coverage, source, alignment, curated, amplifiers, framing, niche, retreat, outrage]
-SOCIAL = [social_gnews, social_reddit, social_hn, social_x]
+BASE = [recency, coverage, source, alignment, curated, amplifiers, framing, niche, retreat, outrage, lifestyle]
+SOCIAL = [social_gnews, social_reddit, social_x]  # Hacker News dropped: no signal for this audience
 
 
 def _combine(clusters, results, weights):
