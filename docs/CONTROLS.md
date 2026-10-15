@@ -262,7 +262,7 @@ Schema (all keys optional):
 - **`signal_weights`:** overrides the public `weights` for any signal.
 - **`amplifiers`:** public RSS feeds. A story whose URL a feed links to gets full credit; strong headline-term overlap gets half. Feeds that fail are skipped and logged only as `amplifier feed N`.
 - **`amplifier_items_weight` / `amplifier_items_max_age_hours`:** optional boost for posts supplied via the private `AMPLIFIER_ITEMS` Actions secret (JSON `[{"url","text","ts","weight"}]`; `weight` is optional per item, and items with the same weight are grouped as one source). Same match rules as RSS amplifiers; logged as `amplifier items`.
-- **`outrage`:** term + intensity lists that boost stories (witch hunt, overreach, lawfare, …). Weight via `signal_weights.outrage`.
+- **`outrage`:** term + intensity lists that boost stories. Weight via `signal_weights.outrage`.
 - **`retreat`:** actors + verbs for "backing down" headlines. Flagged stories get the demotion score (default 0.3) and, with `lead_exclude`, are kept out of the lead.
 - **`framing`:** a negative term within `window_words` of an entity, or a court actor plus an adverse action plus an entity anywhere in the headline, lowers the score. With `lead_exclude`, those stories are also kept out of the lead.
 - **`scale`:** the raw sum is squashed to 0–1 with `0.5 + 0.5*tanh(raw/scale)`. A larger scale gives a softer effect.
