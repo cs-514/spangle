@@ -2,7 +2,7 @@
 (e.g. a public figure's post archive RSS). Feed list and weights come from the
 private config key "amplifiers": [{"name", "url", "weight", "max_age_hours"}].
 Optional AMPLIFIER_ITEMS env var supplies a JSON list of
-[{"url", "text", "ts"}] posts (weight from private "amplifier_items_weight").
+[{"url", "text", "ts", "weight"}] posts (per-item weight; default from private "amplifier_items_weight").
 Exact link match = full credit; strong headline-term overlap = partial credit."""
 import json, os, re, html, urllib.request
 import xml.etree.ElementTree as ET
@@ -63,7 +63,11 @@ def _items_from_env(max_age_hours=48):
             except Exception:
                 pass
         links = {canon(url)} if url else set()
-        out.append((links, set(tokens(text or url))))
+        try:
+            w = float(it["weight"]) if "weight" in it else None
+        except Exception:
+            w = None
+        out.append((w, links, set(tokens(text or url))))
     return out
 
 
@@ -80,9 +84,15 @@ def compute(clusters, settings, ctx):
             print(f"  amplifier feed {i + 1}: unavailable ({getattr(e, 'code', type(e).__name__)})")
     items = _items_from_env(cfg.get("amplifier_items_max_age_hours", 48))
     if items:
-        w = float(cfg.get("amplifier_items_weight", 1.0))
-        feeds.append((w, items)); ok += 1
-        print(f"  amplifier items: ok, {len(items)} recent posts")
+        # Items may carry their own weight; group them so each weight counts as one source.
+        default_w = float(cfg.get("amplifier_items_weight", 1.0))
+        groups = {}
+        for w, links, toks in items:
+            groups.setdefault(default_w if w is None else w, []).append((links, toks))
+        for w, posts in sorted(groups.items(), reverse=True):
+            feeds.append((w, posts))
+        ok += 1
+        print(f"  amplifier items: ok, {len(items)} recent posts in {len(groups)} weight groups")
     if not ok:
         return None
     total_w = sum(w for w, _ in feeds) or 1.0
