@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Rampart Report: fetch free RSS/Atom feeds, score stories, render a static page."""
+"""Spangle: fetch free RSS/Atom feeds, score stories, render a static page."""
 import json, os, re, html, sys, urllib.request, urllib.parse, concurrent.futures as cf
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
-UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/120 Safari/537.36 RampartReport/1.0"}
+UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/120 Safari/537.36 Spangle/1.0"}
 
 # (name, url, kind) kind: news | opinion
 FEEDS = [
@@ -170,7 +170,7 @@ def render(lead, top, cols, opinion, now, sources):
     col_html = "".join(f'<div class="col"><ul>{"".join(li(s) for s in c)}</ul></div>' for c in cols)
     return f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="refresh" content="1800"><title>RAMPART REPORT</title>
+<meta http-equiv="refresh" content="1800"><title>SPANGLE</title>
 <style>
 body{{font-family:"Courier New",Courier,monospace;background:#fff;color:#000;margin:0 auto;max-width:1200px;padding:12px}}
 a{{color:#000;text-decoration:underline}} a:visited{{color:#551a8b}}
@@ -187,7 +187,7 @@ footer{{font-size:.75em;text-align:center;color:#555;margin:24px 0}}
 <div class="top"><ul>{"".join(li(s) for s in top)}</ul></div>
 <div class="lead"><a href="{e(lead["link"])}" target="_blank" rel="noopener">{e(lead["title"].upper())}</a>
 <div class="src">{e(lead["source"])}</div></div>
-<div class="mast">RAMPART REPORT</div>
+<div class="mast">SPANGLE</div>
 <div class="ts">UPDATED {now.strftime("%a %b %d, %Y %H:%M UTC").upper()}</div><hr>
 <div class="cols">{col_html}</div><hr>
 <div class="op"><h2>OPINION &amp; OP-EDS</h2><ul>{"".join(li(s) for s in opinion)}</ul></div><hr>

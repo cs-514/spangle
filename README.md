@@ -1,4 +1,4 @@
-# Rampart Report
+# Spangle
 
 A conservative news aggregator in the classic one-page, link-list style. Updated hourly.
 
