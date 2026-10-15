@@ -67,16 +67,40 @@ PAYWALLED_FEEDS = [
 ]
 
 PAYWALL_DOMAINS = {
+    # hard paywalls
     "wsj.com", "nytimes.com", "washingtonpost.com", "bloomberg.com", "ft.com",
     "theatlantic.com", "economist.com", "barrons.com", "newyorker.com",
-    "latimes.com", "bostonglobe.com", "thetimes.co.uk", "telegraph.co.uk",
-    "businessinsider.com", "foreignaffairs.com", "theinformation.com",
+    "latimes.com", "bostonglobe.com", "thetimes.co.uk", "businessinsider.com",
+    "foreignaffairs.com", "theinformation.com",
+    # registration, meter or premium walls (audited Oct 2026)
+    "theepochtimes.com", "telegraph.co.uk", "newsweek.com", "spectator.co.uk",
+    "thespectator.com", "spectator.com.au", "dailycaller.com",
 }
-PAYWALL_MARKERS = [
-    '"isAccessibleForFree":false', '"isAccessibleForFree": false',
-    'class="paywall', "id=\"paywall", "subscribe to continue reading",
-    "this article is for subscribers", "nr-plus", "nrplus",
-]
+# Per-article wall markers, matched case-insensitively against the raw HTML. Only specific
+# phrases and structured-data flags are used; generic words like "subscribe" or "paywall"
+# appear on many free pages (newsletter boxes, unused ad-tech mounts) and would give false positives.
+WALL_PATTERNS = [re.compile(p) for p in [
+    r'"isaccessibleforfree"\s*:\s*"?false',            # schema.org paywalled-content flag
+    r"subscribe to (continue|keep) reading", r"subscribe now to (continue|keep) reading",
+    r"subscribe to read the full (article|story)",
+    r"create a free account to (continue|read|keep reading|unlock)",
+    r"register (for free |now )?to (continue|read|keep) reading",
+    r"(sign|log) in to (continue|keep) reading", r"(sign|log) in to read (the|this) (full )?(article|story)",
+    r"this (article|story|content) is (only )?(available )?(exclusively )?(to|for) (paid )?(subscribers|members)",
+    r"you('ve| have) reached (your )?(free )?(article|story) limit", r"you('ve| have) reached premium content",
+    r"continue reading for \$\d", r"topic-premium",              # Blaze Media premium pieces
+    r"nr-plus|nrplus",                                         # National Review Plus pieces
+    r'"audience"\s*:\s*"only_paid"',                          # Substack paid posts
+]]
+
+
+def wall_marker(body):
+    b = body.lower()
+    for p in WALL_PATTERNS:
+        if p.search(b):
+            return p.pattern
+    return None
+
 
 def domain(u):
     h = urllib.parse.urlparse(u).netloc.lower()
@@ -161,8 +185,13 @@ def url_ok(s):
         with urllib.request.urlopen(req, timeout=12) as r:
             if r.status != 200:
                 return False
-            body = r.read(400000).decode("utf-8", "ignore").lower()
-        return not any(m.lower() in body for m in PAYWALL_MARKERS)
+            if is_paywalled_domain(r.geturl()):  # redirected onto a walled domain
+                return False
+            body = r.read(600000).decode("utf-8", "ignore")
+        m = wall_marker(body)
+        if m:
+            print(f"  link dropped (wall marker {m!r}): {s['link'][:90]}")
+        return m is None
     except urllib.error.HTTPError as e:
         # Some sites block bots on HEAD/GET but serve readers fine; only drop clear 4xx gone/paywall codes
         return e.code not in (401, 402, 404, 410)
@@ -189,6 +218,9 @@ def apply_manual(out, settings):
     pos = {"lead": 0, "top": 1, "column": 1 + settings["placement"]["top_stories"]}
     n = 0
     for l in reversed(links):
+        if is_paywalled_domain(l["url"]) and not l.get("archive_url"):
+            print("manual links: skipped a walled-domain pin without archive_url")
+            continue
         if l.get("expires") and parse_date(l["expires"]) and parse_date(l["expires"]) < now:
             continue
         s = dict(title=l["title"], link=l.get("archive_url") or l["url"], source=l.get("source", domain(l["url"])),

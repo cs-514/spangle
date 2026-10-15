@@ -65,6 +65,25 @@ Picks have no timestamp, so recency uses `recency.undated_curated_score`. The bu
 | `similarity_threshold` | 0.34 | Headline similarity (IDF-weighted) needed to join a cluster. Lower merges more stories together. Higher splits them apart. |
 | `saturation_outlets` | 6 | Number of outlets at which the coverage score reaches 1.0 |
 
+## Paywalls and registration walls
+
+These rules apply to every item, whether it comes from a feed, a curated pick or a cluster. They're defined in `aggregator.py`.
+
+- **`PAYWALL_DOMAINS`:** domains, including all their subdomains, that are never linked directly. Their stories still count toward
+  cross-outlet coverage, and they can appear only through an existing archive snapshot (see `archive`). Besides the hard paywalls
+  (WSJ, NYT, WaPo, Bloomberg, FT, The Atlantic and others), the October 2026 audit added these registration, meter or premium walls:
+  theepochtimes.com, telegraph.co.uk, newsweek.com, spectator.co.uk, thespectator.com, spectator.com.au, dailycaller.com.
+- **`WALL_PATTERNS`:** each chosen link is fetched (when `placement.check_links` is on) and dropped if its HTML contains a
+  specific wall marker. Examples are the schema.org `isAccessibleForFree: false` flag, "subscribe to continue reading", "create a free account to
+  continue", "sign in to keep reading", "you have reached your article limit", Blaze Media's `topic-premium`, National Review Plus and
+  Substack paid posts. A link is also dropped if it redirects onto a blocked domain.
+- Generic words like "subscribe", "paywall" or the Piano, Tinypass and Zephr scripts aren't used, because many free sites load them
+  (Hot Air, Townhall, PJ Media, SCOTUSblog and the Washington Examiner all do) and they would cause false positives.
+- Pinned links on a blocked domain are skipped unless they include `archive_url`.
+- Dropped links are logged as `link dropped (wall marker ...)`.
+
+To block another domain, add it to `PAYWALL_DOMAINS` and commit. To catch a new per-article wall, add a specific phrase to `WALL_PATTERNS`.
+
 ## Feeds
 
 Feeds are listed in `FEEDS` in `aggregator.py`. A feed can carry options: `byline` keeps only items whose author contains that text (used for AEI's search feed filtered to one author), and `max_age_hours` overrides `recency.max_age_hours` for infrequent writers (the AEI author feed uses 336, which is 14 days). `substack_free_only` checks each Substack post through Substack's public post API and skips paid-only posts (used for private feed's Substack, which is treated as opinion).
