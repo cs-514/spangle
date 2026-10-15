@@ -97,7 +97,6 @@
     "columns": 3,
     "max_per_outlet_top": 1,
     "max_per_outlet_total": 5,
-    "opinion_tag": true,
     "check_links": true,
     "lead_respects_exclusions": true,
     "quote_of_the_day": {
