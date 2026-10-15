@@ -105,3 +105,25 @@ class OpinionInternal(unittest.TestCase):
                                           link="https://www.foxnews.com/politics/x")))
         self.assertFalse(O.classify(story("SCOTUS Hands the RNC Another Election Win", source="Townhall",
                                           link="https://townhall.com/news/amy-curtis/2026/10/15/x")))
+
+
+class Truncated(unittest.TestCase):
+    U = "https://www.breitbart.com/politics/2026/10/15/report-feds-seize-ilhan-omars-cellphone-in-immigration-fraud-investigatio/"
+    T = "Feds Seize Ilhan Omar’s Cellphone in Immigration Fraud Investigatio"
+
+    def test_detect_and_repair(self):
+        v = headline.vocabulary([self.T, "Omar Investigation Widens", "FBI investigation into letters", "Trump Signs the Bill"])
+        self.assertTrue(headline.truncated(self.T, self.U, v))
+        self.assertEqual(headline.repair_truncated(self.T, self.U, v), self.T[:-len("Investigatio")] + "Investigation")
+        self.assertTrue(headline.truncated("Senate Votes on Immigra", "https://x.com/senate-votes-on-immigration-bill/"))
+        self.assertTrue(headline.truncated("Senate Passes the Big Bill…"))
+        self.assertFalse(headline.truncated("Trump Signs the Bill", "https://x.com/trump-signs-the-bill/", v))
+
+    def test_override(self):
+        self.assertEqual(headline.overrides()[self.U], "Feds Seize Omar’s Cellphone in Immigration Fraud Probe")
+
+    def test_truncated_never_leads(self):
+        import test_age_limits as T
+        items = [story("Cut Off Headline Investigatio", 1, truncated=True), story("Whole Headline Here", 2)]
+        lead, top, cols = A.place(T.clusters(items), T.settings(), {"now": NOW})
+        self.assertEqual(lead["title"], "Whole Headline Here")

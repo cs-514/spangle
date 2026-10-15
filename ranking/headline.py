@@ -283,6 +283,57 @@ _VERBISH = re.compile(r"(?i)\b(is|are|was|were|has|have|had|says?|said|wins?|won
                       r"[a-z]+(ed|ing|es))\b")
 
 
+def _slug_words(url):
+    import urllib.parse
+    seg = [x for x in urllib.parse.urlparse(url or "").path.split("/") if x]
+    seg = [x for x in seg if not re.fullmatch(r"[\d.]+|n?\d{5,}|index\.html?", x)]
+    last = re.sub(r"\.(html?|php|aspx?)$", "", seg[-1]) if seg else ""
+    return [w for w in re.split(r"[-_]+", last.lower()) if w and not re.fullmatch(r"n?\d{5,}", w)]
+
+
+def truncated(title, url="", vocab=None):
+    """True if a source title looks cut off: ends with an ellipsis, ends mid-word (dangling hyphen
+    or apostrophe), or its last word is a strict prefix of a word in the URL slug, or the slug's
+    last word itself is cut off at the same point (e.g. "...Fraud Investigatio" / "...-investigatio/")."""
+    t = (title or "").strip()
+    if not t:
+        return False
+    if t.endswith(("…", "...", "-", "–", "'", "’")) or t.endswith(" "):
+        return True
+    last = re.sub(r"[^a-z0-9]", "", t.split()[-1].lower())
+    if len(last) < 3:
+        return False
+    slug = _slug_words(url)
+    if any(w != last and w.startswith(last) for w in slug):
+        return True
+    # cut-off word: rare in today's headlines while a longer word starting with it is common
+    # ("Investigatio" vs "Investigation"); vocab = word counts across all of today's titles
+    if vocab and vocab.get(last, 0) <= 1 and any(w.startswith(last) and len(w) > len(last) and n >= 2
+                                                   for w, n in vocab.items()):
+        return True
+    return False
+
+
+def repair_truncated(title, url="", vocab=None):
+    """Complete a cut-off last word from the URL slug (or the most common completion in today's
+    headlines); drop a trailing ellipsis if the rest is whole words. Returns None if no repair."""
+    t = re.sub(r"\s*(…|\.\.\.)$", "", (title or "").strip())
+    words = t.split()
+    if not words:
+        return None
+    last = re.sub(r"[^a-z0-9]", "", words[-1].lower())
+    full = next((w for w in _slug_words(url) if w != last and w.startswith(last) and len(last) >= 3), None)
+    if not full and vocab:
+        cands = [(n, w) for w, n in vocab.items() if w.startswith(last) and len(w) > len(last) and n >= 2]
+        full = max(cands)[1] if cands else None
+    if full:
+        words[-1] = full.capitalize() if words[-1][:1].isupper() else full
+        return " ".join(words)
+    if t != (title or "").strip() and len(words) >= 5:  # ellipsis dropped, rest is whole words
+        return t
+    return None
+
+
 def contentless(title):
     """Too short / contentless: <=3 words with no verb, or a bare proper name (every word
     capitalized, <=4 words, no verb or punctuation suggesting a claim)."""
@@ -390,3 +441,11 @@ def title_case(title, sty=None):
         cap = "-".join(p[:1].upper() + p[1:] for p in core.split("-"))
         out.append(lead + cap + trail)
     return " ".join(out)
+
+
+def vocabulary(titles):
+    v = {}
+    for t in titles:
+        for w in re.findall(r"[a-z0-9]+", (t or "").lower().replace("’", "'")):
+            v[w] = v.get(w, 0) + 1
+    return v

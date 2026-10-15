@@ -42,6 +42,12 @@ a mid-phrase cut. If nothing safe works, the full headline shows and goes to the
 Example: "A Trans Substitute Teacher Was Just Convicted for Threatening ‘Murder Spree’ at Virginia High
 School" → "Trans Substitute Teacher Convicted for Threatening ‘Murder Spree’".
 
+## Cut-off source titles
+A source title looks cut off if it ends with an ellipsis or mid-word, or its last word is a strict
+prefix of a word in the URL slug, or is rare today while a longer word starting with it is common
+("Investigatio" vs "Investigation"). The build completes the word from the slug or today's headlines;
+otherwise the story prefers a sibling headline, goes to the rewrite queue, and can never be the lead.
+
 ## Meta line
 The outlet's display name (never a raw domain such as "lifezette.com"), then the time, then
 "+N outlets" when other outlets ran the story: "American Greatness · Oct 15, 14:02 UTC · +3 outlets".
