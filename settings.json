@@ -132,7 +132,8 @@
       "coverage": 0.2,
       "amplifiers": 0.1,
       "alignment": 0.15,
-      "rank": 0.1
+      "rank": 0.1,
+      "significance": 0.0
     },
     "gate_paths": [
       "/sports/",
@@ -272,6 +273,56 @@
       "exposed",
       "caught",
       "slams"
+    ],
+    "sig_min": 0.45,
+    "sig_min_outlets": 3,
+    "sig_major_tier": 0.8,
+    "sig_major_outlets": [],
+    "sig_coverage_saturation": 6,
+    "sig_weights": {
+      "coverage": 0.5,
+      "national": 0.35,
+      "amplifiers": 0.15
+    },
+    "sig_demotion": 0.3,
+    "sig_single_source_demotion": 0.2,
+    "national_terms": [
+      "congress",
+      "senate",
+      "house",
+      "supreme court",
+      "scotus",
+      "president",
+      "white house",
+      "administration",
+      "doj",
+      "fbi",
+      "dhs",
+      "pentagon",
+      "election",
+      "midterms",
+      "border",
+      "immigration",
+      "economy",
+      "inflation",
+      "jobs",
+      "war",
+      "military",
+      "china",
+      "iran",
+      "russia",
+      "executive order",
+      "national security",
+      "court",
+      "terror"
+    ],
+    "demote_terms": [
+      "celebrity",
+      "ticketmaster",
+      "restaurant",
+      "brand",
+      "ad campaign",
+      "local"
     ]
   }
 }

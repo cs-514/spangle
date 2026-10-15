@@ -67,12 +67,11 @@ Picks have no timestamp, so recency uses `recency.undated_curated_score`. The bu
 
 ## `lead`: lead eligibility (`ranking/lead.py`)
 
-The lead slot needs a story that passes a **hard topic gate** and has a **lead signal** at or above `threshold`.
+The lead slot needs a story that passes a **hard topic gate**, meets the **national-significance** minimums (enough outlets, at least one major outlet, a national topic, and a score of at least `sig_min`), and has a **lead signal** at or above `threshold`.
 The lead signal is a lexicon match on the headline, either a "win" (a win term plus an entity, or an opponent-loss phrase)
 or an "outrage" term, with a boost for intensity words. It's averaged across the cluster's headlines, so one stray headline
 can't qualify a story. Eligible stories are ranked by `weights` (signal, coverage, amplifiers, alignment, original rank) among
-the top `candidates` clusters. If none qualify, the highest-ranked eligible political story (one matching `political_terms`)
-becomes the lead. The **soft gate**, which also includes the hard gate, keeps gated stories out of the Top Stories block; they can still appear in the columns.
+the top `candidates` clusters. If none qualify, the most significant eligible political story becomes the lead. The **soft gate**, which also includes the hard gate, keeps gated stories out of the Top Stories block; they can still appear in the columns.
 
 | key | default | meaning |
 |---|---|---|
@@ -83,6 +82,14 @@ becomes the lead. The **soft gate**, which also includes the hard gate, keeps ga
 | `gate_paths` / `gate_categories` / `gate_keywords` | sports, golf, entertainment, lifestyle, weather, obituaries and similar | Hard gate, applied to URL paths, feed categories or curator sections, and headline words |
 | `soft_gate_paths` / `soft_gate_categories` | business, markets, science, tech | Extra exclusions for Top Stories only |
 | `political_terms` | generic politics words | Used by the fallback |
+| `sig_min` | 0.45 | Minimum national-significance score (0–1) a lead must have |
+| `sig_min_outlets` | 3 | Minimum number of distinct outlets in the story's cluster |
+| `sig_major_tier` / `sig_major_outlets` | 0.8 / [] | At least one outlet must have a tier at or above this, or be named in the list |
+| `sig_weights` | coverage 0.5, national 0.35, amplifiers 0.15 | Significance mix. Coverage is scaled up to `sig_coverage_saturation` (6) outlets, national is the number of `national_terms` hits across the cluster's headlines (2 hits = full), and amplifiers counts any amplifier match. |
+| `national_terms` | Congress, Senate, Supreme Court, White House, DOJ, FBI, Pentagon, elections, border, economy, war, China, Iran, Russia and similar | National-importance topics. At least one hit is required. |
+| `demote_terms` / `sig_demotion` | celebrity, brand, local and similar / 0.3 | Penalty for local, celebrity or consumer stories |
+| `sig_single_source_demotion` | 0.2 | Penalty for single-outlet stories |
+| `weights.significance` | 0.0 | How much significance counts in the lead score (raise it in the private config) |
 | `win_terms`, `win_entities`, `opponent_loss_terms`, `outrage_terms`, `intensity_terms` | small generic lists | Lexicons |
 
 The private config can override any of these keys under `"lead"` (see the schema below). The build log prints

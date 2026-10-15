@@ -20,7 +20,7 @@ def cluster(stories, threshold, max_entity_df=25):
         tt = set(tokens(s["title"]))
         best, bs = None, 0.0
         for c in clusters:
-            inter = tt & c["title_tokens"]
+            inter = tt & c["first"]  # compare to the founding headline to avoid chaining
             if len(inter) < 2:
                 continue
             w_i = sum(idf[w] for w in inter)
@@ -38,7 +38,8 @@ def cluster(stories, threshold, max_entity_df=25):
         for e in entities(s["title"]):
             ent_df[e] = ent_df.get(e, 0) + 1
     for c in clusters:
-        c["ents"] = {e for s in c["items"] for e in entities(s["title"]) if ent_df.get(e, 0) <= max_entity_df}
+        # entities of the founding headline only, so merges can't chain across loosely related stories
+        c["ents"] = {e for e in entities(c["items"][0]["title"]) if ent_df.get(e, 0) <= max_entity_df}
     rare = lambda c: {w for w in c["title_tokens"] if idf.get(w, 0) >= math.log(n / 6)}
     merged = True
     while merged:
@@ -49,7 +50,7 @@ def cluster(stories, threshold, max_entity_df=25):
                 if shared:
                     ent_words = {w for e in shared for w in e.split()}
                     if len((rare(a) & rare(b)) - ent_words) >= 1:
-                        a["items"] += b["items"]; a["title_tokens"] |= b["title_tokens"]; a["ents"] |= b["ents"]
+                        a["items"] += b["items"]; a["title_tokens"] |= b["title_tokens"]
                         clusters.remove(b); merged = True
                         break
             if merged:
