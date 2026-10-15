@@ -33,6 +33,33 @@ def _posts(feed, timeout):
     return out
 
 
+def newest_age_hours(data, now=None):
+    """Age in hours of the newest timestamped item, or None if no item has a readable ts."""
+    now = now or datetime.now(timezone.utc)
+    ages = []
+    for it in data if isinstance(data, list) else []:
+        try:
+            ages.append((now - datetime.fromisoformat(str(it["ts"]).replace("Z", "+00:00"))).total_seconds() / 3600)
+        except Exception:
+            pass
+    return min(ages) if ages else None
+
+
+def staleness(stale_hours=6):
+    """Warn (GitHub Actions annotation) when AMPLIFIER_ITEMS is missing or its newest item is too old."""
+    raw = os.environ.get("AMPLIFIER_ITEMS", "").strip()
+    try:
+        age = newest_age_hours(json.loads(raw)) if raw else None
+    except Exception:
+        age = None
+    if age is None or age > stale_hours:
+        msg = "missing or undated" if age is None else f"newest item {age:.1f}h old"
+        print(f"::warning::amplifier data stale ({msg}; limit {stale_hours}h). Refresh the AMPLIFIER_ITEMS secret.")
+        return True
+    print(f"  amplifier items fresh: newest {age:.1f}h old")
+    return False
+
+
 def _items_from_env(max_age_hours=48):
     raw = os.environ.get("AMPLIFIER_ITEMS", "").strip()
     if not raw:
@@ -82,6 +109,7 @@ def compute(clusters, settings, ctx):
             print(f"  amplifier feed {i + 1}: ok, {len(feeds[-1][1])} recent posts")
         except Exception as e:
             print(f"  amplifier feed {i + 1}: unavailable ({getattr(e, 'code', type(e).__name__)})")
+    ctx["amplifier_stale"] = staleness(float(settings.get("amplifier_stale_hours", 6)))
     items = _items_from_env(cfg.get("amplifier_items_max_age_hours", 48))
     if items:
         # Items may carry their own weight; group them so each weight counts as one source.
