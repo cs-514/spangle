@@ -98,10 +98,25 @@ treat ‘100%’ as a quote, while ’90s and ’24 stay elisions.)
 
 - **Use digits, even for 1–9.** *5 Positions Talarico Abandoned in 1 Night*, not *…In One Night*. Pronoun *one*
   stays a word (*No One*, *One of Them*, *One Another*, *Someone*).
-- **Lowercase short prepositions and articles** (*in, of, to, on, at, for, a, the*) except as the first word,
-  after a colon or dash, at the start of a quote, in ALL-CAPS lines, or as a label (*Plan A*).
 
-Config: `numerals` and `lowercase_small_words` in `headline_style.json`. Tests: `tests/test_numerals_case.py`.
+Config: `numerals` in `headline_style.json`. Tests: `tests/test_numerals_case.py`.
+
+## Title case (AP/Chicago)
+
+Every headline is normalized to title case, and sentence-case headlines are converted. Lowercase *a, an, the,
+and, but, or, nor, as, at, by, for, if, in, of, on, to, vs* except as the first or last word, after a colon or
+dash, or at the start of a quote. Capitalize everything else, including both parts of a hyphenated word
+(*Live-Stream*) and phrasal particles (*Take Up*; *Up* always stays capitalized). Words that already have
+capitals are never lowercased: acronyms, the style abbreviations (SCOTUS, DOGE, VDH, DEMS, GOP), *McDonald*,
+*iPhone*, ALL-CAPS lines. Lowercase name particles before a name stay as they are (*el Sayed*, *bin Salman*).
+The Quote of the Day is not touched.
+
+- *DOGE Gets Its Day at the Supreme Court As Justices Take Up Trump Administration Appeal* →
+  *DOGE Gets Day at SCOTUS as Justices Take Up Trump Administration Appeal*
+- *Netanyahu rival vows to end Hamas rule within 18 months if elected* →
+  *Netanyahu Rival Vows to End Hamas Rule Within 18 Months if Elected*
+
+Config: `title_case` in `headline_style.json`. Tests: `tests/test_title_case.py`.
 
 ## No contentless headlines
 
