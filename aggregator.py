@@ -508,7 +508,8 @@ def same_story(headline, x, min_overlap=0.34):
     b = _words(f"{x['title']} {slug}")
     if not a or not b:
         return False
-    if len(a & b) / min(len(a), len(b)) < min_overlap:
+    shared, ratio = len(a & b), len(a & b) / min(len(a), len(b))
+    if ratio < min_overlap or (shared < 3 and ratio < 0.6):  # two shared generic words ('democrats', 'problem') aren't enough
         return False
     # Sentence-case titles (Fox, NY Post, ...) mark names with capitals: a named subject the headline never
     # mentions means a different article (El-Sayed's 2A stance is not "Getting the Second Amendment Right").
