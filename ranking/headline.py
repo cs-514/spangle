@@ -92,7 +92,34 @@ def clean(title, styl=None):
     if sty.get("smart_quotes", True):
         t = smartquotes(t)
     t = trim_quoted_labels(t, sty)
+    t = compress(t, sty)
     return t, t != orig
+
+
+def compress(title, sty=None):
+    """Conservative compression (style "compression"): drop a leading article (The/A/An) unless the
+    next word starts a protected name ("The Hill", "The Atlantic"), and turn "X Involves/Means/Equals Y"
+    into "X, Y" only when both sides are short noun phrases with no other verb. Never touches action
+    verbs, questions or quotes."""
+    cfg = (sty or {}).get("compression") or {}
+    if not cfg.get("enabled", True):
+        return title
+    t = title
+    protect = [p.lower() for p in cfg.get("protect_after_article", [])]
+    m = re.match(r"(The|A|An)\s+(\S+)(.*)$", t)
+    if m and len(t.split()) >= 4 and not t.endswith("?"):
+        nxt = (m.group(2) + m.group(3)).lower()
+        if not any(nxt.startswith(p) for p in protect) and m.group(2)[:1].isalpha() \
+                and not re.match(r"[‘“'\"]", m.group(2)):
+            t = m.group(2)[:1].upper() + m.group(2)[1:] + m.group(3)
+    link = cfg.get("linking_verbs", ["Involves", "Means", "Equals"])
+    m = re.match(r"^(.{3,40}?)\s+(" + "|".join(map(re.escape, link)) + r")\s+(?:the\s+|The\s+)?(.{3,40})$", t)
+    if m and not re.search(r"[:?!‘“\"]", t) and ',' not in t:
+        left, right = m.group(1), m.group(3)
+        lw, rw = left.split(), right.split()
+        if len(lw) <= 5 and len(rw) <= 5 and lw[0].lower() == rw[0].lower():  # parallel noun phrases only
+            t = f"{left}, {right[:1].upper() + right[1:]}"
+    return t
 
 
 def trim_quoted_labels(title, sty=None):
