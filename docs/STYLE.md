@@ -184,14 +184,14 @@ the end of `clean()` (toggle: `"single_quotes": true` in `headline_style.json`).
 - **Name + Verb + Object.** "Trump Fires Fed Governor"
 - **Quote-as-punch.** Keep a short, sharp quote only when it *is* the news.
 
-## Build from the best line
+## Build from the most quotable line
 
-When a story centers on a comedian's or speaker's best line (or the writer's own zinger about it), build the
-headline from that punchline. Irreverent wording is fine; keep it faithful and attributed correctly (don't put the
-writer's line in the comedian's mouth).
+Scan the article body for a vivid, quotable line, either a quote or the writer's own wording, that is punchier than
+the original headline, and build the headline from it. Irreverent wording is fine. Keep attribution accurate: never
+put a writer's or source's words in someone else's mouth (no "Gillis:" prefix for the writer's line).
 
-- *Shane Gillis Outcry Shows We Need More Public Shaming, At The Gym And Everywhere* →
-  *Gillis Was Right: Gym Booty Shorts Are Lululemon Set’s Version of Homeless Guy Dropping Deuce in Park*
+- *Shane Gillis Outcry Shows We Need More Public Shaming, At The Gym And Everywhere* → *Gym Booty Shorts Are Lululemon Set’s Version of Homeless Guy Dropping Deuce in Park*
+  (the Lululemon line is the Federalist writer's, not Gillis's, so it carries no attribution to him)
 
 ## Patterns to avoid
 
