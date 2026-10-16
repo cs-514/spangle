@@ -238,6 +238,35 @@ def smartquotes(text):
     return "".join(out)
 
 
+def _poss(x):
+    return x + ("’" if x.endswith("s") and not x.endswith("ss") else "’s")
+
+
+def imprimis_recast(title):
+    """Deterministic fallback for Imprimis lecture-style titles (used only when no override exists):
+    put the subject first as a possessive, drop articles. 'The Rise of Democratic Socialism' ->
+    'Democratic Socialism’s Rise'; 'The Hard Truth About the Sanctuary Movement' -> 'Sanctuary
+    Movement’s Hard Truth'; 'Recovering the Lost Art of Diplomacy' -> 'Diplomacy’s Lost Art'.
+    Anything it can't recast safely is returned unchanged (the rewrite queue handles it)."""
+    t = title.strip()
+    art = r"(?:(?:the|a|an)\s+)?"
+    subj = r"([A-Z][\w’'.\-–]*(?:\s+[A-Z][\w’'.\-–]*){0,3})"   # 1-4 capitalized words, not a clause
+    rules = [
+        (rf"^(?:Recovering|Reviving|Restoring)\s+the\s+(Lost\s+Art|Forgotten\s+\w+)\s+of\s+{art}{subj}$", lambda m: f"{_poss(m[2])} {m[1]}"),
+        (rf"^{art}((?:[A-Z]\w+\s+)?[A-Z]\w+)\s+(?:About|Behind)\s+{art}{subj}$", lambda m: f"{_poss(m[2])} {m[1]}"),
+        (rf"^{art}([A-Z]\w+)\s+of\s+{art}{subj}$", lambda m: f"{_poss(m[2])} {m[1]}"),
+        (rf"^Learning\s+From\s+{subj}$", lambda m: f"Lessons of {m[1]}"),
+        (rf"^(?:Understanding|How\s+to\s+Think\s+About)\s+{art}{subj}$", lambda m: f"Rethinking {m[1]}"),
+    ]
+    for rx, f in rules:
+        m = re.match(rx, t, flags=re.I if False else 0)
+        if m and not re.match(r"^[A-Z]\w+ing\b", m[m.lastindex]):  # 'The Dangers of Undermining …' stays
+            out = f(m)
+            if 2 <= len(out.split()) <= 6:
+                return out
+    return t
+
+
 def headline_quotes(text):
     """Headline style: quotations take single curly quotes; a quote nested inside one takes double.
     Expects curly text (run smartquotes first). “Affordability” -> ‘Affordability’;
