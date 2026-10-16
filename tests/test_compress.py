@@ -15,5 +15,5 @@ class Compress(unittest.TestCase):
     def test_keeps_verbs_and_iconic_lines(self):
         for t in ["Trump Says Deal Means Lower Prices for Everyone", "Mr. Gorbachev, Tear Down This Wall!",
                   "Supreme Excellence Against Adversaries", "The Almighty Has His Own Purposes",
-                  "Senate Passes Border Bill"]:
+                  "Senate Passes Border Bill", "In War, One People", "One Nation Under God"]:
             self.assertEqual(H.clean(t)[0], t)
