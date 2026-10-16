@@ -48,6 +48,13 @@ def _norm(s):
     return " " + re.sub(r"\s+", " ", (s or "").lower().replace("’", "'")) + " "
 
 
+# Sitting U.S. senators and governors are national figures: detected by title ("Sen.", "Senator",
+# "Gov.", "Governor", "(R-ME)"-style tags), but not "state senator", "former/ex-", or a race for the seat.
+OFFICE = re.compile(r"(?<!state )(?<!former )(?<!ex-)(?<!for )\b(sen\.|senator|gov\.|governor)\s+[a-z]"
+                    r"|\((?:r|d|i)-[a-z]{2}\)")
+POLL = re.compile(r"(?<![a-z])(poll|polls|polling|survey)(?![a-z])")
+
+
 def classify(items, outlets=(), cfg=None):
     """None (not a minor-figure statement or excepted) | 'minor' | 'minor_scandal'."""
     cfg = cfg or {}
@@ -55,6 +62,8 @@ def classify(items, outlets=(), cfg=None):
     major = MAJOR + list(cfg.get("major_outlets", []))
     titles = _norm(" ".join(s["title"] for s in items))
     body = _norm(" ".join(s["title"] + " " + (s.get("desc") or "")[:300] for s in items))
+    if POLL.search(titles):                                       # polls are data, not a figure's statement
+        return None
     if not _has(titles, STATEMENT, True):
         return None
     if _has(titles, prom, True):                                  # (a) a prominent figure is in the story
@@ -75,6 +84,11 @@ def classify(items, outlets=(), cfg=None):
             continue                                              # institutions / polls are not "figures"
         if _has(" " + speaker + " ", TITLES):
             return None                                           # (a) speaker identified by a national office
+        name = re.escape(before[-1].strip(",:'\"‘“’s"))
+        if OFFICE.search(speaker + " x") or re.search(
+                r"(?<!state )(?<!former )(?<!ex-)\b(sen\.|senator|gov\.|governor)\s+(?:[a-z.'-]+\s+){0,2}" + name + r"\b"
+                r"|\b" + name + r"\s+\((?:r|d|i)-[a-z]{2}\)", body):
+            return None                                           # (a) the speaker is a sitting senator / governor
         break
     else:
         return None
