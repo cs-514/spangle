@@ -186,8 +186,9 @@ the end of `clean()` (toggle: `"single_quotes": true` in `headline_style.json`).
 
 ## Build from the most quotable line
 
-Scan the article body for a vivid, quotable line, either a quote or the writer's own wording, that is punchier than
-the original headline, and build the headline from it. Irreverent wording is fine. Keep attribution accurate: never
+**Rare and opportunistic, not automatic.** Only when the article contains a genuinely outrageous, eye-catching
+line, either a quote or the writer's own wording, that clearly beats any normal rewrite, build the headline from
+it. Otherwise rewrite normally. Irreverent wording is fine. Keep attribution accurate: never
 put a writer's or source's words in someone else's mouth (no "Gillis:" prefix for the writer's line).
 
 - *Shane Gillis Outcry Shows We Need More Public Shaming, At The Gym And Everywhere* → *Gym Booty Shorts Are Lululemon Set’s Version of Homeless Guy Dropping Deuce in Park*
