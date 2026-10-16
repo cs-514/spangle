@@ -177,9 +177,9 @@ Tests: `python3 -m unittest tests/test_smartquotes.py`.
 
 See [CONTROLS.md](CONTROLS.md) for the knobs.
 
-## Quote of the Day headlines: don't spoil the punchline
-A QOTD headline teases the theme without revealing the quote's payoff or closing line
-(e.g. *Reagan’s Challenge at the Brandenburg Gate*, not *Tear Down This Wall!*; *Lewis on the Claim of
-Jesus*, not *You Must Make Your Choice*). Name the author and subject; never quote the climactic phrase.
-Bank entries carry a bespoke `headline` field; entries without one fall back to the quote's opening
-words, which never contain the payoff.
+## Quote of the Day headlines
+A QOTD headline is punchy and drawn from the quote itself; a famous line can be the headline
+(*Mr. Gorbachev, Tear Down This Wall!*, *The Power to Tax Involves the Power to Destroy*,
+*All Warfare Is Based on Deception*). Use a teaser instead only when the payoff is a surprise twist
+the headline would spoil. Bank entries may carry a bespoke `headline` field (e.g. st-006,
+*Supreme Excellence Against Adversaries*); entries without one fall back to the quote's opening words.
