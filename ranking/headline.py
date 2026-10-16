@@ -447,6 +447,28 @@ def numerals(title, sty=None):
     return " ".join(toks)
 
 
+_ABBREV = {"mr", "mrs", "ms", "dr", "st", "sr", "jr", "gov", "sen", "rep", "gen", "lt", "col", "sgt", "capt",
+           "prof", "rev", "vs", "v", "no", "inc", "co", "corp", "ltd", "dept", "ft", "mt", "jan", "feb", "aug",
+           "sept", "sep", "oct", "nov", "dec", "pres", "atty", "supt", "approx", "etc"}
+
+
+def _sentence_end(prev):
+    """True if token `prev` ends a sentence (. ? ! possibly followed by closing quotes/brackets), so the
+    next word starts a new sentence. Ellipsis dots (". . .", "...", "…") and abbreviations (U.S., D.C.,
+    Mr., Gov.) do not count."""
+    t = prev.rstrip("\"'’”)]")
+    if not t or t[-1] not in ".?!":
+        return False
+    if t[-1] in "?!":
+        return True
+    if t.endswith("..") or set(t) <= {"."}:
+        return False
+    core = t.rstrip(".").lstrip("\"'‘“([")
+    if re.fullmatch(r"(?:[A-Za-z]\.)+[A-Za-z]?", core + ".") or re.fullmatch(r"[A-Za-z]", core):
+        return False  # U.S., D.C., initials
+    return core.lower() not in _ABBREV
+
+
 def lowercase_small_words(title, sty=None):
     """Lowercase Title-Case short prepositions/articles (In, Of, To, On, At, For, A, The) except
     as the first word or right after ':', '—', '–', '|' or an opening quote. All-caps tokens are left alone,
@@ -460,7 +482,8 @@ def lowercase_small_words(title, sty=None):
         w = toks[i]
         if w.lower() not in small or w == w.lower() or (len(w) > 1 and w.isupper()):
             continue
-        if toks[i - 1][-1:] in (":", "—", "–", "|", "‘", "“", "'", '"') or toks[i - 1] in ("-", "—", "–"):
+        if toks[i - 1][-1:] in (":", "—", "–", "|", "‘", "“", "'", '"') or toks[i - 1] in ("-", "—", "–") \
+                or _sentence_end(toks[i - 1]):
             continue
         if w == "A" and (i + 1 >= len(toks) or not toks[i + 1][:1].isalnum()):
             continue
@@ -490,7 +513,7 @@ def title_case(title, sty=None):
             out.append(w); continue
         prev = toks[i - 1] if i else ""
         boundary = i == 0 or i == n - 1 or prev[-1:] in (":", "—", "–", "|") or prev in ("-", "—", "–") \
-            or lead[-1:] in ("‘", "“", "(", "[")
+            or _sentence_end(prev) or lead[-1:] in ("‘", "“", "(", "[")
         low = core.lower()
         if not boundary and low in small and (core == low or core == core.capitalize()):
             out.append(lead + low + trail); continue
