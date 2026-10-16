@@ -149,7 +149,8 @@ Placement (in `settings.json` → `placement.quote_of_the_day`):
 | `index` | 7 | 0-based row within that column |
 
 Authors currently in rotation: C. S. Lewis, Thomas Sowell, Antonin Scalia, George Washington,
-Ronald Reagan, and Abraham Lincoln. Only quotes checked word-for-word against the original text
+Ronald Reagan, Abraham Lincoln, John Marshall (opinions, verified on Cornell LII), and Sun Tzu
+(Lionel Giles 1910 translation only, Project Gutenberg #132). Only quotes checked word-for-word against the original text
 (published work, opinion, speech, or column) are in rotation; quotes sourced only from Wikiquote or
 AZQuotes are kept out until verified. Public mentions of these authors are limited to this quote
 feature and are never tied to ranking/alignment.
