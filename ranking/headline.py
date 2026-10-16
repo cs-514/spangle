@@ -73,6 +73,33 @@ def _party_abbrev(t, pairs):
     return t
 
 
+def fix_allcaps(title, sty=None):
+    """Only true acronyms stay ALL CAPS. Known shouting forms are mapped (DEMS -> Dems, SEC/STATE ->
+    Sec. of State); other all-caps words of 4+ letters (BIG MONEY, EVISCERATES) and common short words
+    (BIG, NEW, NOT) become Title Case. Short unknown tokens (2-3 letters) are assumed to be acronyms."""
+    sty = sty or style()
+    acr = set(sty.get("acronyms", []))
+    words = sty.get("allcaps_words", {})
+    common = set(sty.get("allcaps_common", []))
+    def fix(m):
+        lead, w, trail = m.group(1), m.group(2), m.group(3)
+        if w in words:
+            return lead + words[w] + trail
+        if w in acr or w.rstrip("S") in acr and len(w) <= 6:
+            return m.group(0)
+        if w in common or len(w.replace("-", "")) >= 4:
+            return lead + "-".join(p[:1] + p[1:].lower() for p in w.split("-")) + trail
+        return m.group(0)
+    return re.sub(r"(^|[\s‘“(\[—–-])([A-Z][A-Z/\-]*[A-Z])(?=([’'s]*)(?:[\s:;,.!?’”)\]—–]|$))()", lambda m: fix(_M(m)), title)
+
+
+class _M:
+    def __init__(self, m):
+        self._m = m
+    def group(self, i):
+        return self._m.group(0) if i == 0 else (self._m.group(1), self._m.group(2), "")[i - 1]
+
+
 def clean(title, styl=None):
     """Apply deterministic style rules. Never truncates. Returns (display, changed)."""
     sty = styl or style()
@@ -105,6 +132,7 @@ def clean(title, styl=None):
     t = re.sub(r"\s+", " ", t).strip(" -–—:")
     t = drop_possessives(t, sty)
     t = numerals(t, sty)
+    t = fix_allcaps(t, sty)
     t = title_case(t, sty)
     if sty.get("smart_quotes", True):
         t = smartquotes(t)
@@ -530,7 +558,8 @@ def numerals(title, sty=None):
 
 _ABBREV = {"mr", "mrs", "ms", "dr", "st", "sr", "jr", "gov", "sen", "rep", "gen", "lt", "col", "sgt", "capt",
            "prof", "rev", "vs", "v", "no", "inc", "co", "corp", "ltd", "dept", "ft", "mt", "jan", "feb", "aug",
-           "sept", "sep", "oct", "nov", "dec", "pres", "atty", "supt", "approx", "etc"}
+           "sept", "sep", "oct", "nov", "dec", "pres", "atty", "supt", "approx", "etc", "sec", "wis", "calif",
+           "ariz", "mich", "minn", "fla", "ill", "mass", "conn", "tenn", "wash", "colo", "okla", "penn"}
 
 
 def _sentence_end(prev):

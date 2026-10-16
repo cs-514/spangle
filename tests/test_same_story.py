@@ -65,5 +65,36 @@ class SameStory(unittest.TestCase):
         self.assertEqual(own["link"], "https://www.washingtonexaminer.com/kamala-crowley")
 
 
+class VerifyLinks(unittest.TestCase):
+    def test_reverts_any_mismatched_pair(self):
+        # Simulates any path (originator, sibling, queue) leaving a headline on another story's link
+        h = "Democrats’ ‘Defund the Police’ Problem Is Back"
+        own = story(h, source="Daily Signal", link="https://www.dailysignal.com/2026/10/16/democrats-defund-the-police-problem-is-back/")
+        other = story("Democrats Are Trying to Defend Crowley Giving Money to His Wife's Employer, but There's a Problem",
+                      source="Townhall", link="https://townhall.com/news/amy-curtis/2026/10/16/crowley-funding-wifes-employer-n2684795")
+        placed = dict(own, link=other["link"], source="Townhall", display="Dems’ ‘Defund the Police’ Problem Is Back", original_title=h)
+        n = A.verify_links([placed], [{"id": 1, "items": [own, other]}], {})
+        self.assertEqual(n, 1)
+        self.assertEqual(placed["link"], own["link"])
+
+    def test_keeps_matching_sibling(self):
+        h, t, u = SAME[0]
+        own = story(h, source="Daily Wire", link="https://www.dailywire.com/bombs")
+        sib = story(t, source="Breitbart", link=u)
+        placed = dict(own, link=u, source="Breitbart", display=h, original_title=h)
+        self.assertEqual(A.verify_links([placed], [{"id": 1, "items": [own, sib]}], {}), 0)
+        self.assertEqual(placed["link"], u)
+
+
+class AllCaps(unittest.TestCase):
+    def test_only_acronyms_all_caps(self):
+        from ranking.headline import clean
+        self.assertEqual(clean("Democrats’ ‘Defund the Police’ Problem Is Back")[0], "Dems’ ‘Defund the Police’ Problem Is Back")
+        self.assertEqual(clean("WI DEM SEC/STATE Nominee’s No. 1 Priority")[0], "Wis. Dem Sec. of State Nominee’s No. 1 Priority")
+        self.assertEqual(clean("Ocasio-Cortez Dumps BIG MONEY Into El-Sayed Campaign")[0], "Ocasio-Cortez Dumps Big Money Into El-Sayed Campaign")
+        self.assertEqual(clean("DOJ, FBI and SCOTUS Back DOGE; MAGA Cheers NATO")[0], "DOJ, FBI and SCOTUS Back DOGE; MAGA Cheers NATO")
+        self.assertEqual(clean("Secretary of State Rubio Visits NATO")[0], "Sec. of State Rubio Visits NATO")
+
+
 if __name__ == "__main__":
     unittest.main()

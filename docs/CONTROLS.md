@@ -232,6 +232,9 @@ terms). The `lifestyle` hooks, `outrage` terms and boost keywords also count as 
   (a) a conservative celebrity speaking out: kept and scored favorably;
   (b) a celebrity making a fool of themselves on politics or geopolitics (a politics term plus a
   backlash/ridicule term): kept.
+- **Business / tech breakthroughs and aligned-figure wins** (private `business_terms`, `aligned_figures`,
+  `win_terms`) are core criteria: they qualify for the lead and Top Stories, are exempt from the business/tech
+  soft gate, and score 0.9 (1.0 when both hit; ordinary core stories 0.85).
 - **Featured slots need a core criterion.** A story with no political, policy, culture-war, legal,
   national-security or outrage angle never leads or enters Top Stories, and is scored `penalty` (0.15) so it
   sinks in the columns.

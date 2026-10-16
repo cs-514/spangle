@@ -527,6 +527,41 @@ _GENERIC_CAPS = {"second", "amendment", "first", "supreme", "court", "senate", "
                  "democratic", "republicans", "republican", "white", "state", "states", "united", "federal", "american"}
 
 
+def verify_links(placed, clusters, ov=None):
+    """Final guard on every placed story, whatever path set its link: the linked article must be the
+    headline's own item, or pass same_story() against the headline. Otherwise relink to the item the
+    headline came from. Overrides are keyed by URL; one whose text shares nothing with its article is logged."""
+    ov = ov if ov is not None else headline_mod.overrides()
+    items = {x["link"]: x for c in clusters for x in c["items"]}
+    by_title = {}
+    for c in clusters:
+        for x in c["items"]:
+            by_title.setdefault(x["title"], x)
+    n = 0
+    for s in placed:
+        if s.get("quote_item") or s.get("manual"):
+            continue
+        url = s.get("canonical") or s["link"]
+        if url in ov or url.split("?", 1)[0] in ov:
+            tgt = items.get(url)
+            if tgt and not _words(ov.get(url) or ov.get(url.split("?", 1)[0]) or "") & _words(f"{tgt['title']} {tgt.get('desc', '')} {url}"):
+                print(f"  override check: headline shares no words with its article: {url[:90]}")
+            continue
+        head = s.get("original_title") or s.get("title")
+        tgt = items.get(url)
+        if tgt is None or tgt["title"] == head:
+            continue
+        if same_story(s.get("display") or head, tgt) or same_story(head, tgt):
+            continue
+        own = by_title.get(head)
+        if own is not None and not own.get("paywalled"):
+            print(f"  link reverted (different story): {(s.get('display') or head)[:60]} -> {own['source']}")
+            s["link"], s["source"] = own["link"], own["source"]
+            s.pop("canonical", None)
+            n += 1
+    return n
+
+
 ORIGINATOR_MARGIN = 0.15  # a sibling must be this much cleaner (clutter_scores.json, 0-1) to beat the originator
 _CITE = r"(?:first reported by|originally reported by|as reported by|reported by|according to|first reported|told|via|scoop by|exclusive(?:ly)? to)"
 
@@ -614,7 +649,9 @@ def clean_links(lead, top, cols, clusters, settings, now, get=None):
             if v and v != s["link"]:
                 s["canonical"], s["link"] = s["link"], v
                 st["lighter"] += 1
-    print(f"clean links: {st['relinked']} relinked to a cleaner sibling, {st['lighter']} lighter variants")
+    st["reverted"] = verify_links(placed, clusters, ov)
+    print(f"clean links: {st['relinked']} relinked to a cleaner sibling, {st['lighter']} lighter variants, "
+          f"{st['reverted']} mismatched links reverted")
     for a, b, h in st["examples"][:5]:
         print(f"  relink: {a} -> {b}: {h[:70]}")
     return st
