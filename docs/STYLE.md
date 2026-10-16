@@ -162,6 +162,12 @@ quotes after start/space/([{—/– open (‘ “); everything else closes (’ 
 (`&#39;`, `&quot;`) are decoded first; only text is transformed, never URLs or attribute names.
 Tests: `python3 -m unittest tests/test_smartquotes.py`.
 
+**Headlines quote with single quotes.** In headlines only (feed titles, overrides, rewrites, the QOTD
+headline), quotations use ‘…’, not “…” or straight "…": *Dems’ ‘Affordability’ Pitch*, not *Dems’ “Affordability”
+Pitch*. A quote nested inside a quote takes double: *Said ‘I Won’t Say “Never”’*. Apostrophes are untouched
+(*Dems’*, *Won’t*, *’90s*). The Quote of the Day body text keeps normal double quotes. `headline_quotes()` runs at
+the end of `clean()` (toggle: `"single_quotes": true` in `headline_style.json`).
+
 ## Patterns to prefer
 
 - **X Does Y To Z.** "FBI Seizes Omar Phone in Immigration Raid"
