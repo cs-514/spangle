@@ -54,6 +54,8 @@ FEEDS = [
     ("Christian Post", "https://www.christianpost.com/rss", False),
     ("Daily Caller", "https://dailycaller.com/feed/", False),
     ("Just the News", "https://justthenews.com/rss.xml", False),
+    # Accountability/investigations section (Drupal taxonomy term 3); the main feed carries only 20 items.
+    ("Just the News", "https://justthenews.com/taxonomy/term/3/feed", False),
     ("SCOTUSblog", "https://www.scotusblog.com/feed/", False),
     ("Volokh Conspiracy", "https://reason.com/volokh/feed/", True),
     # Cato and Heritage return 403 to browser-like agents but serve feed readers.
@@ -184,7 +186,8 @@ def _fetch(feed, settings=None):
     items = root.findall(".//item") or root.findall(f".//{A}entry")
     for it in items:
         title = html.unescape(re.sub(r"<[^>]+>", "", txt(it, "title", f"{A}title")))
-        link = txt(it, "link", f"{A}link")
+        feed_link = txt(it, "link", f"{A}link")
+        link = headline_mod.strip_tracking(feed_link)
         if not title or not link.startswith("http"):
             continue
         desc = re.sub(r"<[^>]+>", " ", txt(it, "description", f"{A}summary"))[:600]
@@ -197,7 +200,7 @@ def _fetch(feed, settings=None):
             continue
         item = dict(max_age_hours=opts.get("max_age_hours"), column_age_hours=opts.get("column_age_hours"),
                     no_front=bool(opts.get("no_front")), reserved_slot=bool(opts.get("reserved_slot")),
-                    title=title, link=link, desc=html.unescape(desc), author=author,
+                    title=title, link=link, feed_link=feed_link, desc=html.unescape(desc), author=author,
                     cats=cats, when=when, source=name, opinion=op_feed or "/opinion/" in link or "/commentary/" in link)
         if settings is not None and not lean.keep(item, name, settings, outlet=name, author=author):
             continue
@@ -884,7 +887,7 @@ def main():
             if first is not None and s.get("curated"):
                 first["curated"] = first.get("curated", []) + s["curated"]
             continue
-        if suppressed(s["link"], settings):
+        if suppressed(s["link"], settings) or (s.get("feed_link") and suppressed(s["feed_link"], settings)):
             continue  # editor-removed story
         s["paywalled"] = is_paywalled_domain(s["link"])
         if s["paywalled"] and not settings.get("archive", {}).get("enabled"):
