@@ -176,3 +176,10 @@ Tests: `python3 -m unittest tests/test_smartquotes.py`.
 3. AI / human rewrites: the box script `/workspace/rewrite_queue.py` queues bland headlines; the parent agent (or a human) writes punchy replacements into `/workspace/rewrites_done.json`; `rewrite_queue.py apply` commits them as `headline_overrides.json` and triggers the hourly workflow.
 
 See [CONTROLS.md](CONTROLS.md) for the knobs.
+
+## Quote of the Day headlines: don't spoil the punchline
+A QOTD headline teases the theme without revealing the quote's payoff or closing line
+(e.g. *Reagan’s Challenge at the Brandenburg Gate*, not *Tear Down This Wall!*; *Lewis on the Claim of
+Jesus*, not *You Must Make Your Choice*). Name the author and subject; never quote the climactic phrase.
+Bank entries carry a bespoke `headline` field; entries without one fall back to the quote's opening
+words, which never contain the payoff.
