@@ -3,6 +3,14 @@
 import json, os, re, html, sys, urllib.request, urllib.parse, concurrent.futures as cf
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+
+ET = ZoneInfo("America/New_York")
+
+
+def fmt_et(d):
+    """Display-only: UTC datetime -> 'Oct 15, 4:13 PM' in US Eastern (DST-aware)."""
+    return d.astimezone(ET).strftime("%b %-d, %-I:%M %p")
 from email.utils import parsedate_to_datetime
 import shutil
 import ranking
@@ -661,7 +669,7 @@ def render(lead, top, cols, now, sources, settings):
     def meta(s):
         if s.get("quote_item"):
             return f'<div class="meta">{t(OUTLET(s))}</div>'
-        ts = s["when"].strftime("%b %-d, %H:%M UTC") if s["when"] else ""
+        ts = fmt_et(s["when"]) if s["when"] else ""
         arc = " · archived copy" if s.get("archived") else ""
         parts = " · ".join(x for x in (OUTLET(s), ts) if x)
         return f'<div class="meta">{t(parts)}{arc}</div>'
@@ -684,7 +692,7 @@ def render(lead, top, cols, now, sources, settings):
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)
     return (f'<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<meta http-equiv="refresh" content="1800"><title>Spangle</title>{ICONS}{FONTS}<style>{CSS}</style></head><body><div class="wrap">'
-            f'<header><h1 class="mast">Spangle</h1><div class="date">{now.strftime("%A, %B %-d, %Y")} · Updated {now.strftime("%H:%M")} UTC</div></header>'
+            f'<header><h1 class="mast">Spangle</h1><div class="date">{now.astimezone(ET).strftime("%A, %B %-d, %Y")} · Updated {fmt_et(now)} ET</div></header>'
             f'<div class="lead">{show(lead)}{meta(lead)}</div>'
             f'<div class="label">Top Stories</div><div class="top"><ul>{"".join(li(s) for s in top)}</ul></div>'
             f'<div class="label">More Headlines</div><div class="cols">{col_html}</div>'

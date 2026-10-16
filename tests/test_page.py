@@ -43,6 +43,17 @@ class Render(unittest.TestCase):
         q = A.quote_as_story({"quote": "Q text.", "author": "George Washington", "work": "Farewell Address"})
         return A.render(lead, top, [[q], [], []], NOW, [], {"placement": {}})
 
+    def test_eastern_time(self):
+        import re
+        h = self.html()
+        self.assertNotIn("UTC", h)
+        self.assertEqual(len(re.findall(r"\bET\b", h)), 1)
+        head = h[h.index("<header>"):h.index("</header>")]
+        self.assertIn("Updated Oct 15, 4:00 PM ET", head)  # NOW = 20:00 UTC, EDT
+        self.assertRegex(h, r'class="meta">[^<]* · Oct 1[45], \d{1,2}:\d\d [AP]M</div>')
+        from datetime import datetime, timezone
+        self.assertEqual(A.fmt_et(datetime(2026, 12, 1, 17, 5, tzinfo=timezone.utc)), "Dec 1, 12:05 PM")  # EST
+
     def test_meta(self):
         h = self.html()
         self.assertNotRegex(h, r"\+\d+ outlet")  # coverage counts are internal only
