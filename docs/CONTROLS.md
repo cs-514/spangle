@@ -419,3 +419,18 @@ Private config key `defeatism` (lexicons not in the repo). Headlines asserting t
 can't win, is doomed or will lose are excluded from the page entirely; the same framing about the other
 configured side is boosted. Headline overrides and rewrites can never introduce that framing: the build
 reverts such a display to the original title, and the box-side rewrite tool rejects it.
+
+## Clean pages (`ranking/clutter.py`, `clutter_scores.json`, `scripts/clutter_refresh.py`)
+`scripts/clutter_refresh.py` fetches a recent article from each public feed and scores the outlet's
+page cleanliness (0–1, 1 = clean): page weight, `<script>` count, known ad/tracker hosts, autoplay
+video, newsletter/interstitial/paywall modal markers, and text-to-HTML ratio. Results (and any tested
+lighter URL variant) go to the public `clutter_scores.json`; rerun the script to refresh.
+- **Signal `clutter`** (weight 0.05 in settings): the cleanest item in the cluster; unknown domains 0.5.
+- **Clean links** (settings `clean_links`): after the headline is chosen, the story links the
+  sibling with the best `0.45·tier + 0.40·cleanliness + 0.15·freshness` if it beats the current link by
+  `min_gain`. Siblings must pass the slot's age limit, not be paywalled or truncated, and, for the lead,
+  be non-opinion. Hand-written overrides, quotes and archived links never change.
+- **Lighter variants**: for outlets whose AMP / `?outputType=amp` / `/amp/` page was verified to carry the
+  full article without a login, the build fetches both pages and uses the variant only if it returns
+  200, has no subscribe/login wall and at least 80% of the canonical article text; otherwise the
+  canonical URL stays.

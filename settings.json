@@ -13,7 +13,8 @@
     "niche": 0.08,
     "retreat": 0.0,
     "outrage": 0.0,
-    "minor": 0.25
+    "minor": 0.25,
+    "clutter": 0.05
   },
   "recency": {
     "half_life_hours": 8,
@@ -540,5 +541,10 @@
   "suppress_urls": [
     "sha256:7293c255575eff15b638105d86a2cfca6b54b191b8d3c57d54a3a31de3041912",
     "sha256:a2b67b6181a569e4274f81ca516c352695a65531fc81bd34cfa8a74d92cb7c08"
-  ]
+  ],
+  "clean_links": {
+    "enabled": true,
+    "min_gain": 0.08,
+    "lighter_variants": true
+  }
 }
