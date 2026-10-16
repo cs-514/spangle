@@ -266,6 +266,12 @@ These rules apply to every item, whether it comes from a feed, a curated pick or
   Substack paid posts. A link is also dropped if it redirects onto a blocked domain.
 - Generic words like "subscribe", "paywall" or the Piano, Tinypass and Zephr scripts aren't used, because many free sites load them
   (Hot Air, Townhall, PJ Media, SCOTUSblog and the Washington Examiner all do) and they would cause false positives.
+- **Blaze+ (BlazeTV premium) teasers:** detected by the `Premium` post section (`topic-premium` sailthru tag,
+  `sections:[…'Premium'…]` / `post_sections` page context). Free Blaze pages carry the same empty `bottom-paywall` /
+  `unlock-article` mounts and Piano scripts, so those are not markers.
+- **Sibling swaps are checked too:** a link that fails the wall check is marked paywalled for the rest of the build
+  (cached per URL), and the headline-sibling and clean-link swaps wall-check any sibling before it replaces a placed
+  link. (A Blaze+ teaser dropped by `place()` once came back through a sibling swap.)
 - Pinned links on a blocked domain are skipped unless they include `archive_url`.
 - Dropped links are logged as `link dropped (wall marker ...)`.
 

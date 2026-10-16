@@ -360,7 +360,9 @@
   },
   "academic": {
     "enabled": true,
-    "sources": ["Volokh Conspiracy"],
+    "sources": [
+      "Volokh Conspiracy"
+    ],
     "penalty": 0.2,
     "hooked_score": 0.6,
     "drop": false
@@ -548,7 +550,8 @@
   },
   "suppress_urls": [
     "sha256:7293c255575eff15b638105d86a2cfca6b54b191b8d3c57d54a3a31de3041912",
-    "sha256:a2b67b6181a569e4274f81ca516c352695a65531fc81bd34cfa8a74d92cb7c08"
+    "sha256:a2b67b6181a569e4274f81ca516c352695a65531fc81bd34cfa8a74d92cb7c08",
+    "sha256:b6f73d2753290452a7c5be144f89b855b9480d9eba4fa1a66710c190b81c3f3b"
   ],
   "clean_links": {
     "enabled": true,
