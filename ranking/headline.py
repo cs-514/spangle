@@ -19,9 +19,26 @@ def style():
     return _STYLE
 
 
+def strip_tracking(url):
+    """Drop utm_* (and similar campaign) query params; keep any other query and the fragment."""
+    if "?" not in url:
+        return url
+    from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
+    p = urlsplit(url)
+    q = [(k, v) for k, v in parse_qsl(p.query, keep_blank_values=True) if not k.lower().startswith("utm_")]
+    return urlunsplit(p._replace(query=urlencode(q)))
+
+
 class _Overrides(dict):
     """URL -> headline. A key may also be "sha256:<hex of the URL>" so a URL that names a
-    private-list figure need not appear in the public repo (see url_key)."""
+    private-list figure need not appear in the public repo (see url_key). Keys saved with utm params
+    also match the stripped URL the feeds now produce."""
+    def __init__(self, d):
+        super().__init__(d)
+        for k, v in list(d.items()):
+            sk = strip_tracking(k) if k.startswith("http") else k
+            if sk != k and not dict.__contains__(self, sk):
+                dict.__setitem__(self, sk, v)
     def _k(self, url):
         return url if dict.__contains__(self, url) else url_key(url)
     def __contains__(self, url):
