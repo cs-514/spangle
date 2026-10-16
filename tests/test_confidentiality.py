@@ -16,7 +16,8 @@ def private_terms():
     handles = {h for h in (c.get("truth_accounts") or {}) if not re.fullmatch(r"[A-Z][a-z]+", h)}
     urls = {f["url"] for f in c.get("private_feeds") or []} | {a.get("url", "") for a in c.get("amplifiers") or [] if isinstance(a, dict)}
     bylines = {(f.get("options") or {}).get("byline", "") for f in c.get("private_feeds") or []}
-    return {t for t in names | handles | urls | bylines if t and len(t) > 3}
+    faction = set((c.get("faction") or {}).get("members") or [])  # never in code/docs; headlines are public news
+    return {t for t in names | handles | urls | bylines | faction if t and len(t) > 3}
 
 
 class Confidentiality(unittest.TestCase):

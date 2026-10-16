@@ -19,13 +19,31 @@ def style():
     return _STYLE
 
 
+class _Overrides(dict):
+    """URL -> headline. A key may also be "sha256:<hex of the URL>" so a URL that names a
+    private-list figure need not appear in the public repo (see url_key)."""
+    def _k(self, url):
+        return url if dict.__contains__(self, url) else url_key(url)
+    def __contains__(self, url):
+        return dict.__contains__(self, url) or dict.__contains__(self, url_key(url))
+    def __getitem__(self, url):
+        return dict.__getitem__(self, self._k(url))
+    def get(self, url, default=None):
+        return dict.get(self, self._k(url), default)
+
+
+def url_key(url):
+    import hashlib
+    return "sha256:" + hashlib.sha256(url.encode()).hexdigest()
+
+
 def overrides():
     global _OVERRIDES
     if _OVERRIDES is None:
         path = os.path.join(HERE, "headline_overrides.json")
         try:
             with open(path) as f:
-                _OVERRIDES = json.load(f) or {}
+                _OVERRIDES = _Overrides(json.load(f) or {})
         except Exception:
             _OVERRIDES = {}
     return _OVERRIDES

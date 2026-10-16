@@ -451,7 +451,7 @@ ICONS = ('<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type=
          '<meta name="apple-mobile-web-app-title" content="Spangle"><meta name="theme-color" content="#0A3161">')
 
 
-def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
+def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=None):
     """For each placed story: prefer a non-bland, under-max-length sibling headline
     (and its URL); always apply deterministic style cleanup (never truncate);
     queue a rewrite when every candidate is bland OR the chosen display is still
@@ -464,6 +464,7 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
     placed = [lead] + top + [s for col in cols for s in col]
     sty = headline_mod.style()
     ov = headline_mod.overrides()
+    fmem = ranking.faction.members(ctx) if ctx is not None else []
 
     def candidates(s):
         c = by_id.get(id(s)) or by_link.get(s["link"])
@@ -487,6 +488,10 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
         # a sibling may replace the story only if it also passes the slot's age limit
         cands = [x for x in candidates(s) if not x.get("paywalled")
                  and (x is s or settings is None or fits(x, sl, settings, now))] or [s]
+        cl = by_id.get(id(s)) or by_link.get(s["link"])
+        if cl and cl.get("faction_defect") and fmem:  # betrayal story: feature the other side, not the defector
+            names = lambda x: re.search(r"\b(" + "|".join(map(re.escape, fmem)) + r")\b", x["title"].lower().replace("’", "'"))
+            cands = [x for x in cands if not names(x)] or cands
         if sl == "lead":  # the lead stays reported news: only non-opinion siblings when any exist
             cands = [x for x in cands if not x.get("opinion")] or cands
         ranked = []
@@ -543,7 +548,7 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None):
         if all_bland or (bland and not any(not r[8] for r in ranked)):
             stats["queued_bland"] += 1
             stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
-                                   "reason": "bland",
+                                   "reason": "bland", **({"framing": "feature the opponent; frame as betrayal"} if cl and cl.get("faction_defect") else {}),
                                    "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
         elif headline_mod.too_long(s["display"], sty) and \
                 not headline_mod.too_long(headline_mod.shorten(s["display"], sty), sty):
@@ -767,7 +772,7 @@ def main():
     print(f"{len(uniq)} stories in {len(clusters)} clusters; {sum(1 for c in clusters if len(c['outlets']) > 1)} multi-outlet")
     ranking.rank(clusters, settings, ctx)
     lead, top, cols = place(clusters, settings, ctx)
-    lead, top, cols, _hl = decorate_headlines(lead, top, cols, clusters, settings, now)
+    lead, top, cols, _hl = decorate_headlines(lead, top, cols, clusters, settings, now, ctx)
     cols = inject_quote(cols, settings)
     display_outlets([lead] + top + [s for c in cols for s in c])
     allp = [lead] + top + [s for c in cols for s in c]
