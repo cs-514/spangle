@@ -196,3 +196,10 @@ Shorter, punchier headlines (QOTD and rewrites):
 - News: never drop an action verb; the verb is often the story. The automatic compressor
   (`headline.compress`, `headline_style.json` → `compression`) only drops a leading article and turns
   *X Involves/Means/Equals Y* into *X, Y* when the two sides are short parallel phrases.
+
+## Judicial quote sources
+Court-opinion quotes (Scalia, Marshall, Bork) display as **Author, *Case Name* (Year)**, with the case
+name italicized: *Antonin Scalia, District of Columbia v. Heller (2008)*. No reporter citations
+(554 U.S. 570, 5 U.S. 137, 750 F.2d 970, S. Ct., L. Ed.) and no "(dissenting)"/"(concurring)" on the page;
+the full cite stays in the bank's `citation` field and the quote links to the opinion text. The renderer
+strips reporter cites as a safety net.
