@@ -30,6 +30,18 @@ class SentenceStart(unittest.TestCase):
         self.assertEqual(title_case("Trump: as expected"), "Trump: As Expected")
         self.assertEqual(title_case("He said no. “if they come, we fight”"), "He Said No. “If They Come, We Fight”")
 
+    def test_to_always_lowercase(self):
+        self.assertEqual(title_case("James Talarico Says He Wants To See Fewer Abortions. But Why?"),
+                         "James Talarico Says He Wants to See Fewer Abortions. But Why?")
+        self.assertEqual(title_case("Zelensky Vows To Fight On"), "Zelensky Vows to Fight On")
+        self.assertEqual(title_case("Something To Look Forward To"), "Something to Look Forward to")
+        self.assertEqual(title_case("To the moon"), "To the Moon")
+        self.assertEqual(title_case("It Failed. to be fair"), "It Failed. To Be Fair")
+
+    def test_embedded_quote_punct(self):
+        self.assertEqual(title_case("He Asked ‘Why?’ and Walked Out"), "He Asked ‘Why?’ and Walked Out")
+        self.assertEqual(title_case("Crowd Chants “Fight!” as Rally Ends"), "Crowd Chants “Fight!” as Rally Ends")
+
     def test_no_false_boundaries(self):
         self.assertEqual(title_case("U.S. and China talk"), "U.S. and China Talk")
         self.assertEqual(title_case("Mr. and Mrs. Smith"), "Mr. and Mrs. Smith")

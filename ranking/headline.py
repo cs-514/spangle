@@ -456,7 +456,9 @@ def _sentence_end(prev):
     """True if token `prev` ends a sentence (. ? ! possibly followed by closing quotes/brackets), so the
     next word starts a new sentence. Ellipsis dots (". . .", "...", "…") and abbreviations (U.S., D.C.,
     Mr., Gov.) do not count."""
-    t = prev.rstrip("\"'’”)]")
+    if prev[-1:] in ("\"", "'", "’", "”"):
+        return False  # punctuation inside a closing quote is embedded: Asked ‘Why?’ and Walked Out
+    t = prev.rstrip(")]")
     if not t or t[-1] not in ".?!":
         return False
     if t[-1] in "?!":
@@ -519,6 +521,8 @@ def title_case(title, sty=None):
             out.append(lead + low + trail); continue
         if low in parts_ and core == low and i + 1 < n and toks[i + 1][:1].isupper():
             out.append(w); continue  # el Sayed, bin Salman
+        if low == "to" and not (i == 0 or prev[-1:] == ":" or _sentence_end(prev) or lead[-1:] in ("‘", "“")):
+            out.append(lead + low + trail); continue  # always lowercase 'to', incl. infinitives and last word
         if core != low:  # has capitals already (Title, ACRONYM, McDonald, iPhone): keep
             out.append(w); continue
         cap = "-".join(p[:1].upper() + p[1:] for p in core.split("-"))
