@@ -457,6 +457,55 @@ def suppressed(url, settings):
     return bool(sup) and any(u in sup or headline_mod.url_key(u) in sup for u in (url, url.split("?", 1)[0]))
 
 
+def clean_links(lead, top, cols, clusters, settings, now, get=None):
+    """Link the cleanest acceptable sibling (tier + clutter + freshness), keeping the chosen headline;
+    then swap in a validated lighter variant (AMP/print) where one exists. Overrides, quotes and
+    archived links are left alone. Returns stats."""
+    cfg = settings.get("clean_links") or {}
+    st = {"relinked": 0, "lighter": 0, "examples": []}
+    if not cfg.get("enabled"):
+        return st
+    tiers, dt = settings["sources"]["tiers"], settings["sources"]["default_tier"]
+    ov = headline_mod.overrides()
+    by_id = {id(x): c for c in clusters for x in c["items"]}
+    by_link = {x["link"]: c for c in clusters for x in c["items"]}
+    slot = {id(lead): "lead", **{id(x): "top" for x in top}}
+    placed = [lead] + top + [x for c in cols for x in c]
+    for s in placed:
+        if s.get("quote_item") or s.get("archived") or s["link"] in ov or s["link"].split("?", 1)[0] in ov:
+            continue
+        c = by_id.get(id(s)) or by_link.get(s["link"])
+        if not c or len(c["items"]) < 2:
+            continue
+        sl = slot.get(id(s), "column")
+        cands = [x for x in c["items"] if not x.get("paywalled") and not x.get("truncated")
+                 and fits(x, sl, settings, now)]
+        if sl == "lead":
+            cands = [x for x in cands if not x.get("opinion")] or cands
+        if not cands:
+            continue
+        cur = ranking.clutter.link_score(s, tiers, dt, now)
+        best = max(cands, key=lambda x: ranking.clutter.link_score(x, tiers, dt, now))
+        if best["link"] != s["link"] and ranking.clutter.link_score(best, tiers, dt, now) - cur >= cfg.get("min_gain", 0.08):
+            st["examples"].append((s["source"], best["source"], s.get("display") or s["title"]))
+            s["link"], s["source"] = best["link"], best["source"]
+            if best.get("when"):
+                s["when"] = best["when"]
+            st["relinked"] += 1
+    if cfg.get("lighter_variants"):
+        todo = [s for s in placed if not s.get("quote_item") and (ranking.clutter.scores().get(ranking.clutter.domain(s["link"])) or {}).get("variant")]
+        with cf.ThreadPoolExecutor(8) as ex:
+            res = list(ex.map(lambda s: ranking.clutter.lighter(s["link"], **({"get": get} if get else {})), todo))
+        for s, v in zip(todo, res):
+            if v and v != s["link"]:
+                s["canonical"], s["link"] = s["link"], v
+                st["lighter"] += 1
+    print(f"clean links: {st['relinked']} relinked to a cleaner sibling, {st['lighter']} lighter variants")
+    for a, b, h in st["examples"][:5]:
+        print(f"  relink: {a} -> {b}: {h[:70]}")
+    return st
+
+
 def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=None):
     """For each placed story: prefer a non-bland, under-max-length sibling headline
     (and its URL); always apply deterministic style cleanup (never truncate);
@@ -792,6 +841,7 @@ def main():
     lead, top, cols = place(clusters, settings, ctx)
     lead, top, cols, _hl = decorate_headlines(lead, top, cols, clusters, settings, now, ctx)
     cols = inject_quote(cols, settings)
+    clean_links(lead, top, cols, clusters, settings, now)
     display_outlets([lead] + top + [s for c in cols for s in c])
     allp = [lead] + top + [s for c in cols for s in c]
     sources = sorted({OUTLET(s) for s in allp if not s.get("archived")})
