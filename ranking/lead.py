@@ -125,7 +125,8 @@ def order_for_lead(clusters, settings, ctx):
     rest = [c for c in clusters if all(c is not h for h in head)]
     # soft gate: keep sports/lifestyle etc. out of the top-stories block
     top_n = settings["placement"]["top_stories"] * 2
-    ok_top = [c for c in rest if not any(gated(s, cfg, soft=True) or gated(s, cfg) for s in c["items"])]
+    ok_top = [c for c in rest if not any((gated(s, cfg, soft=True) and not c.get("featured_ok")) or gated(s, cfg)
+                                         for s in c["items"])]
     early = ok_top[:top_n]
     later = [c for c in rest if all(c is not e for e in early)]
     return head + early + later

@@ -66,8 +66,8 @@ No Opinion tags (Drudge-style); no leading or doubled "·". The Quote of the Day
 | ICE | Immigration and Customs Enforcement |
 | CBP | Customs and Border Protection |
 | GOP | Republicans / Republican Party (when it shortens) |
-| DEMS | Democrats / Democratic Party (when it shortens) |
-| SEC/STATE | Secretary of State |
+| Dems | Democrats / Democratic Party (when it shortens); *Dem* for one |
+| Sec. of State | Secretary of State |
 | AG | Attorney General |
 | D.C. | Washington, D.C. / District of Columbia |
 | Fed | Federal Reserve |
@@ -94,7 +94,16 @@ Deterministic cleanup in `headline_style.json` (applied to every displayed headl
 | the U.S. Supreme Court / U.S. Supreme Court | SCOTUS |
 | the SCOTUS / The SCOTUS | SCOTUS |
 
-Examples: *DOGE Gets Its Day at SCOTUS* · *Kamala: DEMS Will Pack SCOTUS* · *SCOTUS Crushes DEM Challenges*.
+Examples: *DOGE Gets Its Day at SCOTUS* · *Kamala: Dems Will Pack SCOTUS* · *SCOTUS Crushes Dem Challenges*.
+
+## Only true acronyms are ALL CAPS
+
+ALL CAPS is for acronyms and initialisms only (DOJ, FBI, SCOTUS, DOGE, GOP, MAGA, NATO; the `acronyms` list in
+`headline_style.json`). *Dems*, *Dem* and *Sec. of State* are abbreviations, not acronyms, so they are never
+capitalized. `fix_allcaps()` runs before title case: known shouting forms are mapped (`allcaps_words`:
+DEMS → Dems, SEC/STATE → Sec. of State, WI → Wis.), and other all-caps words of 4+ letters or common short words
+become title case (*BIG MONEY* → *Big Money*, *EVISCERATES* → *Eviscerates*). Unknown 2–3-letter tokens are
+assumed to be acronyms.
 
 ## Drop redundant possessives
 
@@ -128,7 +137,7 @@ Every headline is normalized to title case, and sentence-case headlines are conv
 and, but, or, nor, as, at, by, for, if, in, of, on, to, vs* except as the first or last word, after a colon or
 dash, or at the start of a quote. Capitalize everything else, including both parts of a hyphenated word
 (*Live-Stream*) and phrasal particles (*Take Up*; *Up* always stays capitalized). Words that already have
-capitals are never lowercased: acronyms, the style abbreviations (SCOTUS, DOGE, VDH, DEMS, GOP), *McDonald*,
+capitals are never lowercased: acronyms, the style abbreviations (SCOTUS, DOGE, VDH, GOP), *McDonald*,
 *iPhone*, ALL-CAPS lines. Lowercase name particles before a name stay as they are (*el Sayed*, *bin Salman*).
 The Quote of the Day is not touched.
 

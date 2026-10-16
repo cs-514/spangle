@@ -12,7 +12,7 @@ class HeadlineQuotes(unittest.TestCase):
         self.assertEqual(clean("He Said “I Won’t Say ‘Never’” to Reporters")[0], "He Said ‘I Won’t Say “Never”’ to Reporters")
 
     def test_apostrophes_untouched(self):
-        for t in ["Kids’ ‘Day Off’", "The ’90s ‘Return’", "Rogan: DEMS Lost Me Because ‘Open Border Was Insane’"]:
+        for t in ["Kids’ ‘Day Off’", "The ’90s ‘Return’", "Rogan: Dems Lost Me Because ‘Open Border Was Insane’"]:
             self.assertEqual(clean(t)[0], t)
 
     def test_idempotent(self):

@@ -14,7 +14,7 @@ class TitleCase(unittest.TestCase):
     def test_preserve(self):
         self.assertEqual(clean("Trump says Abdul el Sayed is ‘100%’ a ‘Muslim Brotherhood guy’")[0],
                          "Trump Says Abdul el Sayed Is ‘100%’ ‘Muslim Brotherhood’")
-        self.assertEqual(title_case("McDonald slams iPhone ban by DEMS and GOP"), "McDonald Slams iPhone Ban by DEMS and GOP")
+        self.assertEqual(clean("McDonald slams iPhone ban by DEMS and GOP")[0], "McDonald Slams iPhone Ban by Dems and GOP")
         self.assertEqual(title_case("the end of an era"), "The End of an Era")       # first word
         self.assertEqual(title_case("what are they fighting for"), "What Are They Fighting For")  # last word
         self.assertEqual(title_case("Trump: the comeback"), "Trump: The Comeback")    # after colon

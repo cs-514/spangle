@@ -12,6 +12,9 @@ CFG = {"newsworthiness": {
     "speaking_out_terms": ["slams", "says", "warns"],
     "fool_terms": ["backlash", "mocked", "ridicul", "preach"],
     "politics_terms": ["trump", "israel", "democrats", "election", "tax"],
+    "business_terms": ["unveils", "flying roadster", "breakthrough", "chip"],
+    "aligned_figures": ["tesla", "acme founder"],
+    "win_terms": ["unveils", "wins", "launches"],
     "penalty": 0.15}}
 
 
@@ -51,7 +54,7 @@ class Celebrity(unittest.TestCase):
 
 class Newsworthiness(unittest.TestCase):
     def test_off_criteria_kept_off_front_and_downranked(self):
-        cs, out = run("Tesla Unveils Flying Roadster in Viral Stunt Debut")
+        cs, out = run("College Football’s Best Untold Story Is at Oregon State")
         c = cs[0]
         self.assertTrue(c["off_criteria"] and c["lead_excluded"] and c["top_excluded"])
         self.assertFalse(c.get("dropped"))
@@ -59,8 +62,23 @@ class Newsworthiness(unittest.TestCase):
 
     def test_core_story_featured(self):
         cs, out = run("Senate Passes Border Bill")
-        self.assertEqual(out[0], 1.0)
+        self.assertEqual(out[0], 0.85)
         self.assertFalse(cs[0].get("top_excluded"))
+
+    def test_business_and_aligned_win_featured_and_boosted(self):
+        cs, out = run("Tesla Unveils Flying Roadster in Viral Stunt Debut",   # both
+                      "Startup Unveils Chip Breakthrough",                    # business only
+                      "Acme Founder Wins Key Contract")                       # aligned-figure win only
+        for c in cs:
+            self.assertTrue(c["featured_ok"]); self.assertFalse(c.get("top_excluded")); self.assertFalse(c.get("dropped"))
+        self.assertEqual(out[0], 1.0)
+        self.assertEqual(out[1], 0.9); self.assertEqual(out[2], 0.9)
+
+    def test_business_story_passes_soft_gate(self):
+        from ranking import lead
+        cfg = {"soft_gate_paths": ["/tech/"]}
+        s = story("Tesla Unveils Flying Roadster", link="https://example.com/tech/roadster")
+        self.assertTrue(lead.gated(s, cfg, soft=True))  # the gate itself still matches; featured_ok exempts it in order_for_lead
 
     def test_disabled_without_private_config(self):
         self.assertIsNone(N.compute([], {}, {"alignment_cfg": {}}))
