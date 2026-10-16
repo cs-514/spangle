@@ -183,3 +183,16 @@ A QOTD headline is punchy and drawn from the quote itself; a famous line can be 
 *All Warfare Is Based on Deception*). Use a teaser instead only when the payoff is a surprise twist
 the headline would spoil. Bank entries may carry a bespoke `headline` field (e.g. st-006,
 *Supreme Excellence Against Adversaries*); entries without one fall back to the quote's opening words.
+
+## Compression
+Shorter, punchier headlines (QOTD and rewrites):
+- Drop leading articles (The / A / An) unless part of a name (*The Hill*, *The Almighty*).
+- Cut linking or filler verbs (involves, is, are, means, represents) when parallel noun phrases carry
+  the meaning, and join the fragments with a comma: *The Power to Tax Involves the Power to Destroy* →
+  **Power to Tax, Power to Destroy**.
+- Strip throat-clearing ("Here’s why", "What to know").
+- Keep iconic verbatim lines as spoken (*Mr. Gorbachev, Tear Down This Wall!*) and chosen headlines
+  (*Supreme Excellence Against Adversaries*).
+- News: never drop an action verb; the verb is often the story. The automatic compressor
+  (`headline.compress`, `headline_style.json` → `compression`) only drops a leading article and turns
+  *X Involves/Means/Equals Y* into *X, Y* when the two sides are short parallel phrases.

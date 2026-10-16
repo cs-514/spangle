@@ -142,10 +142,10 @@
     "REPORT:",
     "Editorial:",
     "EDITORIAL:",
-    "EXCLUSIVE \u2014 ",
+    "EXCLUSIVE — ",
     "EXCLUSIVE - ",
     "Exclusive: ",
-    "BREAKING \u2014 ",
+    "BREAKING — ",
     "BREAKING - "
   ],
   "trailing_tags": [
@@ -162,8 +162,8 @@
   ],
   "trailing_site_sep": [
     " | ",
-    " \u2014 ",
-    " \u2013 ",
+    " — ",
+    " – ",
     " - "
   ],
   "filler_phrases": [
@@ -474,8 +474,76 @@
       "OpenAI",
       "PayPal",
       "JPMorgan",
-      "McDonald\u2019s",
+      "McDonald’s",
       "LinkedIn"
+    ]
+  },
+  "compression": {
+    "enabled": true,
+    "rule": "Drop leading articles; cut linking/filler verbs (involves, is, are, means, represents) when parallel noun phrases carry the meaning; prefer parallel fragments joined by a comma; strip throat-clearing. Keep iconic verbatim lines. News: never drop an action verb. Example: 'The Power to Tax Involves the Power to Destroy' -> 'Power to Tax, Power to Destroy'.",
+    "linking_verbs": [
+      "Involves",
+      "Means",
+      "Equals"
+    ],
+    "protect_after_article": [
+      "Hill",
+      "Atlantic",
+      "Federalist",
+      "Free Press",
+      "Blaze",
+      "Daily Wire",
+      "Daily Signal",
+      "Daily Caller",
+      "Economist",
+      "New York Times",
+      "Washington Post",
+      "Wall Street Journal",
+      "Babylon Bee",
+      "View",
+      "Chosen",
+      "Simpsons",
+      "Onion",
+      "Spectator",
+      "Nation",
+      "Bulwark",
+      "Dispatch",
+      "Intercept",
+      "Almighty",
+      "People",
+      "Lord",
+      "Bible",
+      "Apprentice",
+      "Who",
+      "Beatles",
+      "Hague",
+      "Gambia",
+      "Bahamas",
+      "Netherlands",
+      "Philippines",
+      "Weekly Standard",
+      "American Conservative",
+      "Heritage",
+      "Post Millennial",
+      "Times",
+      "Washington Times",
+      "Epoch Times",
+      "Guardian",
+      "Telegraph",
+      "Sun",
+      "Mirror",
+      "Washington Free Beacon",
+      "Free Beacon",
+      "Federal Reserve",
+      "Fed",
+      "Constitution",
+      "Founders",
+      "Pope",
+      "Supreme"
+    ],
+    "example": [
+      "The Power to Tax Involves the Power to Destroy",
+      "Power to Tax, Power to Destroy"
     ]
   }
 }
