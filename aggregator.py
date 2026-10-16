@@ -409,7 +409,7 @@ def place(clusters, settings, ctx):
     return lead, top, cols
 
 
-CSS = """
+CSS = """.nw{white-space:nowrap}
 :root{--ink:#121212;--muted:#5a5a5a;--rule:#dcdcdc;--red:#b00000;
 --serif:"Source Serif 4",Georgia,"Times New Roman",serif;--display:"Playfair Display","Source Serif 4",Georgia,serif;
 --sans:"Libre Franklin","Helvetica Neue",Arial,sans-serif}
@@ -702,7 +702,7 @@ def render(lead, top, cols, now, sources, settings):
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)
     return (f'<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<meta http-equiv="refresh" content="1800"><title>Spangle</title>{ICONS}{FONTS}<style>{CSS}</style></head><body><div class="wrap">'
-            f'<header><h1 class="mast">Spangle</h1><div class="date">{now.astimezone(ET_TZ).strftime("%A, %B %-d, %Y")} · Updated {fmt_et(now)} ET</div></header>'
+            f'<header><h1 class="mast">Spangle</h1><div class="date"><span class="nw">{now.astimezone(ET_TZ).strftime("%A, %B %-d, %Y")}</span> · <span class="nw">Updated {now.astimezone(ET_TZ).strftime("%-I:%M %p")}</span></div></header>'
             f'<div class="lead">{show(lead)}{meta(lead)}</div>'
             f'<div class="label">Top Stories</div><div class="top"><ul>{"".join(li(s) for s in top)}</ul></div>'
             f'<div class="label">More Headlines</div><div class="cols">{col_html}</div>'

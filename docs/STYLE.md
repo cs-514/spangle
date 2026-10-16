@@ -50,7 +50,7 @@ otherwise the story prefers a sibling headline, goes to the rewrite queue, and c
 
 ## Meta line
 The outlet's display name (never a raw domain such as "lifezette.com"), then the time:
-"American Greatness · Oct 15, 10:02 AM" — all displayed times are US Eastern (America/New_York, DST-aware), 12-hour with AM/PM, no zone suffix on items; the zone appears once, in the header ("Updated Oct 15, 9:27 PM ET"). No "UTC" anywhere on the page; ranking stays in UTC internally. No "+N outlets" count (coverage is used only for ranking).
+"American Greatness · Oct 15, 10:02 AM" — all displayed times are US Eastern (America/New_York, DST-aware), 12-hour with AM/PM, no zone suffix on items; no zone label anywhere (no "ET"). Header: "Friday, October 16, 2026 · Updated 6:38 AM" (Eastern date; the Updated part shows time only, each half kept unbroken so mobile wraps only at the "·"). No "UTC" anywhere on the page; ranking stays in UTC internally. No "+N outlets" count (coverage is used only for ranking).
 No Opinion tags (Drudge-style); no leading or doubled "·". The Quote of the Day shows a small QUOTE kicker above its headline, then the quote text, then the source line "Author · Work, locator".
 
 ## Abbreviations (use these when they shorten)
