@@ -403,3 +403,12 @@ Top Stories; a member breaking ranks or obstructing the agenda is treated as out
 sibling headlines (and queued rewrites) that feature the opposing side are preferred; criticism of a
 member or a primary challenge is boosted. Weight: `signal_weights.faction` (private). The list is never
 in the repo; the confidentiality guard checks for it.
+
+## Minor-figure rule (`ranking/minor.py`, settings `minor_figures`)
+A statement or position from a minor figure (non-presidential candidate, state legislator, backbench
+House member, local official, commentator) is not national news by itself: strongly downranked and kept
+out of the lead and Top Stories. Exceptions: a nationally prominent speaker (generic office-based list in
+the module, extendable via `minor_figures.prominent`), real action (vote, ruling, bill, arrest,
+indictment), wide coverage (`min_outlets`, default 5, including a major outlet), and scandals in a watched
+race (columns allowed, never the lead). `suppress_urls` (settings) removes individual stories; entries may
+be `sha256:` URL keys.
