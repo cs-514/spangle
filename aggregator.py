@@ -5,12 +5,12 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
-ET = ZoneInfo("America/New_York")
+ET_TZ = ZoneInfo("America/New_York")  # NOT "ET": that name is xml.etree.ElementTree
 
 
 def fmt_et(d):
     """Display-only: UTC datetime -> 'Oct 15, 4:13 PM' in US Eastern (DST-aware)."""
-    return d.astimezone(ET).strftime("%b %-d, %-I:%M %p")
+    return d.astimezone(ET_TZ).strftime("%b %-d, %-I:%M %p")
 from email.utils import parsedate_to_datetime
 import shutil
 import ranking
@@ -157,7 +157,17 @@ def parse_date(s):
 A = "{http://www.w3.org/2005/Atom}"
 DC = "{http://purl.org/dc/elements/1.1/}"
 
+FEED_STATS = {"ok": 0, "fail": 0}
+MIN_FEEDS_OK, MIN_LINKS = 20, 40  # build guard: never deploy a gutted page
+
+
 def fetch(feed, settings=None):
+    out = _fetch(feed, settings)
+    FEED_STATS["ok" if out is not None else "fail"] += 1
+    return out or []
+
+
+def _fetch(feed, settings=None):
     name, url, op_feed = feed[:3]
     headers = feed[3] if len(feed) > 3 else UA
     opts = feed[4] if len(feed) > 4 else {}
@@ -168,7 +178,7 @@ def fetch(feed, settings=None):
         root = ET.fromstring(data)
     except Exception as e:
         print(f"FEED FAIL {opts.get('log_name', name)}: {e!r}"[:160])
-        return []
+        return None
     out = []
     items = root.findall(".//item") or root.findall(f".//{A}entry")
     for it in items:
@@ -692,7 +702,7 @@ def render(lead, top, cols, now, sources, settings):
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)
     return (f'<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<meta http-equiv="refresh" content="1800"><title>Spangle</title>{ICONS}{FONTS}<style>{CSS}</style></head><body><div class="wrap">'
-            f'<header><h1 class="mast">Spangle</h1><div class="date">{now.astimezone(ET).strftime("%A, %B %-d, %Y")} · Updated {fmt_et(now)} ET</div></header>'
+            f'<header><h1 class="mast">Spangle</h1><div class="date">{now.astimezone(ET_TZ).strftime("%A, %B %-d, %Y")} · Updated {fmt_et(now)} ET</div></header>'
             f'<div class="lead">{show(lead)}{meta(lead)}</div>'
             f'<div class="label">Top Stories</div><div class="top"><ul>{"".join(li(s) for s in top)}</ul></div>'
             f'<div class="label">More Headlines</div><div class="cols">{col_html}</div>'
@@ -762,6 +772,10 @@ def main():
     display_outlets([lead] + top + [s for c in cols for s in c])
     allp = [lead] + top + [s for c in cols for s in c]
     sources = sorted({OUTLET(s) for s in allp if not s.get("archived")})
+    print(f"feeds: {FEED_STATS['ok']} OK, {FEED_STATS['fail']} failed; {len(allp)} links")
+    if FEED_STATS["ok"] < MIN_FEEDS_OK or len(allp) < MIN_LINKS:
+        print(f"BUILD GUARD: need >= {MIN_FEEDS_OK} feeds OK and >= {MIN_LINKS} links; refusing to write the page")
+        return 1
     os.makedirs("site", exist_ok=True)
     if os.path.isdir("static"):
         shutil.copytree("static", "site", dirs_exist_ok=True)
