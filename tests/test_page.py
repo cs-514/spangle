@@ -47,9 +47,9 @@ class Render(unittest.TestCase):
         import re
         h = self.html()
         self.assertNotIn("UTC", h)
-        self.assertEqual(len(re.findall(r"\bET\b", h)), 1)
+        self.assertEqual(re.findall(r"\bET\b", h), [])  # no zone label anywhere; times are Eastern
         head = h[h.index("<header>"):h.index("</header>")]
-        self.assertIn("Updated Oct 15, 4:00 PM ET", head)  # NOW = 20:00 UTC, EDT
+        self.assertIn("Thursday, October 15, 2026</span> · <span class=\"nw\">Updated 4:00 PM<", head)  # NOW = 20:00 UTC, EDT
         self.assertRegex(h, r'class="meta">[^<]* · Oct 1[45], \d{1,2}:\d\d [AP]M</div>')
         from datetime import datetime, timezone
         self.assertEqual(A.fmt_et(datetime(2026, 12, 1, 17, 5, tzinfo=timezone.utc)), "Dec 1, 12:05 PM")  # EST
