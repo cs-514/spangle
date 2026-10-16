@@ -487,6 +487,45 @@ def suppressed(url, settings):
     return bool(sup) and any(u in sup or headline_mod.url_key(u) in sup for u in (url, url.split("?", 1)[0]))
 
 
+_STOP = set("""from that with says said will about after over their they this what more than into been have were
+when where your just could would should also only being here there them then some most such these those which while
+amid""".split())
+
+
+def _words(t):
+    t = t.lower().replace("’", "'")
+    t = re.sub(r"'s\b", "", t)
+    return {w for w in re.findall(r"[a-z0-9]+", t) if (len(w) > 3 or w.isdigit()) and w not in _STOP}
+
+
+def same_story(headline, x, min_overlap=0.34):
+    """Would linking item x under `headline` still be the same article topic? Content-word overlap between
+    the headline and x's title + URL slug, as a share of the smaller set. Mis-clustered siblings (e.g. a
+    Harris rally headline on a Wisconsin secretary-of-state story) fall well below; rewrites of the same
+    report stay above. When unsure, callers keep the headline's own link."""
+    a = _words(headline)
+    slug = urllib.parse.urlparse(x["link"]).path.replace("-", " ").replace("/", " ")
+    b = _words(f"{x['title']} {slug}")
+    if not a or not b:
+        return False
+    if len(a & b) / min(len(a), len(b)) < min_overlap:
+        return False
+    # Sentence-case titles (Fox, NY Post, ...) mark names with capitals: a named subject the headline never
+    # mentions means a different article (El-Sayed's 2A stance is not "Getting the Second Amendment Right").
+    toks = re.findall(r"[A-Za-z][\w'’.-]*", x["title"])
+    if toks and sum(t[0].isupper() for t in toks) / len(toks) < 0.6:
+        lead_name = lambda t: bool(re.search(r"['’]s$|^[A-Z][a-z]+-[A-Z]", t))  # El-Sayed's, O'Rourke's opening a title
+        names = {w for i, t in enumerate(toks) if (i or lead_name(t)) and t[0].isupper() and not re.search(r"[:.?!]$", toks[i - 1])
+                 for w in _words(t) if w not in _GENERIC_CAPS}
+        if names and not names & a:
+            return False
+    return True
+
+
+_GENERIC_CAPS = {"second", "amendment", "first", "supreme", "court", "senate", "house", "congress", "democrats",
+                 "democratic", "republicans", "republican", "white", "state", "states", "united", "federal", "american"}
+
+
 ORIGINATOR_MARGIN = 0.15  # a sibling must be this much cleaner (clutter_scores.json, 0-1) to beat the originator
 _CITE = r"(?:first reported by|originally reported by|as reported by|reported by|according to|first reported|told|via|scoop by|exclusive(?:ly)? to)"
 
@@ -532,8 +571,10 @@ def clean_links(lead, top, cols, clusters, settings, now, get=None):
         if not c or len(c["items"]) < 2:
             continue
         sl = slot.get(id(s), "column")
+        heads = [h for h in (s.get("display"), s.get("original_title"), s.get("title")) if h]
         cands = [x for x in c["items"] if not x.get("paywalled") and not x.get("truncated")
-                 and fits(x, sl, settings, now)]
+                 and fits(x, sl, settings, now)
+                 and (x["link"] == s["link"] or any(same_story(h, x) for h in heads))]  # never pair a headline with another story
         if sl == "lead":
             cands = [x for x in cands if not x.get("opinion")] or cands
         if not cands:
