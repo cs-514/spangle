@@ -566,6 +566,12 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
             stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
                                    "reason": "too_long", "chars": len(cleaned), "words": len(cleaned.split()),
                                    "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
+    dcfg = ranking.private.load(ctx).get("defeatism") if ctx is not None else None
+    for s in placed:
+        if dcfg and s.get("display") and ranking.defeatism.classify(s["display"], dcfg) == "exclude" \
+                and ranking.defeatism.classify(s["title"], dcfg) != "exclude":
+            s["display"] = headline_mod.clean(s["title"], sty)[0]  # never let a rewrite add defeatist framing
+            stats["defeatist_reverted"] = stats.get("defeatist_reverted", 0) + 1
     print(f"headlines: kept {stats['kept']}, swapped {stats['swapped']}, "
           f"queued_bland {stats['queued_bland']}, queued_too_long {stats['queued_too_long']}, "
           f"styled {stats['styled']}, overrides {stats['override']}, shortened {stats['shortened']}")
@@ -779,6 +785,10 @@ def main():
     clusters = coverage.cluster(uniq, settings["coverage"]["similarity_threshold"])
     print(f"{len(uniq)} stories in {len(clusters)} clusters; {sum(1 for c in clusters if len(c['outlets']) > 1)} multi-outlet")
     ranking.rank(clusters, settings, ctx)
+    dropped = [c for c in clusters if c.get("excluded")]
+    clusters = [c for c in clusters if not c.get("excluded")]
+    if dropped:
+        print(f"excluded {len(dropped)} clusters (defeatist framing)")
     lead, top, cols = place(clusters, settings, ctx)
     lead, top, cols, _hl = decorate_headlines(lead, top, cols, clusters, settings, now, ctx)
     cols = inject_quote(cols, settings)

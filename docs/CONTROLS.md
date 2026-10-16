@@ -413,3 +413,9 @@ the module, extendable via `minor_figures.prominent`), real action (vote, ruling
 indictment), wide coverage (`min_outlets`, default 5, including a major outlet), and scandals in a watched
 race (columns allowed, never the lead). `suppress_urls` (settings) removes individual stories; entries may
 be `sha256:` URL keys.
+
+## Defeatism rule (`ranking/defeatism.py`)
+Private config key `defeatism` (lexicons not in the repo). Headlines asserting that one configured side
+can't win, is doomed or will lose are excluded from the page entirely; the same framing about the other
+configured side is boosted. Headline overrides and rewrites can never introduce that framing: the build
+reverts such a display to the original title, and the box-side rewrite tool rejects it.
