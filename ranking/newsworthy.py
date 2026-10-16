@@ -9,6 +9,9 @@
 - Major business / tech breakthroughs and wins by conservative-aligned figures (private list) are core
   criteria and qualify for the lead and Top Stories (exempt from the business/tech soft gate); a story that
   hits both scores highest.
+- Routine local crime/court items (bond hearings, arraignments, local sentencing: only routine court words)
+  don't count as core unless they carry a national hook (prominent person, illegal-immigration, political or
+  culture-war angle) or have 4+ outlets; otherwise they are dropped.
 - Every other story must hit at least one core criterion (political, policy, culture-war, legal,
   national-security or outrage angle) to be featured. Stories with none are kept out of the lead and
   Top Stories and scored `penalty` (heavily downranked in the columns).
@@ -39,6 +42,9 @@ def lexicon(ctx):
             "biz": _rx(nw.get("business_terms", [])), "fig": _rx(nw.get("aligned_figures", [])),
             "win": _rx(nw.get("win_terms", [])), "scores": {"core": 0.85, "business_or_aligned": 0.9, "both": 1.0,
                                                            **(nw.get("scores") or {})},
+            "routine": _rx(nw.get("routine_court_terms", [])), "routine_set": {w.lower() for w in nw.get("routine_court_terms", [])},
+            "hooks": _rx(nw.get("national_hooks", []) + nw.get("politics_terms", []) + nw.get("aligned_figures", [])),
+            "routine_min": int(nw.get("routine_min_outlets", 4)), "routine_drop": bool(nw.get("routine_drop", True)),
             "penalty": float(nw.get("penalty", 0.15)), "cons_score": float(nw.get("conservative_celeb_score", 1.0))}
 
 
@@ -65,7 +71,16 @@ def classify(item, lx):
         return "both"
     if biz or ally:
         return "business_or_aligned"
-    return "core" if _hit(lx["core"], hay) else "off"
+    if not lx["core"]:
+        return "off"
+    hits = {m.group(0) for m in lx["core"].finditer(hay)}
+    if not hits:
+        return "off"
+    rs = lx.get("routine_set") or set()
+    if rs and all(h in rs or any(h.startswith(r) for r in rs) for h in hits):
+        # only routine crime/court words (bond hearing, arraignment, local sentencing): needs a national hook
+        return "core" if _hit(lx.get("hooks"), hay) else "routine"
+    return "core"
 
 
 def compute(clusters, settings, ctx):
@@ -85,6 +100,8 @@ def compute(clusters, settings, ctx):
             k = "fool"
         elif "core" in kinds:
             k = "core"
+        elif "routine" in kinds:  # local crime/court item: national only with wide coverage
+            k = "core" if len(c.get("outlets") or []) >= lx["routine_min"] else ("drop" if lx["routine_drop"] else "off")
         elif all(x == "drop" for x in kinds):
             k = "drop"
         else:
