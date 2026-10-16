@@ -432,6 +432,13 @@ page cleanliness (0–1, 1 = clean): page weight, `<script>` count, known ad/tra
 video, newsletter/interstitial/paywall modal markers, and text-to-HTML ratio. Results (and any tested
 lighter URL variant) go to the public `clutter_scores.json`; rerun the script to refresh.
 - **Signal `clutter`** (weight 0.05 in settings): the cleanest item in the cluster; unknown domains 0.5.
+- **Originator first** (settings `originator`, `margin` 0.15): within a cluster the story links the outlet that
+  broke it: the item other items credit ("first reported by X", "according to X", a link to X's domain), else the
+  earliest-published free item. Its headline is used when it isn't bland or over-long; otherwise the best sibling
+  headline is kept on the originator's link. A sibling wins only if its `clutter_scores.json` score beats the
+  originator's by at least `margin` (0.15 on the 0–1 scale, about twice the `clean_links.min_gain` of 0.08, so small
+  measurement noise never moves a link off the source). Paywall and wall-marker checks apply to every swap,
+  including the shorter-headline and contentless fallbacks.
 - **Clean links** (settings `clean_links`): after the headline is chosen, the story links the
   sibling with the best `0.45·tier + 0.40·cleanliness + 0.15·freshness` if it beats the current link by
   `min_gain`. Siblings must pass the slot's age limit, not be paywalled or truncated, and, for the lead,
