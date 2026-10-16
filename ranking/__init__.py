@@ -1,8 +1,8 @@
 """Pluggable ranking engine. Each signal module exposes NAME and
 compute(clusters, settings, ctx) -> {cluster_id: score in [0,1]} or None if unavailable."""
-from . import private, amplifiers, framing, curated, niche, retreat, outrage, recency, coverage, source, alignment, social_gnews, social_reddit, social_x, lifestyle, faction, minor, defeatism, clutter, academic
+from . import private, amplifiers, framing, curated, niche, retreat, outrage, recency, coverage, source, alignment, social_gnews, social_reddit, social_x, lifestyle, faction, minor, defeatism, clutter, academic, newsworthy
 
-BASE = [recency, coverage, source, alignment, curated, amplifiers, framing, niche, retreat, outrage, lifestyle, faction, minor, defeatism, clutter, academic]
+BASE = [recency, coverage, source, alignment, curated, amplifiers, framing, niche, retreat, outrage, lifestyle, faction, minor, defeatism, clutter, academic, newsworthy]
 SOCIAL = [social_gnews, social_reddit, social_x]  # Hacker News dropped: no signal for this audience
 
 

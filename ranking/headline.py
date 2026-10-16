@@ -110,6 +110,8 @@ def clean(title, styl=None):
         t = smartquotes(t)
     t = trim_quoted_labels(t, sty)
     t = compress(t, sty)
+    if sty.get("single_quotes", True):
+        t = headline_quotes(smartquotes(t))  # headlines quote with ‘…’ (nested “…”); QOTD bodies never pass here
     return t, t != orig
 
 
@@ -233,6 +235,39 @@ def smartquotes(text):
                 out.append("‘")
         else:
             out.append("“" if opening and nxt is not None and not nxt.isspace() else "”")
+    return "".join(out)
+
+
+def headline_quotes(text):
+    """Headline style: quotations take single curly quotes; a quote nested inside one takes double.
+    Expects curly text (run smartquotes first). “Affordability” -> ‘Affordability’;
+    “He said ‘no’” -> ‘He said “no”’. Apostrophes (Dems’, don’t, ’90s) are left alone."""
+    if not text or not any(c in text for c in "“”‘"):
+        return text
+    out, depth, single_open, outer = [], 0, 0, 0  # outer: already-single outer quotes (house style)
+    for i, ch in enumerate(text):
+        prev, nxt = text[i - 1:i], text[i + 1:i + 2]
+        if not depth and ch == "‘":
+            outer += 1; out.append(ch); continue
+        if not depth and outer and ch == "’" and not (prev.isalpha() and nxt.isalpha()) and not nxt.isdigit():
+            outer -= 1; out.append(ch); continue
+        if outer and not depth and ch in "“”":
+            out.append(ch); continue  # nested double inside a single quote: already correct
+        if ch == "“":
+            depth += 1; out.append("‘")
+        elif ch == "”" and depth:
+            depth -= 1; out.append("’")
+        elif ch == "‘" and depth:
+            single_open += 1; out.append("“")
+        elif ch == "’" and depth and single_open:
+            if prev.isalpha() and nxt.isalpha():
+                out.append(ch)  # don’t
+            else:
+                single_open -= 1; out.append("”")
+        elif ch == "”":
+            out.append("’")  # stray closer
+        else:
+            out.append(ch)
     return "".join(out)
 
 

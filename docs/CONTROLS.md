@@ -222,6 +222,21 @@ First Things by default; poetry, fiction, book reviews and niche theology terms 
 | `national_hooks` | SCOTUS, ruling, nominee, Trump, border, … | Saves the story from demotion |
 | `weights.niche` | 0.08 | Ranking weight |
 
+## Newsworthiness gate and celebrity filter (`newsworthy`)
+
+`ranking/newsworthy.py`; lexicons live only in the private `ALIGNMENT_CONFIG` key `newsworthiness` (core terms,
+celebrity terms, entertainment URL paths, conservative-celebrity list, speaking-out, ridicule/backlash and politics
+terms). The `lifestyle` hooks, `outrage` terms and boost keywords also count as core criteria.
+
+- **Celebrity / entertainment** stories are **dropped**, with two exceptions:
+  (a) a conservative celebrity speaking out: kept and scored favorably;
+  (b) a celebrity making a fool of themselves on politics or geopolitics (a politics term plus a
+  backlash/ridicule term): kept.
+- **Featured slots need a core criterion.** A story with no political, policy, culture-war, legal,
+  national-security or outrage angle never leads or enters Top Stories, and is scored `penalty` (0.15) so it
+  sinks in the columns.
+- Weight `weights.newsworthy` (0.15). Tests: `tests/test_newsworthy.py`.
+
 ## `lead`: lead eligibility (`ranking/lead.py`)
 
 The lead slot needs a story that passes a **hard topic gate**, meets the **national-significance** minimums (enough outlets, at least one major outlet, a national topic, and a score of at least `sig_min`), and has a **lead signal** at or above `threshold`.
