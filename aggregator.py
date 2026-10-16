@@ -372,6 +372,7 @@ def place(clusters, settings, ctx):
         s["outlets_n"] = len(c["outlets"])
         s["lifestyle"] = bool(c.get("lifestyle"))
         s["top_excluded"] = bool(c.get("top_excluded"))
+        s["academic"] = bool(c.get("academic"))
         life_n += s["lifestyle"]
         picked.append(s); count[OUTLET(s)] = count.get(OUTLET(s), 0) + 1
     picked = apply_manual(picked, settings)
@@ -506,6 +507,12 @@ def clean_links(lead, top, cols, clusters, settings, now, get=None):
     return st
 
 
+ACADEMIC_GUIDANCE = ("Academic/explainer post: rewrite around the news hook, using the case's popular name or the "
+                     "issue, never the docket name (e.g. 'Matal v. Tam' -> 'Slants' case): '‘Slants’ Case Backstory: "
+                     "<punchy finding>'. If there is no current, newsworthy hook, leave it unrewritten; it stays out "
+                     "of the lead and Top Stories.")
+
+
 def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=None):
     """For each placed story: prefer a non-bland, under-max-length sibling headline
     (and its URL); always apply deterministic style cleanup (never truncate);
@@ -599,6 +606,12 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
                                            "reason": "contentless", "page_title": pt,
                                            "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
                     continue
+        if s.get("academic"):  # academic/explainer post: always rewrite around the news hook
+            stats["queued_academic"] = stats.get("queued_academic", 0) + 1
+            stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
+                                   "reason": "academic", "framing": ACADEMIC_GUIDANCE,
+                                   "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
+            continue
         # queue only when still a problem after sibling pick
         if all_bland or (bland and not any(not r[8] for r in ranked)):
             stats["queued_bland"] += 1

@@ -14,7 +14,8 @@
     "retreat": 0.0,
     "outrage": 0.0,
     "minor": 0.25,
-    "clutter": 0.05
+    "clutter": 0.05,
+    "academic": 0.1
   },
   "recency": {
     "half_life_hours": 8,
@@ -356,6 +357,13 @@
       "ad campaign",
       "local"
     ]
+  },
+  "academic": {
+    "enabled": true,
+    "sources": ["Volokh Conspiracy"],
+    "penalty": 0.2,
+    "hooked_score": 0.6,
+    "drop": false
   },
   "niche": {
     "enabled": true,

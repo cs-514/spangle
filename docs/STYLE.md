@@ -132,6 +132,13 @@ capitals are never lowercased: acronyms, the style abbreviations (SCOTUS, DOGE, 
 *iPhone*, ALL-CAPS lines. Lowercase name particles before a name stay as they are (*el Sayed*, *bin Salman*).
 The Quote of the Day is not touched.
 
+- **Sentence starts:** the first word after a real sentence break (`.` `?` `!`, or a colon, including after an
+  opening quote) is capitalized: *Abortions. But Why?* Ellipses (*. . .*, *...*) and abbreviations (*U.S.*,
+  *D.C.*, *Mr.*, *Gov.*) are not breaks, and neither is punctuation inside a closing quote mid-headline:
+  *Asked ‘Why?’ and Walked Out*.
+- **"to" is always lowercase** unless it is the first word or starts a sentence, even in infinitives and as the
+  last word: *Wants to See*, *Vows to Fight On*.
+
 - *DOGE Gets Its Day at the Supreme Court As Justices Take Up Trump Administration Appeal* →
   *DOGE Gets Day at SCOTUS as Justices Take Up Trump Administration Appeal*
 - *Netanyahu rival vows to end Hamas rule within 18 months if elected* →
@@ -168,6 +175,19 @@ Tests: `python3 -m unittest tests/test_smartquotes.py`.
 - Soft: "Everything We Know About…", "Here's Why…", "What to Know About…"
 - Subtitle pile-ups: "Topic: Subtopic — More Context | Outlet"
 - Sports/lifestyle chrome in political slots (those are gated out of the lead anyway)
+
+## Academic / explainer posts (Volokh and similar)
+
+Law-review notices, docket-name headlines and legal retrospectives (`ranking/academic.py`, Volokh Conspiracy
+by default; see `settings.json` `"academic"`) are flagged `academic`. Every placed academic item without an
+override goes to the rewrite queue with reason `academic`:
+
+- Rewrite around the **news hook**, using the case's **popular name or the issue**, never the docket name.
+  Example: "How Matal v. Tam Became Free Speech Case" → "‘Slants’ Case Backstory: SCOTUS Got Band’s Founder Wrong".
+- Same house style: Drudge compression, title case, curly quotes, numerals.
+- No newsworthy hook (pure legal-academic retrospective, nothing current)? Leave it. Unless its headline hits a
+  news hook or it has an override, the story is kept out of the lead and Top Stories and scored `penalty`
+  (or dropped with `"drop": true`).
 
 ## How rewrites enter the site
 
