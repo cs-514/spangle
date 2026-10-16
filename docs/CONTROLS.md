@@ -235,6 +235,10 @@ terms). The `lifestyle` hooks, `outrage` terms and boost keywords also count as 
 - **Business / tech breakthroughs and aligned-figure wins** (private `business_terms`, `aligned_figures`,
   `win_terms`) are core criteria: they qualify for the lead and Top Stories, are exempt from the business/tech
   soft gate, and score 0.9 (1.0 when both hit; ordinary core stories 0.85).
+- **Routine local crime/court items** (only routine court words: bond hearings, arraignments, local sentencing;
+  private `routine_court_terms`) don't count as core unless they carry a national hook (private `national_hooks`:
+  prominent person, illegal-immigration, political or culture-war angle) or have `routine_min_outlets` (4+)
+  outlets. Otherwise they are dropped (`routine_drop`).
 - **Featured slots need a core criterion.** A story with no political, policy, culture-war, legal,
   national-security or outrage angle never leads or enters Top Stories, and is scored `penalty` (0.15) so it
   sinks in the columns.
