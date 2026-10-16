@@ -128,7 +128,7 @@ Every headline is normalized to title case, and sentence-case headlines are conv
 and, but, or, nor, as, at, by, for, if, in, of, on, to, vs* except as the first or last word, after a colon or
 dash, or at the start of a quote. Capitalize everything else, including both parts of a hyphenated word
 (*Live-Stream*) and phrasal particles (*Take Up*; *Up* always stays capitalized). Words that already have
-capitals are never lowercased: acronyms, the style abbreviations (SCOTUS, DOGE, VDH, DEMS, GOP), *McConnell*,
+capitals are never lowercased: acronyms, the style abbreviations (SCOTUS, DOGE, VDH, DEMS, GOP), *McDonald*,
 *iPhone*, ALL-CAPS lines. Lowercase name particles before a name stay as they are (*el Sayed*, *bin Salman*).
 The Quote of the Day is not touched.
 

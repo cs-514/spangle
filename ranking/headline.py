@@ -19,13 +19,31 @@ def style():
     return _STYLE
 
 
+class _Overrides(dict):
+    """URL -> headline. A key may also be "sha256:<hex of the URL>" so a URL that names a
+    private-list figure need not appear in the public repo (see url_key)."""
+    def _k(self, url):
+        return url if dict.__contains__(self, url) else url_key(url)
+    def __contains__(self, url):
+        return dict.__contains__(self, url) or dict.__contains__(self, url_key(url))
+    def __getitem__(self, url):
+        return dict.__getitem__(self, self._k(url))
+    def get(self, url, default=None):
+        return dict.get(self, self._k(url), default)
+
+
+def url_key(url):
+    import hashlib
+    return "sha256:" + hashlib.sha256(url.encode()).hexdigest()
+
+
 def overrides():
     global _OVERRIDES
     if _OVERRIDES is None:
         path = os.path.join(HERE, "headline_overrides.json")
         try:
             with open(path) as f:
-                _OVERRIDES = json.load(f) or {}
+                _OVERRIDES = _Overrides(json.load(f) or {})
         except Exception:
             _OVERRIDES = {}
     return _OVERRIDES
@@ -427,7 +445,7 @@ def title_case(title, sty=None):
     """AP/Chicago-style title case. Lowercase small words (a, an, the, and, but, or, nor, as, at,
     by, for, if, in, of, on, to, vs) except first/last word or after ':', '—', '–', '|' or an
     opening quote; capitalize every other lowercase word (incl. hyphen parts). Never lowercases
-    words with internal capitals (acronyms, McConnell, iPhone) and keeps lowercase name particles
+    words with internal capitals (acronyms, McDonald, iPhone) and keeps lowercase name particles
     before a capitalized name ('el Sayed'). 'Up' stays capitalized (phrasal particles: 'Take Up')."""
     cfg = (sty or style()).get("title_case") or {}
     if not cfg.get("enabled"):
@@ -451,7 +469,7 @@ def title_case(title, sty=None):
             out.append(lead + low + trail); continue
         if low in parts_ and core == low and i + 1 < n and toks[i + 1][:1].isupper():
             out.append(w); continue  # el Sayed, bin Salman
-        if core != low:  # has capitals already (Title, ACRONYM, McConnell, iPhone): keep
+        if core != low:  # has capitals already (Title, ACRONYM, McDonald, iPhone): keep
             out.append(w); continue
         cap = "-".join(p[:1].upper() + p[1:] for p in core.split("-"))
         out.append(lead + cap + trail)

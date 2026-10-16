@@ -394,3 +394,12 @@ Schema (all keys optional):
 - **`retreat`:** actors + verbs for "backing down" headlines. Flagged stories get the demotion score (default 0.3) and, with `lead_exclude`, are kept out of the lead.
 - **`framing`:** a negative term within `window_words` of an entity, or a court actor plus an adverse action plus an entity anywhere in the headline, lowers the score. With `lead_exclude`, those stories are also kept out of the lead.
 - **`scale`:** the raw sum is squashed to 0–1 with `0.5 + 0.5*tanh(raw/scale)`. A larger scale gives a softer effect.
+
+## Faction signal (`ranking/faction.py`)
+Private config key `faction` holds a list of in-party figures (`members`, easy to extend: add a surname
+or full name) and term lists (`favorable_terms`, `defect_terms`, `critic_terms`, `attack_terms`).
+Headlines that cast a member favorably or as the protagonist are downranked and kept out of the lead and
+Top Stories; a member breaking ranks or obstructing the agenda is treated as outrage/betrayal material and
+sibling headlines (and queued rewrites) that feature the opposing side are preferred; criticism of a
+member or a primary challenge is boosted. Weight: `signal_weights.faction` (private). The list is never
+in the repo; the confidentiality guard checks for it.
