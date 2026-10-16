@@ -487,6 +487,30 @@ def suppressed(url, settings):
     return bool(sup) and any(u in sup or headline_mod.url_key(u) in sup for u in (url, url.split("?", 1)[0]))
 
 
+ORIGINATOR_MARGIN = 0.15  # a sibling must be this much cleaner (clutter_scores.json, 0-1) to beat the originator
+_CITE = r"(?:first reported by|originally reported by|as reported by|reported by|according to|first reported|told|via|scoop by|exclusive(?:ly)? to)"
+
+
+def originator(c):
+    """The outlet that broke the story: the item other items credit ('first reported by X', 'according to X',
+    a link to X's domain), else the earliest published item. Paywalled items are skipped."""
+    items = [x for x in c["items"] if not x.get("paywalled")]
+    if not items:
+        return None
+    def cites(x):
+        name, dom = OUTLET(x).lower(), ranking.clutter.domain(x["link"])
+        n = 0
+        for y in items:
+            if y is x or OUTLET(y) == OUTLET(x):
+                continue
+            hay = f"{y['title']} {y.get('desc', '')}".lower()
+            if (dom and dom in hay) or re.search(_CITE + r"\s+(?:the\s+)?" + re.escape(name), hay):
+                n += 1
+        return n
+    far = datetime.max.replace(tzinfo=timezone.utc)
+    return max(items, key=lambda x: (cites(x), -(x["when"] or far).timestamp() if x.get("when") else float("-inf")))
+
+
 def clean_links(lead, top, cols, clusters, settings, now, get=None):
     """Link the cleanest acceptable sibling (tier + clutter + freshness), keeping the chosen headline;
     then swap in a validated lighter variant (AMP/print) where one exists. Overrides, quotes and
@@ -514,6 +538,21 @@ def clean_links(lead, top, cols, clusters, settings, now, get=None):
             cands = [x for x in cands if not x.get("opinion")] or cands
         if not cands:
             continue
+        org = originator(c)
+        margin = (settings.get("originator") or {}).get("margin", ORIGINATOR_MARGIN)
+        cs = ranking.clutter.clean_score
+        if org is not None and any(x is org for x in cands):
+            cleaner = [x for x in cands if cs(x["link"]) - cs(org["link"]) >= margin]
+            if s["link"] == org["link"] and not cleaner:
+                continue  # already the originator and nothing clearly cleaner
+            if s["link"] != org["link"] and not cleaner and cs(s["link"]) - cs(org["link"]) < margin \
+                    and link_free(org, settings):
+                st["examples"].append((s["source"], org["source"], s.get("display") or s["title"]))
+                s["link"], s["source"] = org["link"], org["source"]
+                if org.get("when"):
+                    s["when"] = org["when"]
+                st["relinked"] += 1; st["originator"] = st.get("originator", 0) + 1
+                continue
         cur = ranking.clutter.link_score(s, tiers, dt, now)
         cands = sorted(cands, key=lambda x: ranking.clutter.link_score(x, tiers, dt, now), reverse=True)
         best = next((x for x in cands if x["link"] == s["link"] or link_free(x, settings)), None)
@@ -588,11 +627,17 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
             cands = [x for x in cands if not names(x)] or cands
         if sl == "lead":  # the lead stays reported news: only non-opinion siblings when any exist
             cands = [x for x in cands if not x.get("opinion")] or cands
+        org = originator({"items": cands})
+        if org is not None:
+            cs = ranking.clutter.clean_score
+            margin = ((settings or {}).get("originator") or {}).get("margin", ORIGINATOR_MARGIN)
+            if prep(org)[2] or any(cs(x["link"]) - cs(org["link"]) >= margin and not prep(x)[2] for x in cands):
+                org = None  # bland originator headline, or a clearly cleaner sibling: normal choice
         ranked = []
         for x in cands:
             cleaned, changed, bland, long = prep(x)
             # prefer: not bland, not too long, shorter, newer
-            ranked.append(((0 if bland else 1), (0 if x.get("opinion") else 1), (0 if long else 1), -len(cleaned),
+            ranked.append(((0 if bland else 2) + (1 if x is org else 0), (0 if x.get("opinion") else 1), (0 if long else 1), -len(cleaned),
                            x.get("when").timestamp() if x.get("when") else 0, x, cleaned, changed, bland, long))
         ranked.sort(reverse=True)
         # lazily wall-check siblings that would outrank the placed link; drop the walled ones
@@ -607,7 +652,8 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
         all_long = all(r[9] for r in ranked)
         # if best is long but a shorter non-bland sibling exists, pick that
         if long:
-            shorter = [r for r in ranked if not r[8] and not r[9]]
+            shorter = [r for r in ranked if not r[8] and not r[9]
+                       and (r[5] is s or r[5]["link"] == s["link"] or link_free(r[5], settings))]
             if shorter:
                 _a, _o, _b, _c, _d, best, cleaned, changed, bland, long = shorter[0]
         if best["link"] != s["link"]:
@@ -627,7 +673,8 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
             continue
         if headline_mod.contentless(cleaned):
             # siblings with real content beat a bare name / fragment
-            alt = next((r for r in ranked if not headline_mod.contentless(r[6])), None)
+            alt = next((r for r in ranked if not headline_mod.contentless(r[6])
+                        and (r[5] is s or r[5]["link"] == s["link"] or link_free(r[5], settings))), None)
             if alt:
                 best, cleaned = alt[5], alt[6]
                 s["link"], s["title"], s["source"] = best["link"], best["title"], best["source"]

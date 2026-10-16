@@ -553,6 +553,9 @@
     "sha256:a2b67b6181a569e4274f81ca516c352695a65531fc81bd34cfa8a74d92cb7c08",
     "sha256:b6f73d2753290452a7c5be144f89b855b9480d9eba4fa1a66710c190b81c3f3b"
   ],
+  "originator": {
+    "margin": 0.15
+  },
   "clean_links": {
     "enabled": true,
     "min_gain": 0.08,
