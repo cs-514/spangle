@@ -451,6 +451,12 @@ ICONS = ('<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type=
          '<meta name="apple-mobile-web-app-title" content="Spangle"><meta name="theme-color" content="#0A3161">')
 
 
+def suppressed(url, settings):
+    """settings["suppress_urls"]: URLs (or sha256:<hex> keys, see headline.url_key) never shown."""
+    sup = set(settings.get("suppress_urls") or [])
+    return bool(sup) and any(u in sup or headline_mod.url_key(u) in sup for u in (url, url.split("?", 1)[0]))
+
+
 def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=None):
     """For each placed story: prefer a non-bland, under-max-length sibling headline
     (and its URL); always apply deterministic style cleanup (never truncate);
@@ -749,6 +755,8 @@ def main():
             if first is not None and s.get("curated"):
                 first["curated"] = first.get("curated", []) + s["curated"]
             continue
+        if suppressed(s["link"], settings):
+            continue  # editor-removed story
         s["paywalled"] = is_paywalled_domain(s["link"])
         if s["paywalled"] and not settings.get("archive", {}).get("enabled"):
             continue
