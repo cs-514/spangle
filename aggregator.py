@@ -108,7 +108,8 @@ WALL_PATTERNS = [re.compile(p) for p in [
     r"(sign|log) in to (continue|keep) reading", r"(sign|log) in to read (the|this) (full )?(article|story)",
     r"this (article|story|content) is (only )?(available )?(exclusively )?(to|for) (paid )?(subscribers|members)",
     r"you('ve| have) reached (your )?(free )?(article|story) limit", r"you('ve| have) reached premium content",
-    r"continue reading for \$\d", r"topic-premium",              # Blaze Media premium pieces
+    r"continue reading for \$\d", r"topic-premium",              # Blaze Media premium pieces (sailthru tag)
+    r"sections:\s*\[[^\]]*'premium'", r"'post_sections':\s*\"\[[^\]]*'premium'",  # Blaze+ section in page context
     r"nr-plus|nrplus",                                         # National Review Plus pieces
     r'"audience"\s*:\s*"only_paid"',                          # Substack paid posts
 ]]
@@ -250,7 +251,32 @@ def substack_free(link):
         return False
 
 
+WALL_CACHE = {}  # link -> True (free) / False (walled or gone), shared by every link check in one build
+
+
+def link_free(x, settings):
+    """A sibling about to replace a placed link must pass the same wall check as the original pick
+    (a Blaze+ teaser once came back via a sibling swap after place() dropped it)."""
+    if x.get("paywalled"):
+        return False
+    if x.get("archived") or not (settings or {}).get("placement", {}).get("check_links"):
+        return True
+    return url_ok(x)
+
+
 def url_ok(s):
+    if s["link"] in WALL_CACHE:
+        if not WALL_CACHE[s["link"]]:
+            s["paywalled"] = True
+        return WALL_CACHE[s["link"]]
+    ok = _url_ok(s)
+    WALL_CACHE[s["link"]] = ok
+    if not ok:
+        s["paywalled"] = True  # every later swap path skips paywalled items
+    return ok
+
+
+def _url_ok(s):
     try:
         req = urllib.request.Request(s["link"], headers=UA)
         with urllib.request.urlopen(req, timeout=12) as r:
@@ -486,7 +512,10 @@ def clean_links(lead, top, cols, clusters, settings, now, get=None):
         if not cands:
             continue
         cur = ranking.clutter.link_score(s, tiers, dt, now)
-        best = max(cands, key=lambda x: ranking.clutter.link_score(x, tiers, dt, now))
+        cands = sorted(cands, key=lambda x: ranking.clutter.link_score(x, tiers, dt, now), reverse=True)
+        best = next((x for x in cands if x["link"] == s["link"] or link_free(x, settings)), None)
+        if best is None:
+            continue
         if best["link"] != s["link"] and ranking.clutter.link_score(best, tiers, dt, now) - cur >= cfg.get("min_gain", 0.08):
             st["examples"].append((s["source"], best["source"], s.get("display") or s["title"]))
             s["link"], s["source"] = best["link"], best["source"]
@@ -563,6 +592,13 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
             ranked.append(((0 if bland else 1), (0 if x.get("opinion") else 1), (0 if long else 1), -len(cleaned),
                            x.get("when").timestamp() if x.get("when") else 0, x, cleaned, changed, bland, long))
         ranked.sort(reverse=True)
+        # lazily wall-check siblings that would outrank the placed link; drop the walled ones
+        bad = set()
+        for r in ranked:
+            if r[5] is s or r[5]["link"] == s["link"] or link_free(r[5], settings):
+                break
+            bad.add(id(r[5]))
+        ranked = [r for r in ranked if id(r[5]) not in bad] or ranked
         _a, _o, _b, _c, _d, best, cleaned, changed, bland, long = ranked[0]
         all_bland = all(r[8] for r in ranked)
         all_long = all(r[9] for r in ranked)
