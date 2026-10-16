@@ -690,11 +690,35 @@ def fallback_quote(today, bank_file="qotd_bank.json"):
     return q
 
 
+REPORTER_CITE = re.compile(
+    r"\s*,?\s*\b\d+\s+(?:U\.\s?S\.|S\.\s?Ct\.|L\.\s?Ed\.(?:\s?2d)?|F\.(?:\s?(?:2d|3d|4th))?|F\.\s?Supp\.(?:\s?(?:2d|3d))?"
+    r"|U\.S\.\s?App\.\s?D\.C\.|Cranch|Wheat\.|Pet\.|How\.)\s+\d+(?:\s*,\s*\d+)?")
+CASE = re.compile(r"\b(v\.|vs\.|In re|Ex parte)\s", re.I)
+
+
+def judicial_source(q):
+    """'Author, <i>Case Name</i> (Year)' for court opinions; None when the work isn't a case.
+    Reporter citations (554 U.S. 570, F.2d ...) and (dissenting)/(concurring) never display."""
+    work = (q.get("work") or "").strip()
+    if not CASE.search(work):
+        return None
+    blob = f"{work} {q.get('locator') or ''} {q.get('year') or ''}"
+    years = re.findall(r"\b(1[789]\d\d|20\d\d)\b", REPORTER_CITE.sub(" ", blob))
+    case = re.sub(r"\s*\((?:1[789]\d\d|20\d\d)\)\s*$", "", REPORTER_CITE.sub("", work)).strip(" ,")
+    year = years[0] if years else ""
+    text = f"{q['author']}, {case}" + (f" ({year})" if year else "")
+    markup = f"{html.escape(q['author'])}, <i>{html.escape(headline_mod.smartquotes(case))}</i>" + (f" ({year})" if year else "")
+    return text, markup
+
+
 def quote_as_story(q):
     """Turn quote_of_the_day.json into a column item shaped like any other story."""
     work = (q.get("work") or "").strip()
-    loc = (q.get("locator") or q.get("chapter_or_page") or "").strip()
-    if work and loc:
+    loc = REPORTER_CITE.sub("", (q.get("locator") or q.get("chapter_or_page") or "")).strip(" ,")
+    js = judicial_source(q)
+    if js:
+        source = js[0]
+    elif work and loc:
         source = f"{q['author']} · {work}, {loc}"
     elif work:
         source = f"{q['author']} · {work}"
@@ -714,6 +738,7 @@ def quote_as_story(q):
         "when": None,
         "opinion": False,
         "quote_item": True,
+        "source_html": js[1] if js else None,
         "quote_text": quote_text,
         "outlets_n": 1,
     }
@@ -744,7 +769,7 @@ def render(lead, top, cols, now, sources, settings):
 
     def meta(s):
         if s.get("quote_item"):
-            return f'<div class="meta">{t(OUTLET(s))}</div>'
+            return f'<div class="meta">{s.get("source_html") or t(OUTLET(s))}</div>'
         ts = fmt_et(s["when"]) if s["when"] else ""
         arc = " · archived copy" if s.get("archived") else ""
         parts = " · ".join(x for x in (OUTLET(s), ts) if x)
