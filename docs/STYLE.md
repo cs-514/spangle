@@ -195,6 +195,27 @@ override goes to the rewrite queue with reason `academic`:
   news hook or it has an override, the story is kept out of the lead and Top Stories and scored `penalty`
   (or dropped with `"drop": true`).
 
+## Imprimis headlines
+
+Imprimis titles read like lecture or course titles: flat noun phrases such as *The X of Y*, *Understanding Z*,
+*How to Think About W*. They always need recasting:
+
+1. **Short, punchy, thesis-carrying:** 3–6 words that state the essay's argument and stance, faithful to it.
+2. **Sharp evaluative words:** 1–2 adjectives or verbs that carry the thesis (*alarming, disturbing, persistent,
+   failed, dangerous, forgotten*).
+3. **No articles.**
+4. **Vary the form and pick the punchiest:** subject as possessive or lead noun (*Socialism’s Persistent, Disturbing
+   Rise*), parallel fragments, a verb-driven claim, a question, or a quoted line. The possessive is one option, not
+   the rule.
+
+Example: *The Rise of Democratic Socialism* → *Socialism’s Persistent, Disturbing Rise*.
+
+How it runs: every Imprimis item is queued for the box rewriter with reason `imprimis`, this guidance, a few-shot
+example and the essay's opening paragraphs. Until a rewrite lands, `imprimis_recast()` in `ranking/headline.py`
+applies a mechanical fallback (*The Rise of X* → *X’s Rise*, *The Hard Truth About X* → *X’s Hard Truth*,
+*Recovering the Lost Art of X* → *X’s Lost Art*, *Learning From X* → *Lessons of X*). Titles it can't recast safely
+(questions, clauses, gerund subjects) are left as they are. A saved override in `headline_overrides.json` always wins.
+
 ## How rewrites enter the site
 
 1. Deterministic rules in `headline_style.json` run on every build (abbreviations, filler stripping, max length soft-trim).

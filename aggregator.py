@@ -619,6 +619,14 @@ def clean_links(lead, top, cols, clusters, settings, now, get=None):
     return st
 
 
+IMPRIMIS_GUIDANCE = (
+    "Imprimis titles read like lecture/course titles ('The X of Y', 'Understanding Z'). Read the essay's opening "
+    "paragraphs, find its thesis and stance, and write a short (3-6 words), punchy, thesis-carrying headline with "
+    "1-2 sharp evaluative words (alarming, disturbing, persistent, failed, dangerous, forgotten ...) and no articles, "
+    "faithful to the argument. VARY THE FORM and pick whatever is punchiest: possessive ('Socialism’s Persistent, "
+    "Disturbing Rise'), parallel fragments, a verb-driven claim, a question, or a quoted line. "
+    "Example: 'The Rise of Democratic Socialism' -> 'Socialism’s Persistent, Disturbing Rise'.")
+
 ACADEMIC_GUIDANCE = ("Academic/explainer post: rewrite around the news hook, using the case's popular name or the "
                      "issue, never the docket name (e.g. 'Matal v. Tam' -> 'Slants' case): '‘Slants’ Case Backstory: "
                      "<punchy finding>'. If there is no current, newsworthy hook, leave it unrewritten; it stays out "
@@ -733,6 +741,14 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
                                            "reason": "contentless", "page_title": pt,
                                            "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
                     continue
+        if s.get("source") == "Imprimis":  # lecture-style titles: fallback recast now, punchy rewrite queued
+            s["display"] = headline_mod.imprimis_recast(cleaned) or cleaned
+            stats["queued_imprimis"] = stats.get("queued_imprimis", 0) + 1
+            stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
+                                   "fallback": s["display"], "reason": "imprimis", "framing": IMPRIMIS_GUIDANCE,
+                                   "excerpt": (best.get("desc") or "")[:600],
+                                   "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
+            continue
         if s.get("academic"):  # academic/explainer post: always rewrite around the news hook
             stats["queued_academic"] = stats.get("queued_academic", 0) + 1
             stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
