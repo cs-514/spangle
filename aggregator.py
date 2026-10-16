@@ -601,7 +601,7 @@ def fallback_quote(today, bank_file="qotd_bank.json"):
     import hashlib
     q = dict(bank[int(hashlib.sha256(today.encode()).hexdigest(), 16) % len(bank)])
     words = q["quote"].replace("—", " ").replace(";", ".").split()
-    q["headline"] = headline_mod.clean(" ".join(words[:8]).rstrip(".,;:"))[0]
+    q["headline"] = headline_mod.clean(q.get("headline") or " ".join(words[:8]).rstrip(".,;:"))[0]
     q["date"] = today
     return q
 

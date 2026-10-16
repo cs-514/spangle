@@ -23,13 +23,15 @@
   },
   {
    "id": "csl-003",
-   "quote": "A man who was merely a man and said the sort of things Jesus said would not be a great moral teacher.",
+   "quote": "A man who was merely a man and said the sort of things Jesus said would not be a great moral teacher. He would either be a lunatic — on a level with the man who says he is a poached egg — or else he would be the Devil of Hell. You must make your choice.",
    "author": "C. S. Lewis",
    "work": "Mere Christianity",
    "locator": "Book II, Ch. 3",
    "verification_url": "https://archive.org/download/MereChristianityCSL/MereChristianity_CSL_djvu.txt",
    "verified": true,
-   "source_type": "primary"
+   "source_type": "primary",
+   "headline": "You Must Make Your Choice",
+   "verified_note": "checked verbatim against the primary source, Oct 16 2026"
   },
   {
    "id": "csl-004",
@@ -103,13 +105,14 @@
   },
   {
    "id": "csl-011",
-   "quote": "The safest road to Hell is the gradual one—the gentle slope, soft underfoot, without sudden turnings, without milestones, without signposts, Your affectionate uncle Screwtape [66] XIII My dear Wormwood, It seems to me that you take a great many pages to tell a very simple story.",
+   "quote": "Indeed the safest road to Hell is the gradual one—the gentle slope, soft underfoot, without sudden turnings, without milestones, without signposts.",
    "author": "C. S. Lewis",
    "work": "The Screwtape Letters",
    "locator": "Letter XII",
    "verification_url": "https://gutenberg.ca/ebooks/lewiscs-screwtapeletters/lewiscs-screwtapeletters-00-h.html",
    "verified": true,
-   "source_type": "primary"
+   "source_type": "primary",
+   "verified_note": "checked verbatim against the primary source, Oct 16 2026"
   },
   {
    "id": "csl-012",
@@ -689,7 +692,8 @@
    "locator": "488 U.S. 469 (1989) (concurring)",
    "verification_url": "https://www.law.cornell.edu/supremecourt/text/488/469",
    "verified": true,
-   "source_type": "primary"
+   "source_type": "primary",
+   "verified_note": "checked verbatim against the primary source, Oct 16 2026"
   },
   {
    "id": "as-009",
@@ -943,13 +947,15 @@
   },
   {
    "id": "rr-005",
-   "quote": "If you seek peace, if you seek prosperity for the Soviet Union and Eastern Europe, if you seek liberalization: Come here to this gate.",
+   "quote": "General Secretary Gorbachev, if you seek peace, if you seek prosperity for the Soviet Union and Eastern Europe, if you seek liberalization: Come here to this gate! Mr. Gorbachev, open this gate! Mr. Gorbachev, tear down this wall!",
    "author": "Ronald Reagan",
-   "work": "Remarks at the Brandenburg Gate",
-   "locator": "June 12, 1987",
-   "verification_url": "https://www.americanrhetoric.com/speeches/ronaldreaganbrandenburggate.htm",
+   "work": "Remarks on East-West Relations at the Brandenburg Gate",
+   "locator": "West Berlin, June 12, 1987",
+   "verification_url": "https://www.reaganlibrary.gov/archives/speech/remarks-east-west-relations-brandenburg-gate-west-berlin",
    "verified": true,
-   "source_type": "primary"
+   "source_type": "primary",
+   "headline": "Mr. Gorbachev, Tear Down This Wall!",
+   "verified_note": "checked verbatim against the primary source, Oct 16 2026"
   },
   {
    "id": "rr-006",
@@ -1043,13 +1049,15 @@
   },
   {
    "id": "rr-015",
-   "quote": "We hear much of special interest groups. Well, our concern must be for a special interest group that has been too long neglected.",
+   "quote": "We hear much of special interest groups. Well, our concern must be for a special interest group that has been too long neglected. It knows no sectional boundaries or ethnic and racial divisions, and it crosses political party lines. … They are, in short, “We the people,” this breed called Americans.",
    "author": "Ronald Reagan",
    "work": "First Inaugural Address",
    "locator": "January 20, 1981",
    "verification_url": "https://www.reaganlibrary.gov/archives/speech/inaugural-address-1981",
    "verified": true,
-   "source_type": "primary"
+   "source_type": "primary",
+   "headline": "We the People, This Breed Called Americans",
+   "verified_note": "checked verbatim against the primary source, Oct 16 2026"
   },
   {
    "id": "al-001",
@@ -1093,13 +1101,15 @@
   },
   {
    "id": "al-005",
-   "quote": "Let us judge not that we be not judged. The prayers of both could not be answered; that of neither has been answered fully.",
+   "quote": "Let us judge not, that we be not judged. The prayers of both could not be answered. That of neither has been answered fully. The Almighty has His own purposes. “Woe unto the world because of offenses; for it must needs be that offenses come, but woe to that man by whom the offense cometh.”",
    "author": "Abraham Lincoln",
    "work": "Second Inaugural Address",
    "locator": "March 4, 1865",
-   "verification_url": "https://www.abrahamlincolnonline.org/lincoln/speeches/inaug2.htm",
+   "verification_url": "https://avalon.law.yale.edu/19th_century/lincoln2.asp",
    "verified": true,
-   "source_type": "primary"
+   "source_type": "primary",
+   "headline": "The Almighty Has His Own Purposes",
+   "verified_note": "checked verbatim against the primary source, Oct 16 2026"
   },
   {
    "id": "al-006",
