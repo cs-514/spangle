@@ -21,6 +21,22 @@ class TitleCase(unittest.TestCase):
         self.assertEqual(title_case("ICE says no to live-stream rules"), "ICE Says No to Live-Stream Rules")
         self.assertEqual(title_case("Gov. won’t back down"), "Gov. Won’t Back Down")
 
+class SentenceStart(unittest.TestCase):
+    def test_after_sentence_punct(self):
+        self.assertEqual(title_case(". . . Abortions. but Why?"), ". . . Abortions. But Why?")
+        self.assertEqual(title_case("It Failed. but why?"), "It Failed. But Why?")
+        self.assertEqual(title_case("Really? the answer is no"), "Really? The Answer Is No")
+        self.assertEqual(title_case("Stop! in the name of love"), "Stop! In the Name of Love")
+        self.assertEqual(title_case("Trump: as expected"), "Trump: As Expected")
+        self.assertEqual(title_case("He said no. “if they come, we fight”"), "He Said No. “If They Come, We Fight”")
+
+    def test_no_false_boundaries(self):
+        self.assertEqual(title_case("U.S. and China talk"), "U.S. and China Talk")
+        self.assertEqual(title_case("Mr. and Mrs. Smith"), "Mr. and Mrs. Smith")
+        self.assertEqual(title_case("Protest in D.C. as crowds grow"), "Protest in D.C. as Crowds Grow")
+        self.assertEqual(title_case("Wait . . . and then the end"), "Wait . . . and Then the End")
+        self.assertEqual(title_case("Wait... and see"), "Wait... and See")
+
 
 if __name__ == "__main__":
     unittest.main()
