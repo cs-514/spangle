@@ -899,7 +899,9 @@ def fallback_quote(today, bank_file="qotd_bank.json"):
     import hashlib
     q = dict(weighted_pick(bank, int(hashlib.sha256(today.encode()).hexdigest(), 16)))
     words = q["quote"].replace("—", " ").replace(";", ".").split()
-    q["headline"] = headline_mod.clean(q.get("headline") or " ".join(words[:8]).rstrip(".,;:"))[0]
+    # A curated bank headline is final (the news pipeline would turn "One Omen" into "1 Omen" or drop
+    # "His"); only a headline derived from the quote's opening words goes through clean().
+    q["headline"] = (q.get("headline") or "").strip() or headline_mod.clean(" ".join(words[:8]).rstrip(".,;:"))[0]
     q["date"] = today
     return q
 
