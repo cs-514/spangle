@@ -972,12 +972,23 @@ def _wrap_lines(text, cpl):
 
 
 def item_height(s, cfg):
-    """Estimated rendered height (px) of a column item at desktop width: meta line + padding + wrapped headline."""
+    """Estimated rendered height (px) of a column item at desktop width: padding + wrapped headline
+    (news items carry no source line)."""
     cfg = cfg or {}
-    return cfg.get("item_base_px", 47) + cfg.get("line_px", 27) * _wrap_lines(s.get("display") or s.get("title"), cfg.get("chars_per_line", 40))
+    return cfg.get("item_base_px", 24) + cfg.get("line_px", 27) * _wrap_lines(s.get("display") or s.get("title"), cfg.get("chars_per_line", 40))
 
 
-def balance_columns(cols, settings):
+def qotd_height(story, cfg):
+    """Estimated QOTD block height: kicker + attribution + padding, the wrapped headline, and the italic
+    quote text (narrower glyphs, ~48 characters per line, 23px lines). Falls back to qotd_px."""
+    cfg = cfg or {}
+    if not story:
+        return cfg.get("qotd_px", 268)
+    return (cfg.get("qotd_base_px", 80) + cfg.get("qotd_headline_line_px", 24.7) * _wrap_lines(story.get("display") or story.get("title"), cfg.get("chars_per_line", 40))
+            + cfg.get("qotd_text_line_px", 23.1) * _wrap_lines(story.get("quote_text") or "", cfg.get("qotd_text_chars_per_line", 48)))
+
+
+def balance_columns(cols, settings, quote=None):
     """Re-deal column items by estimated rendered height, not count: each item, in rank order, goes to the
     currently shortest column. Lifestyle filler stays last; the QOTD block (inserted later into its fixed
     column) is pre-counted in that column. Rank order still reads roughly top-down across the row."""
@@ -989,7 +1000,7 @@ def balance_columns(cols, settings):
     h = [0.0] * n
     q = (settings.get("placement") or {}).get("quote_of_the_day") or {}
     if q.get("enabled", True) is not False:
-        h[max(0, min(int(q.get("column", 1)), n - 1))] += cfg.get("qotd_px", 245)
+        h[max(0, min(int(q.get("column", 1)), n - 1))] += qotd_height(quote, cfg)
     out = [[] for _ in range(n)]
     for x in flat:
         i = min(range(n), key=lambda k: (h[k], k))
@@ -1047,18 +1058,24 @@ def render(lead, top, cols, now, sources, settings):
     t = lambda x: html.escape(_sq(x or ""))   # visible text (incl. title tooltips)
 
     def meta(s):
+        # Only the Quote of the Day shows an attribution line; news items show no outlet/time line
+        # (the outlet stays internal for ranking and appears only in the hover tooltip).
         if s.get("quote_item"):
             return f'<div class="meta">{s.get("source_html") or t(OUTLET(s))}</div>'
-        ts = fmt_et(s["when"]) if s["when"] else ""
-        arc = " · archived copy" if s.get("archived") else ""
-        parts = " · ".join(x for x in (OUTLET(s), ts) if x)
-        return f'<div class="meta">{t(parts)}{arc}</div>'
+        return ""
 
     def show(s):
         disp = s.get("display") or s["title"]
         orig = s.get("original_title") or s["title"]
-        # Always expose the full quote (or original title) on hover for quote items.
-        title_attr = f' title="{t(orig)}"' if orig and orig != disp else ""
+        if s.get("quote_item"):
+            # Always expose the full quote on hover for quote items.
+            tip = orig if orig and orig != disp else ""
+        else:
+            outlet = OUTLET(s) if s.get("source") else ""
+            tip = " — ".join(x for x in ((orig if orig and orig != disp else ""), outlet) if x)
+            if s.get("archived"):
+                tip = (tip + " · " if tip else "") + "archived copy"
+        title_attr = f' title="{t(tip)}"' if tip else ""
         href = s.get("link") or "#"
         return f'<a href="{e(href)}" rel="noopener"{title_attr}>{t(disp)}</a>'
 
@@ -1144,7 +1161,8 @@ def main():
         print(f"excluded {len(dropped)} clusters (defeatist framing)")
     lead, top, cols = place(clusters, settings, ctx)
     lead, top, cols, _hl = decorate_headlines(lead, top, cols, clusters, settings, now, ctx)
-    cols = balance_columns(cols, settings)
+    _q = load_daily_quote("quote_of_the_day.json")
+    cols = balance_columns(cols, settings, quote_as_story(_q) if _q else None)
     cols = inject_quote(cols, settings)
     clean_links(lead, top, cols, clusters, settings, now)
     display_outlets([lead] + top + [s for c in cols for s in c])

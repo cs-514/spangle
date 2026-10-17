@@ -50,9 +50,17 @@ class Render(unittest.TestCase):
         self.assertEqual(re.findall(r"\bET\b", h), [])  # no zone label anywhere; times are Eastern
         head = h[h.index("<header>"):h.index("</header>")]
         self.assertIn("Thursday, October 15, 2026</span> · <span class=\"nw\">Updated 4:00 PM<", head)  # NOW = 20:00 UTC, EDT
-        self.assertRegex(h, r'class="meta">[^<]* · Oct 1[45], \d{1,2}:\d\d [AP]M</div>')
+        self.assertEqual(h.count('<div class="meta">'), 1)  # only the QOTD attribution line; no outlet/time lines
         from datetime import datetime, timezone
         self.assertEqual(A.fmt_et(datetime(2026, 12, 1, 17, 5, tzinfo=timezone.utc)), "Dec 1, 12:05 PM")  # EST
+
+    def test_no_source_lines_on_news(self):
+        h = self.html()
+        lead = h[h.index('<div class="lead">'):h.index('<div class="label">Top Stories')]
+        top = h[h.index('<div class="top">'):h.index('<div class="label">More Headlines')]
+        for part in (lead, top):
+            self.assertNotIn('class="meta"', part)
+        self.assertIn('class="meta">George Washington · Farewell Address</div>', h)  # QOTD keeps its attribution
 
     def test_meta(self):
         h = self.html()

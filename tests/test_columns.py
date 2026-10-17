@@ -56,3 +56,22 @@ class Balance(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NoSourceLine(unittest.TestCase):
+    def test_default_item_height_has_no_meta_line(self):
+        # measured in headless Chrome at 1280px: 1 line 51px, 2 lines 78px, 3 lines 106px
+        self.assertEqual(A.item_height({"display": "Socialism’s Persistent, Disturbing Rise"}, {}), 51)
+        self.assertEqual(A.item_height({"display": "Elon Musk Spends Heavily to Back Ken Paxton’s Senate Bid in Texas"}, {}), 78)
+
+    def test_qotd_height_from_quote(self):
+        q = {"display": "Magnificent Structure, Totally Unfit for Use", "quote_text": " ".join(["wordy"] * 42)}
+        self.assertAlmostEqual(A.qotd_height(q, {}), 80 + 24.7 * 2 + 23.1 * 6, delta=1)  # measured block: 268px
+        self.assertEqual(A.qotd_height(None, {"qotd_px": 250}), 250)
+
+    def test_long_quote_shifts_items_out_of_qotd_column(self):
+        cfg = {"placement": {"quote_of_the_day": {"column": 1}, "column_balance": {}}}
+        its = [story(f"t{i}", link=f"https://e.com/{i}") for i in range(18)]
+        short = A.balance_columns([its[:6], its[6:12], its[12:]], cfg, {"display": "Hi", "quote_text": "Short."})
+        long_ = A.balance_columns([its[:6], its[6:12], its[12:]], cfg, {"display": "Hi", "quote_text": "word " * 80})
+        self.assertLess(len(long_[1]), len(short[1]))

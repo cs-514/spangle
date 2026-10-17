@@ -112,8 +112,12 @@
       "enabled": true,
       "chars_per_line": 40,
       "line_px": 27,
-      "item_base_px": 47,
-      "qotd_px": 245
+      "item_base_px": 24,
+      "qotd_px": 268,
+      "qotd_base_px": 80,
+      "qotd_headline_line_px": 24.7,
+      "qotd_text_line_px": 23.1,
+      "qotd_text_chars_per_line": 48
     }
   },
   "archive": {
