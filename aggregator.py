@@ -488,44 +488,7 @@ def suppressed(url, settings):
     return bool(sup) and any(u in sup or headline_mod.url_key(u) in sup for u in (url, url.split("?", 1)[0]))
 
 
-_STOP = set("""from that with says said will about after over their they this what more than into been have were
-when where your just could would should also only being here there them then some most such these those which while
-amid""".split())
-
-
-def _words(t):
-    t = t.lower().replace("’", "'")
-    t = re.sub(r"'s\b", "", t)
-    return {w for w in re.findall(r"[a-z0-9]+", t) if (len(w) > 3 or w.isdigit()) and w not in _STOP}
-
-
-def same_story(headline, x, min_overlap=0.34):
-    """Would linking item x under `headline` still be the same article topic? Content-word overlap between
-    the headline and x's title + URL slug, as a share of the smaller set. Mis-clustered siblings (e.g. a
-    Harris rally headline on a Wisconsin secretary-of-state story) fall well below; rewrites of the same
-    report stay above. When unsure, callers keep the headline's own link."""
-    a = _words(headline)
-    slug = urllib.parse.urlparse(x["link"]).path.replace("-", " ").replace("/", " ")
-    b = _words(f"{x['title']} {slug}")
-    if not a or not b:
-        return False
-    shared, ratio = len(a & b), len(a & b) / min(len(a), len(b))
-    if ratio < min_overlap or (shared < 3 and ratio < 0.6):  # two shared generic words ('democrats', 'problem') aren't enough
-        return False
-    # Sentence-case titles (Fox, NY Post, ...) mark names with capitals: a named subject the headline never
-    # mentions means a different article (El-Sayed's 2A stance is not "Getting the Second Amendment Right").
-    toks = re.findall(r"[A-Za-z][\w'’.-]*", x["title"])
-    if toks and sum(t[0].isupper() for t in toks) / len(toks) < 0.6:
-        lead_name = lambda t: bool(re.search(r"['’]s$|^[A-Z][a-z]+-[A-Z]", t))  # El-Sayed's, O'Rourke's opening a title
-        names = {w for i, t in enumerate(toks) if (i or lead_name(t)) and t[0].isupper() and not re.search(r"[:.?!]$", toks[i - 1])
-                 for w in _words(t) if w not in _GENERIC_CAPS}
-        if names and not names & a:
-            return False
-    return True
-
-
-_GENERIC_CAPS = {"second", "amendment", "first", "supreme", "court", "senate", "house", "congress", "democrats",
-                 "democratic", "republicans", "republican", "white", "state", "states", "united", "federal", "american"}
+from ranking.story_match import _STOP, _words, same_story, _GENERIC_CAPS  # noqa: E402 (shared with signals)
 
 
 def verify_links(placed, clusters, ov=None):

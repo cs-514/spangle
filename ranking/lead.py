@@ -72,7 +72,8 @@ def significance(c, cfg, settings):
     amp = c.get("signals", {}).get("amplifiers", 0.0)
     score = w.get("coverage", 0) * cov + w.get("national", 0) * min(1.0, nat_hits / 2) + w.get("amplifiers", 0) * (1.0 if amp > 0 else 0.0)
     # social engagement / account consensus can make up for thinner coverage (aligned stories only; 0 by default)
-    score += w.get("engagement", 0) * c.get("signals", {}).get("engagement", 0.0) + w.get("consensus", 0) * c.get("signals", {}).get("consensus", 0.0)
+    # (engagement: only an exact / cluster-member URL match counts here; fuzzy matches stay out of the lead)
+    score += w.get("engagement", 0) * c.get("engagement_exact", 0.0) + w.get("consensus", 0) * c.get("signals", {}).get("consensus", 0.0)
     rep = c["items"][0]["title"].lower()
     if _has(rep, cfg.get("demote_terms", [])):
         score -= cfg.get("sig_demotion", 0.3)
@@ -96,8 +97,11 @@ def order_for_lead(clusters, settings, ctx):
     w = cfg.get("weights", {"signal": 0.45, "coverage": 0.2, "amplifiers": 0.1, "alignment": 0.15, "rank": 0.1})
     n = cfg.get("candidates", 80)
     pool = clusters[:n]
+    # rank term ignores fuzzy-only engagement credit, so it can't lift a story into the lead
+    lead_rank = {id(c): i for i, c in enumerate(sorted(pool, key=lambda c: -c.get("score_lead", c.get("score", 0))))}
     scored = []
-    for rank, c in enumerate(pool):
+    for _, c in enumerate(pool):
+        rank = lead_rank[id(c)]
         rep = c["items"][0]
         if c.get("lead_excluded") or any(gated(s, cfg) for s in c["items"]):
             continue
@@ -108,7 +112,7 @@ def order_for_lead(clusters, settings, ctx):
         score = (w.get("signal", 0) * sig + w.get("coverage", 0) * sg.get("coverage", 0)
                  + w.get("amplifiers", 0) * sg.get("amplifiers", 0) + w.get("alignment", 0) * sg.get("alignment", 0)
                  + w.get("rank", 0) * (1 - rank / max(1, len(pool)))
-                 + w.get("engagement", 0) * sg.get("engagement", 0) + w.get("consensus", 0) * sg.get("consensus", 0))
+                 + w.get("engagement", 0) * c.get("engagement_exact", 0) + w.get("consensus", 0) * sg.get("consensus", 0))
         c["lead_signal"] = sig
         sgf, hard, n_out = significance(c, cfg, settings)
         c["significance"] = sgf

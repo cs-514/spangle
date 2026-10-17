@@ -63,6 +63,54 @@ class Engagement(unittest.TestCase):
         out = self.run_sig([cl(1, a)], data([{"url": "https://b.com/government/trump-signs-executive-order-putting-new-sanctions-russia", "score": 0.8}]))
         self.assertAlmostEqual(out[1], 0.64)
 
+    def test_fuzzy_rejects_opposing_actions(self):
+        """A waiver story is not the same story as an order imposing new sanctions, despite shared words."""
+        a = story("President Waives Russia Sanctions Ordered by Law Named for Senator", link="https://a.com/waiver")
+        u = [{"url": "https://b.com/gov/president-signs-order-putting-new-russia-sanctions-law-named-senator", "score": 1.0}]
+        self.assertEqual(self.run_sig([cl(1, a)], data(u))[1], 0.0)
+
+    def test_fuzzy_needs_same_story(self):
+        a = story("Senate Border Funding Vote Delayed Again", link="https://a.com/x")
+        u = [{"url": "https://b.com/news/governor-border-funding-vote-county-fair-results", "score": 1.0}]
+        self.assertEqual(self.run_sig([cl(1, a)], data(u))[1], 0.0)
+
+    def test_owner_cluster_gets_boost_not_lookalike(self):
+        own = story("President Signs Order Putting New Sanctions on Russia", link="https://b.com/gov/president-signs-order-new-sanctions-russia")
+        look = story("President Signs New Russia Sanctions Order", link="https://a.com/other")
+        u = [{"url": "https://b.com/gov/president-signs-order-new-sanctions-russia", "score": 1.0}]
+        cs = [cl(1, look), cl(2, own)]
+        out = self.run_sig(cs, data(u))
+        self.assertAlmostEqual(out[2], 1.0)
+        self.assertEqual(out[1], 0.0)
+        self.assertEqual(cs[1]["engagement_exact"], 1.0)
+
+    def test_fuzzy_only_is_not_lead_credit(self):
+        a = story("Trump Signs Executive Order Putting New Sanctions on Russia", link="https://a.com/x1")
+        cs = [cl(1, a)]
+        out = self.run_sig(cs, data([{"url": "https://b.com/government/trump-signs-executive-order-putting-new-sanctions-russia", "score": 0.8}]))
+        self.assertGreater(out[1], 0.5)
+        self.assertEqual(cs[0]["engagement_exact"], 0.0)
+
+    def test_retreat_flagged_not_boosted(self):
+        c = cl(1, story("Hot Story Here Today", link="https://e.com/hot-story-here"))
+        c["signals"]["retreat"] = 0.3
+        self.assertEqual(self.run_sig([c], data([{"url": "https://e.com/hot-story-here", "score": 1.0}]))[1], 0.0)
+
+    def test_lead_ignores_fuzzy_engagement(self):
+        from ranking import lead
+        import inspect
+        src = inspect.getsource(lead)
+        self.assertIn('c.get("engagement_exact"', src)
+        self.assertNotIn('sg.get("engagement"', src)
+        self.assertIn("score_lead", src)
+
+    def test_opposed_helper(self):
+        from ranking.story_match import opposed
+        self.assertTrue(opposed("Mayor Lifts Curfew", "Mayor Imposes New Curfew"))
+        self.assertTrue(opposed("Tariffs Paused", "Tariffs Expanded to Steel"))
+        self.assertFalse(opposed("Senate Passes Wall Funding", "Wall Funding Clears Senate"))
+        self.assertFalse(opposed("Agency Drops Rule", "Agency Drops Rule After Outcry"))
+
     def test_terms_smaller(self):
         a = story("Rubio Declares America First Foreign Policy at State Department")
         out = self.run_sig([cl(1, a)], data(terms=[{"term": "State Department Declares America First Foreign Policy Under Rubio", "score": 1.0}]))
