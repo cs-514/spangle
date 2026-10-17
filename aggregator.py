@@ -451,12 +451,12 @@ header{text-align:center;border-bottom:3px double var(--ink);padding:18px 0 10px
 .mast{font-family:var(--display);font-weight:900;font-size:clamp(44px,8vw,84px);letter-spacing:.01em;line-height:1;margin:0}
 .date{font-family:var(--sans);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:8px}
 .label{font-family:var(--sans);font-weight:800;font-size:12px;letter-spacing:.14em;text-transform:uppercase;border-top:1px solid var(--ink);padding-top:6px;margin:28px 0 4px}
-.lead{text-align:center;padding:26px 0 22px;border-bottom:1px solid var(--rule)}
+.lead{text-align:center;padding:26px 0 22px}
 .lead a{font-family:var(--display);font-weight:900;color:var(--red);font-size:clamp(28px,4.6vw,52px);line-height:1.12;display:inline;max-width:none;overflow:visible;text-overflow:clip;white-space:normal;hyphens:manual}
 .lead a:visited{color:var(--red)}
 .lead .meta{margin-top:12px}
 .top ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 28px}
-.top li{padding:10px 0 14px;border-bottom:1px solid var(--rule)}
+.top li{padding:10px 0 14px}
 .top a{font-weight:700;font-size:22px;line-height:1.22;overflow:visible;text-overflow:clip;white-space:normal}
 .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:0 32px}
 .col{border-left:1px solid var(--rule);padding-left:20px} .col:first-child{border-left:0;padding-left:0}
