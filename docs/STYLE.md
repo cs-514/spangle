@@ -136,11 +136,26 @@ Config: `numerals` in `headline_style.json`. Tests: `tests/test_numerals_case.py
 Every headline is normalized to title case, and sentence-case headlines are converted. Lowercase *a, an, the,
 and, but, or, nor, as, at, by, for, if, in, of, on, to, vs, with, from, into, onto, upon* except as the first or last word, after a colon or
 dash, or at the start of a quote. Capitalize everything else, including both parts of a hyphenated word
-(*Live-Stream*) and phrasal particles (*Take Up*; *Up* always stays capitalized). Words that already have
+(*Live-Stream*; see the compound rules below) and phrasal particles (*Take Up*; *Up* always stays capitalized). Words that already have
 capitals are never lowercased: acronyms, the style abbreviations (SCOTUS, DOGE, VDH, GOP), *McDonald*,
 *iPhone*, ALL-CAPS lines. Lowercase name particles before a name stay as they are (*el Sayed*, *bin Salman*).
 The Quote of the Day is not touched.
 
+- **Hyphenated compounds (Chicago):** capitalize every element, including the second (*Fast-Moving*,
+  *Anti-Israel*, *Trump-Appointed*, *18-Year-Old*), except articles, prepositions and conjunctions in the
+  middle (*Soft-on-Crime*, *Up-to-Date*, *Mother-in-Law*; list in `title_case.hyphen_small_words`). Elements that
+  already have internal capitals are kept (*U.S.-China*, *COVID-19*, *McCarthy-Era*). Brand spellings go in
+  `title_case.preserve` (*Chick-fil-A*).
+- **Acronyms inside compounds:** each part of a hyphenated ALL-CAPS token is judged on its own. A part stays
+  all caps when it is a known acronym (`acronyms`, e.g. *SJSU*, *CENTCOM*) or 3+ consonant-only letters
+  (*NTSB*, *NRSC*); other parts become Title Case (*EX-SJSU* → *Ex-SJSU*). The same rule applies to
+  overrides, so a hand-written *Ex-SJSU* is never mangled to *Ex-Sjsu*.
+- **No fragments:** a trim (`shorten`) is rejected when it would leave a fragment: it ends on a dangling
+  word (*that, which, of, the, and* …), it drops every finite verb the original had (*‘Vast Majority’ of Iran’s
+  Attempted Attacks* from *… Are Unsuccessful, CENTCOM Spokesman Says*), it stops a *that/which/who* clause
+  before its verb (*Racist Claim That Arab Mothers*), or it ends on a time unit cut from *After/Before …*
+  (*Rally Comes Days*). Dropping a whole dash/colon tail is fine. Any displayed headline that still reads as a
+  fragment is queued for rewrite (`reason: "fragment"`); the fix is an override with a verb.
 - **Sentence starts:** the first word after a real sentence break (`.` `?` `!`, or a colon, including after an
   opening quote) is capitalized: *Abortions. But Why?* Ellipses (*. . .*, *...*) and abbreviations (*U.S.*,
   *D.C.*, *Mr.*, *Gov.*) are not breaks, and neither is punctuation inside a closing quote mid-headline:
