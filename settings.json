@@ -107,6 +107,13 @@
       "enabled": true,
       "column": 1,
       "index": 7
+    },
+    "column_balance": {
+      "enabled": true,
+      "chars_per_line": 40,
+      "line_px": 27,
+      "item_base_px": 47,
+      "qotd_px": 245
     }
   },
   "archive": {

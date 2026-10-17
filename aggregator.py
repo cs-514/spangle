@@ -938,6 +938,69 @@ def quote_as_story(q):
     }
 
 
+def _wrap_lines(text, cpl):
+    """Lines a headline wraps to at ~cpl characters per line (greedy word wrap, like the browser)."""
+    lines, cur = 1, 0
+    for w in (text or "").split():
+        if cur and cur + 1 + len(w) > cpl:
+            lines, cur = lines + 1, len(w)
+        else:
+            cur += (1 if cur else 0) + len(w)
+    return lines
+
+
+def item_height(s, cfg):
+    """Estimated rendered height (px) of a column item at desktop width: meta line + padding + wrapped headline."""
+    cfg = cfg or {}
+    return cfg.get("item_base_px", 47) + cfg.get("line_px", 27) * _wrap_lines(s.get("display") or s.get("title"), cfg.get("chars_per_line", 40))
+
+
+def balance_columns(cols, settings):
+    """Re-deal column items by estimated rendered height, not count: each item, in rank order, goes to the
+    currently shortest column. Lifestyle filler stays last; the QOTD block (inserted later into its fixed
+    column) is pre-counted in that column. Rank order still reads roughly top-down across the row."""
+    cfg = (settings.get("placement") or {}).get("column_balance") or {}
+    if cfg.get("enabled") is False or not cols:
+        return cols
+    n = len(cols)
+    flat = [x for c in cols for x in c if not x.get("lifestyle")] + [x for c in cols for x in c if x.get("lifestyle")]
+    h = [0.0] * n
+    q = (settings.get("placement") or {}).get("quote_of_the_day") or {}
+    if q.get("enabled", True) is not False:
+        h[max(0, min(int(q.get("column", 1)), n - 1))] += cfg.get("qotd_px", 245)
+    out = [[] for _ in range(n)]
+    for x in flat:
+        i = min(range(n), key=lambda k: (h[k], k))
+        out[i].append(x); h[i] += item_height(x, cfg)
+    # refine: swap one pair (or move one item) among the lowest few items of the tallest and shortest
+    # columns when that narrows the spread; lowest-ranked items only, so the reading order barely changes
+    k = int(cfg.get("refine_window", 6))
+    for _ in range(int(cfg.get("refine_passes", 4))):
+        hi, lo = max(range(n), key=lambda j: h[j]), min(range(n), key=lambda j: h[j])
+        if hi == lo:
+            break
+        spread, best = h[hi] - h[lo], None
+        for a in range(max(0, len(out[hi]) - k), len(out[hi])):
+            ha = item_height(out[hi][a], cfg)
+            if not out[hi][a].get("lifestyle") and abs((h[hi] - ha) - (h[lo] + ha)) < spread:
+                spread, best = abs((h[hi] - ha) - (h[lo] + ha)), (a, None)
+            for b in range(max(0, len(out[lo]) - k), len(out[lo])):
+                d = ha - item_height(out[lo][b], cfg)
+                if d > 0 and abs((h[hi] - d) - (h[lo] + d)) < spread:
+                    spread, best = abs((h[hi] - d) - (h[lo] + d)), (a, b)
+        others = [h[j] for j in range(n) if j not in (hi, lo)]
+        if best is None:
+            break
+        a, b = best
+        x = out[hi][a]
+        if b is None:
+            out[hi].pop(a); out[lo].append(x); dh = item_height(x, cfg)
+        else:
+            y = out[lo][b]; out[hi][a], out[lo][b] = y, x; dh = item_height(x, cfg) - item_height(y, cfg)
+        h[hi] -= dh; h[lo] += dh
+    return out
+
+
 def inject_quote(cols, settings):
     """Insert the daily quote into a column at placement.quote_of_the_day.{column,index}."""
     slot = (settings.get("placement") or {}).get("quote_of_the_day") or {}
@@ -1059,6 +1122,7 @@ def main():
         print(f"excluded {len(dropped)} clusters (defeatist framing)")
     lead, top, cols = place(clusters, settings, ctx)
     lead, top, cols, _hl = decorate_headlines(lead, top, cols, clusters, settings, now, ctx)
+    cols = balance_columns(cols, settings)
     cols = inject_quote(cols, settings)
     clean_links(lead, top, cols, clusters, settings, now)
     display_outlets([lead] + top + [s for c in cols for s in c])

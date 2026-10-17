@@ -274,6 +274,14 @@ the top `candidates` clusters. If none qualify, the most significant eligible po
 The private config can override any of these keys under `"lead"` (see the schema below). The build log prints
 `lead: N eligible candidates above threshold`, or a fallback notice.
 
+## Column balancing (`placement.column_balance`)
+
+Columns are balanced by estimated rendered height, not item count. Each item's height at desktop width is
+`item_base_px` (47) + `line_px` (27) × the headline's wrapped line count at `chars_per_line` (40); the Quote of the
+Day block counts `qotd_px` (245) in its column. Items are dealt in rank order to the currently shortest column,
+lifestyle filler last; a few swaps among the lowest-ranked items then narrow the remaining gap. QOTD placement and
+the reserved Imprimis slot are unchanged. Calibrated against headless-Chrome measurements (43 of 46 items exact).
+
 ## Paywalls and registration walls
 
 These rules apply to every item, whether it comes from a feed, a curated pick or a cluster. They're defined in `aggregator.py`.
