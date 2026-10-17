@@ -632,6 +632,12 @@ def clean_links(lead, top, cols, clusters, settings, now, get=None):
     return st
 
 
+OBSCURE_ACRONYM_GUIDANCE = (
+    "Use only acronyms a general national reader instantly recognizes (FBI, DOJ, CIA, ICE, GOP, SCOTUS, NATO, DOGE, "
+    "NCAA). Replace an obscure one (school initials, local agencies, niche orgs) with a plain generic descriptor, "
+    "possessive where natural ('College’s', 'State Agency', 'Union'), and keep the headline the same length or "
+    "shorter. Example: 'Ex-SJSU Coach Sues over ‘Trump Lover’ Barbs' -> 'College’s Ex-Coach Sues over ‘Trump Lover’ Barbs'.")
+
 IMPRIMIS_GUIDANCE = (
     "Imprimis titles read like lecture/course titles ('The X of Y', 'Understanding Z'). Read the essay's opening "
     "paragraphs, find its thesis and stance, and write a short (3-6 words), punchy, thesis-carrying headline with "
@@ -790,6 +796,17 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
             stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": s["display"],
                                    "reason": "fragment",
                                    "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
+    for s in placed:  # obscure acronyms (school initials, niche orgs): queue for a plain-descriptor rewrite
+        if s.get("drop") or s.get("quote_item") or not s.get("display"):
+            continue
+        obs = headline_mod.obscure_acronyms(s["display"], sty)
+        if obs:
+            stats["queued_obscure_acronym"] = stats.get("queued_obscure_acronym", 0) + 1
+            c = by_id.get(id(s)) or by_link.get(s["link"])
+            sibs = [{"url": x["link"], "title": x["title"]} for x in (c["items"] if c else [s])]
+            stats["queue"].append({"url": s["link"], "title": s.get("original_title") or s["title"], "cleaned": s["display"],
+                                   "reason": "obscure_acronym", "acronyms": obs, "framing": OBSCURE_ACRONYM_GUIDANCE,
+                                   "siblings": sibs})
     dcfg = ranking.private.load(ctx).get("defeatism") if ctx is not None else None
     for s in placed:
         if dcfg and s.get("display") and ranking.defeatism.classify(s["display"], dcfg) == "exclude" \
@@ -798,7 +815,8 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
             stats["defeatist_reverted"] = stats.get("defeatist_reverted", 0) + 1
     print(f"headlines: kept {stats['kept']}, swapped {stats['swapped']}, "
           f"queued_bland {stats['queued_bland']}, queued_too_long {stats['queued_too_long']}, "
-          f"styled {stats['styled']}, overrides {stats['override']}, shortened {stats['shortened']}")
+          f"styled {stats['styled']}, overrides {stats['override']}, shortened {stats['shortened']}, "
+          f"fragments {stats.get('queued_fragment', 0)}, obscure_acronyms {stats.get('queued_obscure_acronym', 0)}")
     try:
         with open(os.path.join(HERE, "..", "rewrite_queue.json"), "w") as f:
             json.dump({"generated": datetime.now(timezone.utc).isoformat(), "items": stats["queue"]}, f, indent=1)

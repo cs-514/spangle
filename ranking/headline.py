@@ -73,12 +73,64 @@ def _party_abbrev(t, pairs):
     return t
 
 
+def acronyms(sty=None, kind="all"):
+    """The acronym lists in headline_style.json: "well_known" (fine in headlines) and "case_only" (keep the
+    casing, but a headline using one is queued as obscure). kind: "all", "well_known" or "case_only"."""
+    a = (sty or style()).get("acronyms") or {}
+    if isinstance(a, list):  # legacy flat list
+        return set(a) if kind != "case_only" else set()
+    if kind == "all":
+        return set(a.get("well_known", [])) | set(a.get("case_only", []))
+    return set(a.get(kind, []))
+
+
+_ROMAN = {"II", "III", "IV", "VI", "VII", "VIII", "IX", "XI", "XII", "XIV", "XV", "XX", "LVIII", "LIX", "LX", "LXI", "LXII", "OK"}
+
+
+_POSTAL = set("AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND "
+               "OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY".split())
+
+
+def obscure_acronyms(title, sty=None):
+    """ALL-CAPS tokens in a display headline that a general national reader may not recognize: anything
+    not in acronyms.well_known (SJSU, NRSC, DSA, CENTCOM). Hyphen parts are checked on their own
+    (Ex-SJSU, AI-Generated); dotted forms must be listed dotted (U.S., S.C.); possessives are ignored
+    (CFA’s -> CFA); Roman numerals, single letters, number-letter tokens (F-35, $275K, Q3), phrases in
+    well_known_phrases (MS Now) and 2-letter initials before a name (JD Vance) are skipped."""
+    sty = sty or style()
+    acr = (sty.get("acronyms") or {}) if isinstance(sty.get("acronyms"), dict) else {}
+    well = acronyms(sty, "well_known")
+    t = (title or "").replace("’", "'")
+    for ph in acr.get("well_known_phrases", []):
+        t = t.replace(ph, " ")
+    toks = re.findall(r"[A-Za-z0-9.&+'\-]+", t)
+    ok = lambda x: x in well or x + "." in well
+    out = []
+    for n, raw in enumerate(toks):
+        tok = re.sub(r"(?<=[0-9A-Z])s$", "", re.sub(r"'s$|'$", "", raw)).strip("-+'")  # CFA's, AR-15s, EVs
+        if ok(tok) or ok(tok.rstrip(".")):
+            continue
+        nxt = toks[n + 1] if n + 1 < len(toks) else ""
+        for part in tok.split("-"):
+            p = part.rstrip(".+")
+            bare = p.replace(".", "")
+            if len(bare) < 2 or not bare.isalpha() or not bare.isupper() or bare in _ROMAN:
+                continue
+            if ok(p) or ok(part) or (bare.endswith("S") and bare[:-1] in well):
+                continue
+            if (len(bare) <= 2 or "." in p) and bare not in _POSTAL and "-" not in tok \
+                    and nxt[:1].isupper() and nxt[1:2].islower():
+                continue  # initials before a name: JD Vance, RJ Mitte, M.D. Kittle
+            out.append(p)
+    return list(dict.fromkeys(out))
+
+
 def fix_allcaps(title, sty=None):
     """Only true acronyms stay ALL CAPS. Known shouting forms are mapped (DEMS -> Dems, SEC/STATE ->
     Sec. of State); other all-caps words of 4+ letters (BIG MONEY, EVISCERATES) and common short words
     (BIG, NEW, NOT) become Title Case. Short unknown tokens (2-3 letters) are assumed to be acronyms."""
     sty = sty or style()
-    acr = set(sty.get("acronyms", []))
+    acr = acronyms(sty)
     words = sty.get("allcaps_words", {})
     common = set(sty.get("allcaps_common", []))
 

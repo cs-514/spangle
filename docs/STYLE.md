@@ -98,12 +98,32 @@ Examples: *DOGE Gets Its Day at SCOTUS* · *Kamala: Dems Will Pack SCOTUS* · *S
 
 ## Only true acronyms are ALL CAPS
 
-ALL CAPS is for acronyms and initialisms only (DOJ, FBI, SCOTUS, DOGE, GOP, MAGA, NATO; the `acronyms` list in
+ALL CAPS is for acronyms and initialisms only (DOJ, FBI, SCOTUS, DOGE, GOP, MAGA, NATO; the `acronyms` lists in
 `headline_style.json`). *Dems*, *Dem* and *Sec. of State* are abbreviations, not acronyms, so they are never
 capitalized. `fix_allcaps()` runs before title case: known shouting forms are mapped (`allcaps_words`:
 DEMS → Dems, SEC/STATE → Sec. of State, WI → Wis.), and other all-caps words of 4+ letters or common short words
 become title case (*BIG MONEY* → *Big Money*, *EVISCERATES* → *Eviscerates*). Unknown 2–3-letter tokens are
 assumed to be acronyms.
+
+## Only acronyms every reader knows
+
+Headlines use only acronyms a general national reader instantly recognizes: FBI, DOJ, CIA, ICE, GOP, SCOTUS,
+NATO, DOGE, NCAA (`acronyms.well_known`). Obscure ones (school initials, local agencies, niche orgs, state postal
+codes, borderline military commands like CENTCOM) are replaced with a plain generic descriptor, possessive where
+natural, keeping the headline the same length or shorter:
+
+- *Ex-SJSU Coach Sues over ‘Trump Lover’ Barbs* → *College’s Ex-Coach Sues over ‘Trump Lover’ Barbs*
+- *NRSC Ad Mocks Peltola* → *GOP Senate Arm’s Ad Mocks Peltola*
+- *FBI Probes Letters with DSA-Linked Address* → *FBI Probes Letters with Socialist-Linked Address*
+- *CENTCOM Says Strait Stays Open* → *U.S. Military Says Strait Stays Open*
+
+`acronyms.case_only` keeps the casing of known-but-obscure acronyms when a source uses them (so they are never
+mangled to *Sjsu*), but any displayed headline with an ALL-CAPS token not in `well_known` is queued for rewrite
+with reason `obscure_acronym` (`obscure_acronyms()` in `ranking/headline.py`). Hyphen parts are checked on
+their own (*Ex-SJSU*); dotted forms must be listed dotted (*U.S.*, *S.C.*); Roman numerals, number-letter tokens
+(*F-35*, *Q3*), `well_known_phrases` (*MS Now*) and two-letter initials before a name (*JD Vance*) are not
+flagged. A rewrite that still uses an obscure acronym is rejected. The other house rules still apply (single
+curly quotes; *with*, *to*, *over* lowercase; no orphans; *Dems*, never *DEMS*).
 
 ## Drop redundant possessives
 
@@ -147,7 +167,7 @@ The Quote of the Day is not touched.
   already have internal capitals are kept (*U.S.-China*, *COVID-19*, *McCarthy-Era*). Brand spellings go in
   `title_case.preserve` (*Chick-fil-A*).
 - **Acronyms inside compounds:** each part of a hyphenated ALL-CAPS token is judged on its own. A part stays
-  all caps when it is a known acronym (`acronyms`, e.g. *SJSU*, *CENTCOM*) or 3+ consonant-only letters
+  all caps when it is a known acronym (`acronyms.well_known` or `case_only`, e.g. *SJSU*, *CENTCOM*) or 3+ consonant-only letters
   (*NTSB*, *NRSC*); other parts become Title Case (*EX-SJSU* → *Ex-SJSU*). The same rule applies to
   overrides, so a hand-written *Ex-SJSU* is never mangled to *Ex-Sjsu*.
 - **No fragments:** a trim (`shorten`) is rejected when it would leave a fragment: it ends on a dangling
