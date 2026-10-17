@@ -342,7 +342,7 @@ weights all live in the private config. The public defaults below are generic.
 
 | key (private config) | generic default | meaning |
 |---|---|---|
-| `engagement.url_boost` | 1.0 | Multiplier on an engaged URL's 0–1 score. A sibling article on the same story gets 0.8× through slug or post-text overlap. |
+| `engagement.url_boost` | 1.0 | Multiplier on an engaged URL's 0–1 score. A sibling article on the same story gets 0.8× through slug or post-text overlap, but only when that engaged URL is not one of any cluster's own links (the owning cluster gets the boost), the match passes `same_story()`, and the two sides don't use opposing action verbs (waives/lifts/pauses vs imposes/signs/orders, `ranking/story_match.py`). Fuzzy (sibling or term) credit can lift a story into Top Stories but never counts toward the lead: lead scoring, significance and the lead's rank term use only exact/cluster-member URL matches (`engagement_exact`, `score_lead`). Retreat-flagged stories are never boosted. |
 | `engagement.term_boost` | 0.35 | Multiplier for trending-topic matches (smaller than a URL match) |
 | `engagement.min_alignment` | 0.5 | Minimum alignment signal for eligibility |
 | `engagement.stale_hours` | 4 | Older data is ignored and the build prints a warning |

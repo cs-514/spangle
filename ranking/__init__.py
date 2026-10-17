@@ -48,6 +48,13 @@ def rank(clusters, settings, ctx):
             print(f"signal {m.NAME}: unavailable (weight redistributed)")
         results[m.NAME] = r
     _combine(clusters, results, weights)
+    # score_lead: the score without any fuzzy-only engagement credit (used for the lead's rank term)
+    act = {n: r for n, r in results.items() if r is not None and weights.get(n, 0) > 0}
+    tot = sum(weights[n] for n in act) or 1.0
+    we = weights.get("engagement", 0) if "engagement" in act else 0.0
+    for c in clusters:
+        fuzzy = max(0.0, c.get("signals", {}).get("engagement", 0.0) - c.get("engagement_exact", 0.0))
+        c["score_lead"] = c["score"] - we / tot * fuzzy
     clusters.sort(key=lambda c: c["score"], reverse=True)
     _dump(clusters, results, weights)
     return clusters
