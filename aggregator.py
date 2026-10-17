@@ -550,6 +550,15 @@ def originator(c):
     return max(items, key=lambda x: (cites(x), -(x["when"] or far).timestamp() if x.get("when") else float("-inf")))
 
 
+def _apply_override(s, ov):
+    """After a relink, a hand-written headline for the new link wins over the old link's display."""
+    u = s["link"]
+    disp = ov.get(u) or ov.get(u.split("?", 1)[0])
+    if disp:
+        s["display"] = headline_mod.clean(disp)[0] or disp
+        s["override"] = True
+
+
 def clean_links(lead, top, cols, clusters, settings, now, get=None):
     """Link the cleanest acceptable sibling (tier + clutter + freshness), keeping the chosen headline;
     then swap in a validated lighter variant (AMP/print) where one exists. Overrides, quotes and
@@ -592,6 +601,7 @@ def clean_links(lead, top, cols, clusters, settings, now, get=None):
                 s["link"], s["source"] = org["link"], org["source"]
                 if org.get("when"):
                     s["when"] = org["when"]
+                _apply_override(s, ov)
                 st["relinked"] += 1; st["originator"] = st.get("originator", 0) + 1
                 continue
         cur = ranking.clutter.link_score(s, tiers, dt, now)
@@ -604,6 +614,7 @@ def clean_links(lead, top, cols, clusters, settings, now, get=None):
             s["link"], s["source"] = best["link"], best["source"]
             if best.get("when"):
                 s["when"] = best["when"]
+            _apply_override(s, ov)
             st["relinked"] += 1
     if cfg.get("lighter_variants"):
         todo = [s for s in placed if not s.get("quote_item") and (ranking.clutter.scores().get(ranking.clutter.domain(s["link"])) or {}).get("variant")]
