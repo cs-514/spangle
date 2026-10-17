@@ -8,7 +8,7 @@ Public settings ("lead" in settings.json) hold generic defaults; the private con
   win_terms, win_entities, opponent_loss_terms : "win" lexicon (term + entity, or opponent-loss phrase)
   outrage_terms, intensity_terms               : "outrage" lexicon and intensity boosters
   threshold                                    : minimum win/outrage signal for the lead
-  weights                                      : {"signal", "coverage", "amplifiers", "alignment", "rank"}
+  weights                                      : {"signal", "coverage", "amplifiers", "alignment", "rank", "engagement", "consensus"}
   candidates                                   : how many top-ranked clusters to consider
 """
 import re
@@ -57,7 +57,7 @@ def signal(s, cfg):
 def significance(c, cfg, settings):
     """National-significance score (0-1) and whether the hard minimums are met.
     Keys: sig_min_outlets, sig_major_tier, sig_major_outlets, sig_min, sig_weights
-    {"coverage","national","amplifiers"}, sig_coverage_saturation, national_terms,
+    {"coverage","national","amplifiers","engagement","consensus"}, sig_coverage_saturation, national_terms,
     demote_terms (local/celebrity/consumer items), sig_demotion."""
     tiers, dflt = settings["sources"]["tiers"], settings["sources"]["default_tier"]
     outlets = c.get("outlets") or {s["source"] for s in c["items"]}
@@ -71,6 +71,8 @@ def significance(c, cfg, settings):
     cov = min(1.0, (n - 1) / max(1, cfg.get("sig_coverage_saturation", 6) - 1))
     amp = c.get("signals", {}).get("amplifiers", 0.0)
     score = w.get("coverage", 0) * cov + w.get("national", 0) * min(1.0, nat_hits / 2) + w.get("amplifiers", 0) * (1.0 if amp > 0 else 0.0)
+    # social engagement / account consensus can make up for thinner coverage (aligned stories only; 0 by default)
+    score += w.get("engagement", 0) * c.get("signals", {}).get("engagement", 0.0) + w.get("consensus", 0) * c.get("signals", {}).get("consensus", 0.0)
     rep = c["items"][0]["title"].lower()
     if _has(rep, cfg.get("demote_terms", [])):
         score -= cfg.get("sig_demotion", 0.3)
@@ -105,7 +107,8 @@ def order_for_lead(clusters, settings, ctx):
         sg = c.get("signals", {})
         score = (w.get("signal", 0) * sig + w.get("coverage", 0) * sg.get("coverage", 0)
                  + w.get("amplifiers", 0) * sg.get("amplifiers", 0) + w.get("alignment", 0) * sg.get("alignment", 0)
-                 + w.get("rank", 0) * (1 - rank / max(1, len(pool))))
+                 + w.get("rank", 0) * (1 - rank / max(1, len(pool)))
+                 + w.get("engagement", 0) * sg.get("engagement", 0) + w.get("consensus", 0) * sg.get("consensus", 0))
         c["lead_signal"] = sig
         sgf, hard, n_out = significance(c, cfg, settings)
         c["significance"] = sgf

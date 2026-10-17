@@ -7,7 +7,8 @@
     "curated_by_aggregators": 0.15,
     "google_news": 0.08,
     "reddit": 0.08,
-    "x": 0.0,
+    "engagement": 0.0,
+    "consensus": 0.0,
     "amplifiers": 0.0,
     "framing": 0.0,
     "niche": 0.08,
@@ -88,11 +89,6 @@
       ],
       "saturation": 1500,
       "rss": true
-    },
-    "x": {
-      "enabled": false,
-      "max_requests": 20,
-      "saturation": 500
     }
   },
   "placement": {
