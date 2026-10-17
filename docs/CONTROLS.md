@@ -30,7 +30,8 @@ Keep the file valid JSON: double quotes, and no trailing commas.
 | `curated_by_aggregators` | 0.15 | A human-curated aggregator (Bongino Report) currently links to the story |
 | `google_news` | 0.08 | Number of Google News results for the story's key terms in the past day (keyless) |
 | `reddit` | 0.08 | Posts linking to the story in conservative subreddits, read from each listing's public RSS (`/r/<sub>/hot/.rss`); credit decays with rank. Reddit blocks many datacenter IPs, so this often reports "unavailable" and its weight is redistributed. Set `social.reddit.rss: false` to use the JSON API instead. |
-| `x` | 0.0 | Optional X API stub, off by default |
+| `engagement` | 0.0 | Social engagement: aligned stories whose links are drawing unusual engagement, matched by URL and then across the whole cluster; trending-topic matches count less. The data comes from a private secret refreshed by an off-repo routine. The real weight is set privately. |
+| `consensus` | 0.0 | Stories linked or mentioned by several **distinct** tracked accounts, scaled by account count and weight. Each account's influence is capped, so one prolific account can't fake consensus. The data comes from the private amplifier secret. The real weight is set privately. |
 
 Set a weight to `0` to turn that signal off.
 
@@ -331,9 +332,26 @@ Feeds added Oct 2026: **Judicial Watch** (`judicialwatch.org/feed/`, press relea
 | `reddit.subreddits` | Conservative, conservatives, Republican, ConservativeNews | Subreddits checked (hot and new) |
 | `reddit.saturation` | 1500 | Score + 2×comments that maps to roughly 0.75 |
 | `hackernews.enabled` / `saturation` | true / 200 | |
-| `x.enabled` | false | Also needs an `X_BEARER_TOKEN` repo secret, plus `X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}` added to the workflow's Build step `env` (it isn't wired in by default) |
-| `x.max_requests` | 20 | Hard cap on X API calls per run. X API pricing is pay-per-use, about $0.005 per counts request. |
-| `x.saturation` | 500 | Post count that maps to roughly 0.75 |
+
+## Engagement and consensus (social signals)
+
+Both signals run **after** the base signals because they reuse those results. A story gets **no** engagement
+or consensus boost if it is excluded as defeatist, framed favorably toward the in-party faction, leans left
+on balance, is lifestyle or celebrity filler, or falls below a minimum alignment. The lists, thresholds and
+weights all live in the private config. The public defaults below are generic.
+
+| key (private config) | generic default | meaning |
+|---|---|---|
+| `engagement.url_boost` | 1.0 | Multiplier on an engaged URL's 0–1 score. A sibling article on the same story gets 0.8× through slug or post-text overlap. |
+| `engagement.term_boost` | 0.35 | Multiplier for trending-topic matches (smaller than a URL match) |
+| `engagement.min_alignment` | 0.5 | Minimum alignment signal for eligibility |
+| `engagement.stale_hours` | 4 | Older data is ignored and the build prints a warning |
+| `signal_weights.engagement` / `.consensus` | — | Ranking weights for the two signals |
+| `lead.weights.engagement` / `.consensus` | 0 | Extra lead-scoring weight, so a hot, aligned, fresh story can take the lead |
+| `lead.sig_weights.engagement` / `.consensus` | 0 | Extra significance credit, so heavy engagement can make up for thinner coverage |
+
+Build logs show counts only (engaged URLs, clusters boosted, matched but not eligible), never URLs or terms.
+If the secret is missing or stale, the signal reports "unavailable" and its weight is redistributed.
 
 ## `placement`
 | key | default | meaning |

@@ -28,6 +28,7 @@ jobs:
         env:
           ALIGNMENT_CONFIG: ${{ secrets.ALIGNMENT_CONFIG }}
           AMPLIFIER_ITEMS: ${{ secrets.AMPLIFIER_ITEMS }}
+          ENGAGEMENT_DATA: ${{ secrets.ENGAGEMENT_DATA }}
         run: python -u aggregator.py
       - name: Confidentiality guard on the built page
         env:
