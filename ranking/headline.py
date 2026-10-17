@@ -81,14 +81,30 @@ def fix_allcaps(title, sty=None):
     acr = set(sty.get("acronyms", []))
     words = sty.get("allcaps_words", {})
     common = set(sty.get("allcaps_common", []))
+
+    def keep(p):  # a known acronym (or its plural), or 3+ consonant-only letters (SJSU-style initialisms, NFL)
+        return p in acr or (p.rstrip("S") in acr and len(p) <= 6) or (len(p) >= 3 and not re.search(r"[AEIOU]", p))
+
+    def part(p):
+        if p in words:
+            return words[p]
+        if keep(p):
+            return p
+        if p in common or len(p) >= 4:
+            return p[:1] + p[1:].lower()
+        return p
+
     def fix(m):
         lead, w, trail = m.group(1), m.group(2), m.group(3)
         if w in words:
             return lead + words[w] + trail
-        if w in acr or w.rstrip("S") in acr and len(w) <= 6:
+        if keep(w):
             return m.group(0)
-        if w in common or len(w.replace("-", "")) >= 4:
-            return lead + "-".join(p[:1] + p[1:].lower() for p in w.split("-")) + trail
+        if "-" in w:  # each part of a compound on its own: EX-SJSU -> Ex-SJSU, MS-13 stays
+            ps = w.split("-")
+            return lead + "-".join(p if keep(p) else (p[:1] + p[1:].lower() if len(p) > 1 else p) for p in ps) + trail
+        if w in common or len(w) >= 4:
+            return lead + w[:1] + w[1:].lower() + trail
         return m.group(0)
     return re.sub(r"(^|[\s‘“(\[—–-])([A-Z][A-Z/\-]*[A-Z])(?=([’'s]*)(?:[\s:;,.!?’”)\]—–]|$))()", lambda m: fix(_M(m)), title)
 
@@ -377,20 +393,75 @@ def shorten(title, styl=None):
         for sep in (" — ", " – ", " | ", ": "):
             if sep in t:
                 left = t.split(sep, 1)[0].strip()
-                if len(left.split()) >= 4 and not contentless(left):
+                if len(left.split()) >= 4 and not contentless(left) and not fragment(left, t):
                     t = left
                     break
     if not fits(t):
         cuts = [m.start() for m in _PREP.finditer(t)] + [m.start() for m in re.finditer(r",\s", t)]
         for pos in sorted(cuts, reverse=True):  # smallest removal first
             cand = t[:pos].rstrip(" ,;:")
-            if len(cand.split()) >= 6 and fits(cand) and not contentless(cand):
+            if len(cand.split()) >= 6 and fits(cand) and not contentless(cand) and not fragment(cand, t):
                 t = cand
                 break
     t = t.rstrip(" ,;:")
     if t == title.strip():
         return title
     return clean(t, sty)[0] or title
+
+
+STRONG_VERBS = {
+    "is", "are", "was", "were", "be", "been", "isn't", "aren't", "wasn't", "has", "have", "had", "hasn't", "haven't",
+    "do", "does", "did", "don't", "doesn't", "didn't", "can", "can't", "could", "would", "should", "must", "may",
+    "might", "will", "won't", "says", "said", "say", "claims", "claimed", "calls", "called", "wants", "wanted",
+    "gets", "got", "goes", "went", "makes", "made", "takes", "took", "puts", "put", "sets", "set", "comes", "came",
+    "wins", "won", "loses", "lost", "blocks", "passes", "fires", "seizes", "slams", "exposes", "indicts", "rules",
+    "orders", "bans", "kills", "hits", "sues", "warns", "vows", "backs", "rejects", "approves", "confirms",
+    "denies", "faces", "leads", "led", "beats", "beat", "defies", "blasts", "deploys", "packs", "scraps", "gives",
+    "gave", "fails", "fizzle", "fizzles", "grows", "grew", "burns", "burned", "admits", "demands", "rips", "torches",
+    "launches", "joins", "invites", "honors", "turns", "probes", "stirs", "sends", "files", "drops", "pays",
+    "know", "knows", "think", "thinks", "prefer", "prefers", "need", "needs", "keeps", "kept"}
+_DANGLING = {"that", "which", "whose", "of", "the", "a", "an", "and", "or", "but", "than"}
+
+
+_TIME_UNITS = {"days", "hours", "weeks", "months", "years", "minutes", "moments", "day", "hour", "week", "month", "year"}
+
+
+def _toks(t):
+    return [re.sub(r"[^a-z0-9%']", "", w.lower().replace("’", "'")) for w in (t or "").split()]
+
+
+def has_strong_verb(t):
+    """A finite verb from the strong list, an -ed/-ing past/progressive after a name, or a passive 'Is/Are X-ed'.
+    (Stricter than the bland detector: plural nouns like 'Attacks' do not count.)"""
+    return any(w in STRONG_VERBS for w in _toks(t))
+
+
+def fragment(display, original=None):
+    """True when a display headline reads as a cut-off fragment: it ends on a dangling function word,
+    it dropped every strong verb the original had ('‘Vast Majority’ of Iran’s Attempted Attacks' from
+    '... Attacks on Hormuz Are Unsuccessful, CENTCOM Says'), or it stops a 'that/which/who' clause before
+    its verb ('Racist Claim That Arab Mothers')."""
+    toks = [w for w in _toks(display) if w]
+    if not toks:
+        return False
+    if toks[-1] in _DANGLING:
+        return True
+    if original is not None:
+        left = [w for w in _toks(re.split(r"\s[—–|]\s|:\s", original)[0]) if w]
+        whole_left = left and toks[-1] == left[-1] and len(toks) >= len(left) - 2  # a dash/colon tail was dropped
+        if has_strong_verb(original) and not has_strong_verb(display) and not whole_left:
+            return True
+        otoks = [w for w in _toks(original) if w]
+        if toks[-1] in _TIME_UNITS:
+            k = len(toks)
+            nxt = next((otoks[j + k] for j in range(len(otoks) - k) if otoks[j:j + k] == toks), None)
+            if nxt in ("after", "before", "ago", "later", "earlier", "since"):
+                return True  # 'Rally Comes Days' cut from 'Rally Comes Days After Terror Plot Foiled'
+        for i, w in enumerate(toks):
+            if w in ("that", "which", "who") and 0 < i and len(toks) - i - 1 <= 3 \
+                    and not any(x in STRONG_VERBS or x.endswith("ed") for x in toks[i + 1:]) and len(otoks) > len(toks):
+                return True
+    return False
 
 
 def needs_rewrite(title, styl=None):
@@ -603,6 +674,25 @@ def lowercase_small_words(title, sty=None):
     return " ".join(toks)
 
 
+HYPHEN_SMALL = {"a", "an", "the", "and", "but", "or", "nor", "as", "at", "by", "for", "in", "of", "on", "to", "vs", "per", "via"}
+
+
+def hyphen_case(core, cfg=None):
+    """Chicago-style hyphenated compounds: capitalize every element (Fast-Moving, 18-Year-Old, Anti-Trump)
+    except articles, prepositions and conjunctions in the middle (Soft-on-Crime, Up-to-Date, Mother-in-Law).
+    Elements with capitals beyond the first letter (SJSU, McCarthy, iPhone, COVID) are kept as written."""
+    small = set((cfg or {}).get("hyphen_small_words") or HYPHEN_SMALL)
+    ps = core.split("-")
+    out = []
+    for i, p in enumerate(ps):
+        if not p or not p[0].isalpha() or (p[1:] != p[1:].lower()) or (p[0].islower() and p[1:] != p[1:].lower()):
+            out.append(p); continue
+        if 0 < i < len(ps) - 1 and p.lower() in small:
+            out.append(p.lower()); continue
+        out.append(p[:1].upper() + p[1:])
+    return "-".join(out)
+
+
 def title_case(title, sty=None):
     """AP/Chicago-style title case. Lowercase small words (a, an, the, and, but, or, nor, as, at,
     by, for, if, in, of, on, to, vs, with, from, into, onto, upon) except first/last word or after ':', '—', '–', '|' or an
@@ -623,6 +713,8 @@ def title_case(title, sty=None):
     for i, w in enumerate(toks):
         m = re.match(r"^([^A-Za-z0-9]*)(.*?)([^A-Za-z0-9.%’']*)$", w)
         lead, core, trail = (m.group(1), m.group(2), m.group(3)) if m else ("", w, "")
+        if core and core[0].isdigit() and "-" in core.strip("-") and w not in keep and core not in keep:
+            out.append(lead + hyphen_case(core, cfg) + trail); continue  # 18-Year-Old, 2-to-1
         if not core or not core[0].isalpha() or w in keep or core in keep:
             out.append(w); continue
         prev = toks[i - 1] if i else ""
@@ -640,10 +732,11 @@ def title_case(title, sty=None):
             out.append(w); continue  # el Sayed, bin Salman
         if low == "to" and not (i == 0 or prev[-1:] == ":" or _sentence_end(prev) or lead[-1:] in ("‘", "“")):
             out.append(lead + low + trail); continue  # always lowercase 'to', incl. infinitives and last word
+        if "-" in core.strip("-"):
+            out.append(lead + hyphen_case(core, cfg) + trail); continue
         if core != low:  # has capitals already (Title, ACRONYM, McDonald, iPhone): keep
             out.append(w); continue
-        cap = "-".join(p[:1].upper() + p[1:] for p in core.split("-"))
-        out.append(lead + cap + trail)
+        out.append(lead + core[:1].upper() + core[1:] + trail)
     return " ".join(out)
 
 

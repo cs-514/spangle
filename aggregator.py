@@ -773,6 +773,12 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
             stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
                                    "reason": "too_long", "chars": len(cleaned), "words": len(cleaned.split()),
                                    "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
+        if headline_mod.fragment(s["display"], best["title"]) and not any(q["url"] == best["link"] for q in stats["queue"]):
+            # verbless / cut-off fragment (e.g. a trim that dropped the verb): ask for a real rewrite
+            stats["queued_fragment"] = stats.get("queued_fragment", 0) + 1
+            stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": s["display"],
+                                   "reason": "fragment",
+                                   "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
     dcfg = ranking.private.load(ctx).get("defeatism") if ctx is not None else None
     for s in placed:
         if dcfg and s.get("display") and ranking.defeatism.classify(s["display"], dcfg) == "exclude" \
