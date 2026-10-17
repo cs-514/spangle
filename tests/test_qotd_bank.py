@@ -46,3 +46,27 @@ class Bank(unittest.TestCase):
         q = next(q for q in self.bank if q["id"] == "guest-pyle-001")
         self.assertGreater(len(q["quote"].split()), 60)
         self.assertTrue(q["quote"].endswith("faithful in love."))
+
+
+class CuratedHeadline(unittest.TestCase):
+    def test_bank_headline_kept_verbatim(self):
+        import os, tempfile
+        with tempfile.TemporaryDirectory() as d:
+            json.dump({"quotes": [{"id": "hom-x", "quote": "One omen is best, to fight for our own country.", "author": "Homer",
+                                   "work": "Iliad", "headline": "One Omen Is Best", "verification_url": "https://example.org",
+                                   "verified": True, "source_type": "primary"}]}, open(os.path.join(d, "b.json"), "w"))
+            old, A.HERE = A.HERE, d
+            try:
+                q = A.fallback_quote("2026-10-17", "b.json")
+            finally:
+                A.HERE = old
+        self.assertEqual(q["headline"], "One Omen Is Best")
+
+    def test_homer_entries(self):
+        bank = json.load(open(f"{ROOT}/qotd_bank.json"))["quotes"]
+        hom = [q for q in bank if q["id"].startswith("hom-")]
+        self.assertEqual([q["id"] for q in hom], [f"hom-{i:03d}" for i in range(1, 16)])
+        for q in hom:
+            self.assertTrue(q["public_domain"])
+            self.assertNotIn("weight", q)
+            self.assertTrue(q["verification_url"].startswith("https://www.gutenberg.org/ebooks/"))
