@@ -867,17 +867,37 @@ def load_daily_quote(filename="quote_of_the_day.json", today=None, bank_file="qo
     return fallback_quote(today, bank_file)
 
 
+def quote_word_limit(q):
+    """60 words (fair use) for copyrighted works; public-domain texts may run longer to keep the payoff."""
+    return 90 if q.get("public_domain") else 60
+
+
+def weighted_pick(items, h, scale=1000):
+    """Deterministic pick by hash h where each item counts its "weight" (default 1); guest entries carry
+    weight < 1 so they appear only occasionally."""
+    w = [max(0, int(round(float(q.get("weight", 1)) * scale))) for q in items]
+    total = sum(w)
+    if not total:
+        return items[h % len(items)]
+    r = h % total
+    for q, wi in zip(items, w):
+        if r < wi:
+            return q
+        r -= wi
+    return items[-1]
+
+
 def fallback_quote(today, bank_file="qotd_bank.json"):
     try:
         with open(os.path.join(HERE, bank_file)) as f:
             bank = [q for q in json.load(f)["quotes"] if q.get("verified") and q.get("source_type") in ("primary", "column")
-                    and len(q["quote"].split()) <= 60]
+                    and len(q["quote"].split()) <= quote_word_limit(q)]
     except Exception:
         return None
     if not bank:
         return None
     import hashlib
-    q = dict(bank[int(hashlib.sha256(today.encode()).hexdigest(), 16) % len(bank)])
+    q = dict(weighted_pick(bank, int(hashlib.sha256(today.encode()).hexdigest(), 16)))
     words = q["quote"].replace("—", " ").replace(";", ".").split()
     q["headline"] = headline_mod.clean(q.get("headline") or " ".join(words[:8]).rstrip(".,;:"))[0]
     q["date"] = today

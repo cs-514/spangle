@@ -1,0 +1,48 @@
+import json, unittest
+from _helpers import ROOT
+import aggregator as A
+
+
+class Bank(unittest.TestCase):
+    def setUp(self):
+        self.bank = json.load(open(f"{ROOT}/qotd_bank.json"))["quotes"]
+
+    def test_ids_unique(self):
+        ids = [q["id"] for q in self.bank]
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_schema(self):
+        for q in self.bank:
+            for k in ("id", "quote", "author", "work", "verification_url", "verified", "source_type"):
+                self.assertIn(k, q, q["id"])
+            self.assertTrue(q["verification_url"].startswith("https://"), q["id"])
+            self.assertLessEqual(len(q["quote"].split()), A.quote_word_limit(q), q["id"])
+            if q.get("headline"):
+                self.assertNotIn("'", q["headline"] + q["quote"], q["id"])  # curly quotes only
+                self.assertNotIn('"', q["headline"] + q["quote"], q["id"])
+
+    def test_guests_are_weighted(self):
+        guests = [q for q in self.bank if q["id"].startswith("guest-")]
+        self.assertTrue(guests)
+        for q in guests:
+            self.assertTrue(q.get("guest"))
+            self.assertLess(q["weight"], 1)
+
+    def test_weighted_pick(self):
+        items = [{"id": "a"}, {"id": "g", "weight": 0.25}]
+        picks = [A.weighted_pick(items, h)["id"] for h in range(0, 125000, 7)]
+        share = picks.count("g") / len(picks)
+        self.assertAlmostEqual(share, 0.2, delta=0.02)
+
+    def test_guests_rare_in_fallback(self):
+        import collections, datetime
+        c = collections.Counter()
+        for d in range(1200):
+            day = (datetime.date(2026, 1, 1) + datetime.timedelta(d)).isoformat()
+            c[A.fallback_quote(day)["id"].startswith("guest-")] += 1
+        self.assertLess(c[True] / 1200, 0.02)
+
+    def test_long_public_domain_payoff_eligible(self):
+        q = next(q for q in self.bank if q["id"] == "guest-pyle-001")
+        self.assertGreater(len(q["quote"].split()), 60)
+        self.assertTrue(q["quote"].endswith("faithful in love."))
