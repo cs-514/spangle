@@ -71,3 +71,24 @@ class Fragments(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RelinkOverride(unittest.TestCase):
+    def test_override_for_relinked_url_applies(self):
+        import aggregator as A
+        from _helpers import story, NOW
+        from test_same_story import S
+        h = "Most Attempted Attacks on Strait Are Unsuccessful, Spokesman Says"
+        fox = story(h, hours=2, source="Fox News", link="https://example-a.com/strait-attacks-unsuccessful")
+        rs = story(h, hours=3, source="RedState", link="https://example-b.com/strait-attacks-unsuccessful-spokesman")
+        fox["display"] = fox["original_title"] = h
+        lead = story("Border Bill Passes Senate", link="https://example.com/lead")
+        orig_cs, orig_ov = A.ranking.clutter.clean_score, A.headline_mod._OVERRIDES
+        A.ranking.clutter.clean_score = lambda url, default=0.5: 0.9 if "example-b" in url else 0.2
+        A.headline_mod._OVERRIDES = A.headline_mod._Overrides({rs["link"]: "Strait Attacks Fizzle as Regime Can’t Pay Troops"})
+        try:
+            A.clean_links(lead, [], [[fox]], [{"id": 1, "outlets": ["a", "b"], "items": [fox, rs]}], S, NOW)
+        finally:
+            A.ranking.clutter.clean_score, A.headline_mod._OVERRIDES = orig_cs, orig_ov
+        self.assertEqual(fox["link"], rs["link"])
+        self.assertEqual(fox["display"], "Strait Attacks Fizzle as Regime Can’t Pay Troops")

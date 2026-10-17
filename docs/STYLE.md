@@ -155,7 +155,8 @@ The Quote of the Day is not touched.
   Attempted Attacks* from *… Are Unsuccessful, CENTCOM Spokesman Says*), it stops a *that/which/who* clause
   before its verb (*Racist Claim That Arab Mothers*), or it ends on a time unit cut from *After/Before …*
   (*Rally Comes Days*). Dropping a whole dash/colon tail is fine. Any displayed headline that still reads as a
-  fragment is queued for rewrite (`reason: "fragment"`); the fix is an override with a verb.
+  fragment is queued for rewrite (`reason: "fragment"`); the fix is an override with a verb. An override
+  also applies when link cleanup relinks a story to the overridden URL after the headline was chosen.
 - **Sentence starts:** the first word after a real sentence break (`.` `?` `!`, or a colon, including after an
   opening quote) is capitalized: *Abortions. But Why?* Ellipses (*. . .*, *...*) and abbreviations (*U.S.*,
   *D.C.*, *Mr.*, *Gov.*) are not breaks, and neither is punctuation inside a closing quote mid-headline:
