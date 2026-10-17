@@ -52,3 +52,39 @@ class SentenceStart(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ShortPrepositions(unittest.TestCase):
+    def tc(self, s):
+        from ranking import headline as H
+        return H.title_case(s)
+
+    def test_with_from_into_onto_upon_lowercase(self):
+        self.assertEqual(self.tc("Ken Paxton Partied With Fugitives in Dubai"), "Ken Paxton Partied with Fugitives in Dubai")
+        self.assertEqual(self.tc("Pirro Opens Probe Into Omar"), "Pirro Opens Probe into Omar")
+        self.assertEqual(self.tc("Boot Judge From Trump’s Fight"), "Boot Judge from Trump’s Fight")
+        self.assertEqual(self.tc("Rides Onto Stage Upon Request"), "Rides onto Stage upon Request")
+
+    def test_boundaries_keep_capital(self):
+        self.assertEqual(self.tc("With Friends Like These"), "With Friends Like These")
+        self.assertEqual(self.tc("Crime: With Friends"), "Crime: With Friends")
+        self.assertEqual(self.tc("Who Is He With?"), "Who Is He With?")
+        self.assertEqual(self.tc("He Lied. With Gusto"), "He Lied. With Gusto")
+
+    def test_over_preposition_vs_particle(self):
+        self.assertEqual(self.tc("Sues Governor Over Eligibility Rule"), "Sues Governor over Eligibility Rule")
+        self.assertEqual(self.tc("Fight Over $1M Deal"), "Fight over $1M Deal")
+        self.assertEqual(self.tc("Musk Takes Over Twitter"), "Musk Takes Over Twitter")
+        self.assertEqual(self.tc("Trump Hands Over Files"), "Trump Hands Over Files")
+        self.assertEqual(self.tc("Game Over for Biden"), "Game Over for Biden")
+        self.assertEqual(self.tc("Fight Over, Says Trump"), "Fight Over, Says Trump")
+
+    def test_adverbs_untouched(self):
+        self.assertEqual(self.tc("Trump Fires Back at Critics"), "Trump Fires Back at Critics")
+        self.assertEqual(self.tc("Fed Shuts Down Bank"), "Fed Shuts Down Bank")
+
+    def test_overrides_follow_rule(self):
+        import json, re
+        from _helpers import ROOT
+        for v in json.load(open(f"{ROOT}/headline_overrides.json")).values():
+            self.assertIsNone(re.search(r"\s(With|From|Into|Onto|Upon)\s", v.split(": ")[-1] if ": " in v else v[1:]), v)

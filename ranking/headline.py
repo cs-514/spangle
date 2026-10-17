@@ -283,7 +283,7 @@ def imprimis_recast(title):
         (rf"^(?:Recovering|Reviving|Restoring)\s+the\s+(Lost\s+Art|Forgotten\s+\w+)\s+of\s+{art}{subj}$", lambda m: f"{_poss(m[2])} {m[1]}"),
         (rf"^{art}((?:[A-Z]\w+\s+)?[A-Z]\w+)\s+(?:About|Behind)\s+{art}{subj}$", lambda m: f"{_poss(m[2])} {m[1]}"),
         (rf"^{art}([A-Z]\w+)\s+of\s+{art}{subj}$", lambda m: f"{_poss(m[2])} {m[1]}"),
-        (rf"^Learning\s+From\s+{subj}$", lambda m: f"Lessons of {m[1]}"),
+        (rf"^Learning\s+[Ff]rom\s+{subj}$", lambda m: f"Lessons of {m[1]}"),
         (rf"^(?:Understanding|How\s+to\s+Think\s+About)\s+{art}{subj}$", lambda m: f"Rethinking {m[1]}"),
     ]
     for rx, f in rules:
@@ -605,10 +605,12 @@ def lowercase_small_words(title, sty=None):
 
 def title_case(title, sty=None):
     """AP/Chicago-style title case. Lowercase small words (a, an, the, and, but, or, nor, as, at,
-    by, for, if, in, of, on, to, vs) except first/last word or after ':', '—', '–', '|' or an
+    by, for, if, in, of, on, to, vs, with, from, into, onto, upon) except first/last word or after ':', '—', '–', '|' or an
     opening quote; capitalize every other lowercase word (incl. hyphen parts). Never lowercases
     words with internal capitals (acronyms, McDonald, iPhone) and keeps lowercase name particles
-    before a capitalized name ('el Sayed'). 'Up' stays capitalized (phrasal particles: 'Take Up')."""
+    before a capitalized name ('el Sayed'). 'Up' stays capitalized (phrasal particles: 'Take Up').
+    'over' is lowercased as a preposition ('Feud over Rule') but capitalized as an adverb/particle
+    ('Takes Over', 'Hands Over Files', 'Game Over'); see particle_prepositions."""
     cfg = (sty or style()).get("title_case") or {}
     if not cfg.get("enabled"):
         return title
@@ -627,6 +629,11 @@ def title_case(title, sty=None):
         boundary = i == 0 or i == n - 1 or prev[-1:] in (":", "—", "–", "|") or prev in ("-", "—", "–") \
             or _sentence_end(prev) or lead[-1:] in ("‘", "“", "(", "[")
         low = core.lower()
+        pp = cfg.get("particle_prepositions") or {}
+        if not boundary and low in pp and low != "_comment" and (core == low or core == core.capitalize()):
+            nxt = toks[i + 1] if i + 1 < n else ""
+            particle = prev.lower().strip("‘’“”'\"") in {v.lower() for v in pp[low]} or trail or not nxt[:1].isalnum() and nxt[:1] not in ("‘", "“", "$")
+            out.append(lead + (core.capitalize() if particle else low) + trail); continue
         if not boundary and low in small and (core == low or core == core.capitalize()):
             out.append(lead + low + trail); continue
         if low in parts_ and core == low and i + 1 < n and toks[i + 1][:1].isupper():

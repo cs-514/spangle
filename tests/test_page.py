@@ -70,7 +70,7 @@ class Render(unittest.TestCase):
         self.assertNotIn('<div class="meta"> · ', h)
         self.assertIn('<div class="kicker"><span class="tag">Quote</span></div>', h)
         # QUOTE kicker sits above the headline; source line stays below the quote text
-        k, a, qt, src = (h.index('<div class="kicker"><span class="tag">Quote</span></div>'), h.index('>Q text.<') if '>Q text.<' in h else h.index('Q text.'),
+        k, a, qt, src = (h.index('<div class="kicker"><span class="tag">Quote</span></div>'), h.index('>Q&nbsp;text.<'),
                          h.index('<div class="qt">'), h.index('George Washington · Farewell Address'))
         self.assertTrue(k < a <= qt < src)
         self.assertNotIn('<span class="tag">Quote</span> · ', h)

@@ -91,7 +91,7 @@ class AllCaps(unittest.TestCase):
         from ranking.headline import clean
         self.assertEqual(clean("Democrats’ ‘Defund the Police’ Problem Is Back")[0], "Dems’ ‘Defund the Police’ Problem Is Back")
         self.assertEqual(clean("WI DEM SEC/STATE Nominee’s No. 1 Priority")[0], "Wis. Dem Sec. of State Nominee’s No. 1 Priority")
-        self.assertEqual(clean("Ocasio-Cortez Dumps BIG MONEY Into El-Sayed Campaign")[0], "Ocasio-Cortez Dumps Big Money Into El-Sayed Campaign")
+        self.assertEqual(clean("Ocasio-Cortez Dumps BIG MONEY Into El-Sayed Campaign")[0], "Ocasio-Cortez Dumps Big Money into El-Sayed Campaign")
         self.assertEqual(clean("DOJ, FBI and SCOTUS Back DOGE; MAGA Cheers NATO")[0], "DOJ, FBI and SCOTUS Back DOGE; MAGA Cheers NATO")
         self.assertEqual(clean("Secretary of State Rubio Visits NATO")[0], "Sec. of State Rubio Visits NATO")
 
