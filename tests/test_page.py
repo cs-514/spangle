@@ -156,3 +156,22 @@ class OverrideAfterSwap(unittest.TestCase):
         cut = story(Truncated.T, 1, link=u, source="Breitbart")
         l, t, c, st = A.decorate_headlines(lead, [], [[], [], []], [{"items": [lead, cut]}])
         self.assertNotIn("Investigatio", l["display"].split()[-1] + " ")  # never shows the cut-off form
+
+
+class Rules(unittest.TestCase):
+    def rule(self, sel):
+        import re
+        m = re.search(r"(?m)^" + re.escape(sel) + r"\{([^}]*)\}", A.CSS)
+        self.assertIsNotNone(m, sel)
+        return m.group(1)
+
+    def test_no_rules_under_lead_or_top_items(self):
+        self.assertNotIn("border", self.rule(".lead"))
+        self.assertNotIn("border", self.rule(".top li"))
+
+    def test_other_rules_kept(self):
+        self.assertIn("border-bottom", self.rule(".col li"))      # column item separators
+        self.assertIn("border-top", self.rule(".label"))           # section dividers
+        self.assertIn("border-bottom", self.rule("header"))
+        self.assertIn("border-top", self.rule("footer"))
+        self.assertIn("border-left", self.rule(".col"))
