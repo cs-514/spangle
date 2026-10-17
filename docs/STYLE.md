@@ -134,7 +134,7 @@ Config: `numerals` in `headline_style.json`. Tests: `tests/test_numerals_case.py
 ## Title case (AP/Chicago)
 
 Every headline is normalized to title case, and sentence-case headlines are converted. Lowercase *a, an, the,
-and, but, or, nor, as, at, by, for, if, in, of, on, to, vs* except as the first or last word, after a colon or
+and, but, or, nor, as, at, by, for, if, in, of, on, to, vs, with, from, into, onto, upon* except as the first or last word, after a colon or
 dash, or at the start of a quote. Capitalize everything else, including both parts of a hyphenated word
 (*Live-Stream*) and phrasal particles (*Take Up*; *Up* always stays capitalized). Words that already have
 capitals are never lowercased: acronyms, the style abbreviations (SCOTUS, DOGE, VDH, GOP), *McDonald*,
@@ -147,6 +147,30 @@ The Quote of the Day is not touched.
   *Asked ‘Why?’ and Walked Out*.
 - **"to" is always lowercase** unless it is the first word or starts a sentence, even in infinitives and as the
   last word: *Wants to See*, *Vows to Fight On*.
+- **Short prepositions (under 5 letters):** *with* was capitalized because the old list stopped at 3-letter
+  words. *with, from, into, onto, upon* are now lowercase mid-headline (*Partied with Fugitives*, *Probe into
+  Omar*, *Boot Judge from Trump’s Fight*). They are almost never adverbs, so no exception is needed; the usual
+  boundaries still apply (*With Friends Like These*, *Crime: With Friends*, *Who Is He With?*).
+- **"over" depends on its job.** As a preposition it is lowercase (*Sues Governor over Eligibility Rule*, *Fight
+  over $1M Deal*). As an adverb or phrasal particle it stays capitalized: after a verb like *take, hand, turn,
+  win, roll, blow, boil, spill, flip, pass, sign, fork, think, look, carry, come, go* (*Takes Over Twitter*,
+  *Hands Over Files*, *Won Over Voters*), in *Game Over* / *It’s Over*, at the end, or before punctuation
+  (*Fight Over, Says Trump*). The verb list is `title_case.particle_prepositions.over` in
+  `headline_style.json`; add a verb there when a new phrasal use turns up.
+- **Adverbs and particles are never on the list:** *Fires Back*, *Shuts Down*, *Takes Up*, *Weighs In* (last word),
+  *Off*, *Out*, *Up*, *Down*, *Back* always stay capitalized. *over* is the only word that needs the
+  preposition/particle test. (*in* and *on* were already lowercase; their rare particle uses mid-headline,
+  e.g. *Cracks Down on*, read fine lowercase.)
+
+## No orphans (line breaks)
+
+A multi-line headline never ends on a one-word line (*…Totally Unfit for / Use*, *…Ban / ICE*, *…Back*). The
+renderer joins the **last two words of every headline** (lead, Top Stories, columns and the Quote of the Day
+headline) with a non-breaking space (`&nbsp;`), so they always wrap together. Exception: if the last two words
+together are longer than 20 characters the space is left alone, so a long pair can't overflow a narrow phone
+column. CSS `text-wrap: pretty` is also set on headline links as a progressive enhancement (browsers that support
+it balance the last lines further; others ignore it). The column-balance height estimate wraps the joined pair as
+one word. Code: `no_orphan_html` / `no_orphan_text` in `aggregator.py`. Tests: `tests/test_columns.py`.
 
 - *DOGE Gets Its Day at the Supreme Court As Justices Take Up Trump Administration Appeal* →
   *DOGE Gets Day at SCOTUS as Justices Take Up Trump Administration Appeal*

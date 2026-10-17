@@ -463,6 +463,7 @@ header{text-align:center;border-bottom:3px double var(--ink);padding:18px 0 10px
 .col ul{list-style:none;margin:0;padding:0}
 .col li{padding:11px 0;border-bottom:1px solid var(--rule)}
 .col a{font-weight:600;font-size:19px;line-height:1.3;overflow:visible;text-overflow:clip;white-space:normal}
+.lead a,.top a,.col a{text-wrap:pretty}
 .meta{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:5px;letter-spacing:.02em}
 .kicker{font-family:var(--sans);line-height:1;margin-bottom:4px}
 .qt{font-family:var(--serif);font-style:italic;font-size:16.5px;line-height:1.4;color:var(--ink);margin-top:5px}
@@ -963,7 +964,7 @@ def quote_as_story(q):
 def _wrap_lines(text, cpl):
     """Lines a headline wraps to at ~cpl characters per line (greedy word wrap, like the browser)."""
     lines, cur = 1, 0
-    for w in (text or "").split():
+    for w in [x for x in (text or "").split(" ") if x]:  # split on plain spaces only: U+00A0 glues words
         if cur and cur + 1 + len(w) > cpl:
             lines, cur = lines + 1, len(w)
         else:
@@ -975,7 +976,7 @@ def item_height(s, cfg):
     """Estimated rendered height (px) of a column item at desktop width: padding + wrapped headline
     (news items carry no source line)."""
     cfg = cfg or {}
-    return cfg.get("item_base_px", 24) + cfg.get("line_px", 27) * _wrap_lines(s.get("display") or s.get("title"), cfg.get("chars_per_line", 40))
+    return cfg.get("item_base_px", 24) + cfg.get("line_px", 27) * _wrap_lines(no_orphan_text(s.get("display") or s.get("title")), cfg.get("chars_per_line", 40))
 
 
 def qotd_height(story, cfg):
@@ -984,7 +985,7 @@ def qotd_height(story, cfg):
     cfg = cfg or {}
     if not story:
         return cfg.get("qotd_px", 268)
-    return (cfg.get("qotd_base_px", 80) + cfg.get("qotd_headline_line_px", 24.7) * _wrap_lines(story.get("display") or story.get("title"), cfg.get("chars_per_line", 40))
+    return (cfg.get("qotd_base_px", 80) + cfg.get("qotd_headline_line_px", 24.7) * _wrap_lines(no_orphan_text(story.get("display") or story.get("title")), cfg.get("chars_per_line", 40))
             + cfg.get("qotd_text_line_px", 23.1) * _wrap_lines(story.get("quote_text") or "", cfg.get("qotd_text_chars_per_line", 48)))
 
 
@@ -1052,6 +1053,26 @@ def inject_quote(cols, settings):
     return cols
 
 
+ORPHAN_MAX_CHARS = 20  # don't glue longer last pairs: on a ~300px phone column they could overflow
+
+
+def no_orphan_html(escaped):
+    """Style rule: no one-word last line. Join the last two words of an (already escaped) headline
+    with &nbsp; unless together they exceed ORPHAN_MAX_CHARS."""
+    head, sep, last = (escaped or "").rpartition(" ")
+    if not sep or len(html.unescape(head.rsplit(" ", 1)[-1] + " " + last)) > ORPHAN_MAX_CHARS:
+        return escaped
+    return f"{head}&nbsp;{last}"
+
+
+def no_orphan_text(text):
+    """Plain-text twin of no_orphan_html (with U+00A0), for height estimates."""
+    head, sep, last = (text or "").rpartition(" ")
+    if not sep or len(head.rsplit(" ", 1)[-1] + " " + last) > ORPHAN_MAX_CHARS:
+        return text
+    return f"{head}\u00a0{last}"
+
+
 def render(lead, top, cols, now, sources, settings):
     _sq = headline_mod.smartquotes if headline_mod.style().get("smart_quotes", True) else (lambda x: x)
     e = html.escape          # URLs / raw attributes
@@ -1077,7 +1098,7 @@ def render(lead, top, cols, now, sources, settings):
                 tip = (tip + " · " if tip else "") + "archived copy"
         title_attr = f' title="{t(tip)}"' if tip else ""
         href = s.get("link") or "#"
-        return f'<a href="{e(href)}" rel="noopener"{title_attr}>{t(disp)}</a>'
+        return f'<a href="{e(href)}" rel="noopener"{title_attr}>{no_orphan_html(t(disp))}</a>'
 
     def li(s):
         if s.get("quote_item"):

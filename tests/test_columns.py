@@ -75,3 +75,35 @@ class NoSourceLine(unittest.TestCase):
         short = A.balance_columns([its[:6], its[6:12], its[12:]], cfg, {"display": "Hi", "quote_text": "Short."})
         long_ = A.balance_columns([its[:6], its[6:12], its[12:]], cfg, {"display": "Hi", "quote_text": "word " * 80})
         self.assertLess(len(long_[1]), len(short[1]))
+
+
+class NoOrphans(unittest.TestCase):
+    def test_last_two_words_glued(self):
+        self.assertEqual(A.no_orphan_html("Magnificent Structure, Totally Unfit for Use"), "Magnificent Structure, Totally Unfit for&nbsp;Use")
+        self.assertEqual(A.no_orphan_html("Mamdani Demands Parking Lots Ban ICE"), "Mamdani Demands Parking Lots Ban&nbsp;ICE")
+
+    def test_long_pair_not_glued(self):
+        h = "Biden Praises Counterintelligence Transformations"
+        self.assertEqual(A.no_orphan_html(h), h)  # 39 chars together: could overflow a phone column
+
+    def test_single_word_untouched(self):
+        self.assertEqual(A.no_orphan_html("Breaking"), "Breaking")
+
+    def test_escaped_entities_count_as_one_char(self):
+        self.assertEqual(A.no_orphan_html("Tom &amp; Jerry Fire Back"), "Tom &amp; Jerry Fire&nbsp;Back")
+
+    def test_estimate_wraps_pair_together(self):
+        # 'for Use' moves to the next line together, so a 41-char line can't keep 'for'
+        txt = "aaaaaaaaa bbbbbbbbb ccccccccc ddddd for Use"   # 'for' would fit on line 1 at 40 cpl
+        self.assertEqual(A._wrap_lines(txt, 40), 2)
+        self.assertEqual(A._wrap_lines(A.no_orphan_text(txt), 40), 2)
+        self.assertEqual(A._wrap_lines(A.no_orphan_text("aaaaaaaaa bbbbbbbbb ccccccccc dddddd for Us"), 40), 2)
+
+    def test_rendered_everywhere(self):
+        from _helpers import story
+        lead = story("Lead Story Is Here", 1); top = [story("Top Take Goes Here", 2)]
+        q = A.quote_as_story({"quote": "Q text.", "author": "X", "work": "W", "headline": "Unfit for Use"})
+        h = A.render(lead, top, [[q, story("Col Item Fires Back", 3)], [], []], A.datetime.now(A.timezone.utc), [], {"placement": {}})
+        for frag in ("Is&nbsp;Here", "Goes&nbsp;Here", "for&nbsp;Use", "Fires&nbsp;Back"):
+            self.assertIn(frag, h)
+        self.assertIn("text-wrap:pretty", h)
