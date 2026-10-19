@@ -965,8 +965,8 @@ def quote_as_story(q):
         source = f"{q['author']} · {work}"
     else:
         source = q["author"]
-    quote_text = q["quote"].strip()
-    headline = (q.get("headline") or "").strip()
+    quote_text = headline_mod.dashes(q["quote"].strip())  # house dash style: closed em dash ('achievements—and')
+    headline = headline_mod.dashes((q.get("headline") or "").strip())
     if not headline:
         headline = quote_text if len(quote_text.split()) <= 12 else " ".join(quote_text.split()[:10])
     link = (q.get("verification_url") or "").strip() or "#"
@@ -988,11 +988,15 @@ def quote_as_story(q):
 def _wrap_lines(text, cpl):
     """Lines a headline wraps to at ~cpl characters per line (greedy word wrap, like the browser)."""
     lines, cur = 1, 0
-    for w in [x for x in (text or "").split(" ") if x]:  # split on plain spaces only: U+00A0 glues words
-        if cur and cur + 1 + len(w) > cpl:
-            lines, cur = lines + 1, len(w)
-        else:
-            cur += (1 if cur else 0) + len(w)
+    for chunk in [x for x in (text or "").split(" ") if x]:  # split on plain spaces only: U+00A0 glues words
+        # a closed em dash is a break opportunity too ('List—|As'), with no space either side
+        parts = re.findall(r"[^—]+—?|—", chunk)
+        for j, w in enumerate(parts):
+            gap = 1 if (cur and j == 0) else 0
+            if cur and cur + gap + len(w) > cpl:
+                lines, cur = lines + 1, len(w)
+            else:
+                cur += gap + len(w)
     return lines
 
 
@@ -1080,21 +1084,34 @@ def inject_quote(cols, settings):
 ORPHAN_MAX_CHARS = 20  # don't glue longer last pairs: on a ~300px phone column they could overflow
 
 
+def _orphan_glue(text, nb, measure):
+    """Join the last two words with nb unless together they exceed ORPHAN_MAX_CHARS. A closed em dash
+    stays a line-break opportunity: only the words after the last dash count as the final line, so
+    'Watch List—As He Insists' glues 'He Insists', and a last chunk 'Nothing—Wrong' is never glued
+    across the dash (the browser may break after it)."""
+    head, sep, last = (text or "").rpartition(" ")
+    if not sep:
+        return text
+    if "—" in last:
+        return text  # the line can break after the dash; nothing to glue
+    if "—" in head.rsplit(" ", 1)[-1]:
+        pair = head.rsplit(" ", 1)[-1].rsplit("—", 1)[-1] + " " + last  # only the words after the dash
+    else:
+        pair = head.rsplit(" ", 1)[-1] + " " + last
+    if len(measure(pair)) > ORPHAN_MAX_CHARS:
+        return text
+    return f"{head}{nb}{last}"
+
+
 def no_orphan_html(escaped):
     """Style rule: no one-word last line. Join the last two words of an (already escaped) headline
-    with &nbsp; unless together they exceed ORPHAN_MAX_CHARS."""
-    head, sep, last = (escaped or "").rpartition(" ")
-    if not sep or len(html.unescape(head.rsplit(" ", 1)[-1] + " " + last)) > ORPHAN_MAX_CHARS:
-        return escaped
-    return f"{head}&nbsp;{last}"
+    with &nbsp; unless together they exceed ORPHAN_MAX_CHARS (em dashes stay break points)."""
+    return _orphan_glue(escaped, "&nbsp;", html.unescape)
 
 
 def no_orphan_text(text):
     """Plain-text twin of no_orphan_html (with U+00A0), for height estimates."""
-    head, sep, last = (text or "").rpartition(" ")
-    if not sep or len(head.rsplit(" ", 1)[-1] + " " + last) > ORPHAN_MAX_CHARS:
-        return text
-    return f"{head}\u00a0{last}"
+    return _orphan_glue(text, "\u00a0", lambda x: x)
 
 
 def render(lead, top, cols, now, sources, settings):
@@ -1114,10 +1131,10 @@ def render(lead, top, cols, now, sources, settings):
         orig = s.get("original_title") or s["title"]
         if s.get("quote_item"):
             # Always expose the full quote on hover for quote items.
-            tip = orig if orig and orig != disp else ""
+            tip = headline_mod.dashes(orig) if orig and orig != disp else ""
         else:
             outlet = OUTLET(s) if s.get("source") else ""
-            tip = " — ".join(x for x in ((orig if orig and orig != disp else ""), outlet) if x)
+            tip = "—".join(headline_mod.dashes(x) for x in ((orig if orig and orig != disp else ""), outlet) if x)
             if s.get("archived"):
                 tip = (tip + " · " if tip else "") + "archived copy"
         title_attr = f' title="{t(tip)}"' if tip else ""

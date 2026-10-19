@@ -176,11 +176,33 @@ class _M:
         return self._m.group(0) if i == 0 else (self._m.group(1), self._m.group(2), "")[i - 1]
 
 
+_EN_RANGE = re.compile(r"(?<=\d)\s*–\s*(?=\d)")
+
+
+def dashes(text, closed=True):
+    """House dash style: a dash between words or clauses is a closed em dash ('Watch List—As He Insists').
+    '--', '—' with or without spaces and a spaced en dash ' – ' all become '—'. Number ranges keep their en
+    dash, closed ('10 – 12' -> '10–12'); hyphens and unspaced en dashes between words are left alone.
+    closed=False gives the spaced internal form ' — ' that the other headline rules split on."""
+    if not text:
+        return text
+    t = _EN_RANGE.sub("–", text)
+    t = re.sub(r"(?<!-)-{2,3}(?!-)", "—", t)          # '--' and '---', spaced or not
+    t = re.sub(r"(?<=\S)\s+–\s+(?=\S)", "—", t)      # spaced en dash used as a dash
+    t = re.sub(r"\s*—\s*", "—" if closed else " — ", t)
+    return t if closed else t.strip()
+
+
+def open_dashes(text):
+    """'A—B' -> 'A — B' so word-level rules (tokens, title case, separators) see the dash as a break."""
+    return re.sub(r"\s*—\s*", " — ", text or "")
+
+
 def clean(title, styl=None):
     """Apply deterministic style rules. Never truncates. Returns (display, changed)."""
     sty = styl or style()
     orig = title
-    t = title.strip()
+    t = _EN_RANGE.sub("–", title.strip())  # '10 – 12' is a range, not an outlet separator
     for p in sty.get("title_prefixes", []):
         if t.startswith(p):
             t = t[len(p):].lstrip(" -–—:")
@@ -196,6 +218,9 @@ def clean(title, styl=None):
     for phrase in sty.get("filler_phrases", []):
         if t.lower().startswith(phrase.lower()):
             t = t[len(phrase):].lstrip(" :-–—")
+    # dashes: outlet/prefix stripping above matched the source's own separators; from here the rules see
+    # one spaced form ' — ' and the result is closed again at the end ('List—As He Insists')
+    t = dashes(t, closed=False)
     # drop trailing / mid parentheticals that are chrome, not the news
     if sty.get("strip_parentheticals", True):
         t = re.sub(r"\s*[\(\[][^)\]]{0,40}[\)\]]\s*$", "", t)
@@ -216,6 +241,8 @@ def clean(title, styl=None):
     t = compress(t, sty)
     if sty.get("single_quotes", True):
         t = headline_quotes(smartquotes(t))  # headlines quote with ‘…’ (nested “…”); QOTD bodies never pass here
+    if sty.get("closed_em_dash", True):
+        t = dashes(t)
     return t, t != orig
 
 
@@ -439,7 +466,7 @@ def shorten(title, styl=None):
     the shortest trailing prepositional phrase or comma clause that makes it fit (>= 6 words kept).
     Returns the input unchanged if nothing safe applies."""
     sty = styl or style()
-    fits = lambda t: not too_long(t, sty)
+    fits = lambda t: not too_long(dashes(t), sty)  # measured as displayed (closed dashes)
     t = title.strip()
     steps = [lambda x: re.sub(r"\s*\([^)]*\)", "", x),
              lambda x: re.sub(r"^(?:A|An|The)\s+(?=\S)", "", x),
@@ -450,6 +477,7 @@ def shorten(title, styl=None):
             break
         t = re.sub(r"\s{2,}", " ", f(t)).strip()
     if not fits(t):
+        t = open_dashes(t)
         for sep in (" — ", " – ", " | ", ": "):
             if sep in t:
                 left = t.split(sep, 1)[0].strip()
@@ -487,7 +515,7 @@ _TIME_UNITS = {"days", "hours", "weeks", "months", "years", "minutes", "moments"
 
 
 def _toks(t):
-    return [re.sub(r"[^a-z0-9%']", "", w.lower().replace("’", "'")) for w in (t or "").split()]
+    return [re.sub(r"[^a-z0-9%']", "", w.lower().replace("’", "'")) for w in open_dashes(t).split()]
 
 
 def has_strong_verb(t):
@@ -512,7 +540,7 @@ def _fragment_core(display, original=None):
     if toks[-1] in _DANGLING:
         return True
     if original is not None:
-        left = [w for w in _toks(re.split(r"\s[—–|]\s|:\s", original)[0]) if w]
+        left = [w for w in _toks(re.split(r"\s*—\s*|\s[–|]\s|:\s", original)[0]) if w]
         whole_left = left and toks[-1] == left[-1] and len(toks) >= len(left) - 2  # a dash/colon tail was dropped
         if has_strong_verb(original) and not has_strong_verb(display) and not whole_left:
             return True
@@ -573,7 +601,7 @@ _ADVERBS = {"still", "also", "now", "never", "finally", "quietly", "again", "eve
 
 def finite_verb(t):
     """Heuristic finite-verb test for title-case headlines (no tagger available in the build)."""
-    raw = [w for w in t.split() if _vtoks(w)[0]]
+    raw = [w for w in open_dashes(t).split() if _vtoks(w) and _vtoks(w)[0]]
     ws = [_vtoks(w)[0] for w in raw]
     poss = [bool(re.search(r"(?:s[’']|[’']s)[^A-Za-z]*$", w)) for w in raw]  # Dems’ / Iran’s
     for i, w in enumerate(ws):
@@ -662,7 +690,7 @@ def incomplete(display, original=None):
             return "cut_off"
     if original is not None:
         ws, os_ = [w for w in _toks(display) if w], [w for w in _toks(original) if w]
-        main = [w for w in _toks(re.split(r"\s[—–|]\s|:\s", original)[0]) if w]
+        main = [w for w in _toks(re.split(r"\s*—\s*|\s[–|]\s|:\s", original)[0]) if w]
         if ws and ws[0] in _WH and len(ws) < len(main) and os_[:len(ws)] == ws:
             return "cut_explainer"  # an explainer question needs its whole predicate
     return None

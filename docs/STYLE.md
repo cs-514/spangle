@@ -187,6 +187,16 @@ The Quote of the Day is not touched.
   colons (*Homan: …*, *WSJ: …*). Flagged headlines are queued (`reason: "fragment"`, `fragment_kind`), and the
   rewrite tool rejects a rewrite that is still a fragment. Imprimis essays keep their possessive form
   (exempt from `no_finite_verb` only).
+- **Dashes:** a dash between words or clauses is a closed em dash with no spaces: *Watch List—As He
+  Insists*. `--` (spaced or not), a spaced em dash ` — ` and a spaced en dash ` – ` all become `—`
+  (`headline.dashes`). Number ranges keep the en dash, closed (*10 – 12* → *10–12*); hyphens and unspaced
+  en dashes between words (*Harris–Walz*) are untouched. Outlet tails (*… — NY Post*) are stripped first,
+  and the shortening step still drops a whole dash tail. Title case treats the dash as a break, so the word
+  after it is capitalized (*Wins—And Dems Melt Down*). The same rule applies to the QOTD quote and
+  headline, hover tooltips, rewrites (`rewrite_queue.py apply` normalizes them) and the QOTD bank; the
+  QOTD validator rejects spaced dashes and `--`. No orphans: the closed dash stays a line-break point,
+  so only the words after the last dash are glued with a no-break space, and a last chunk like
+  *Nothing—Wrong* is never glued across the dash.
 - **Sentence starts:** the first word after a real sentence break (`.` `?` `!`, or a colon, including after an
   opening quote) is capitalized: *Abortions. But Why?* Ellipses (*. . .*, *...*) and abbreviations (*U.S.*,
   *D.C.*, *Mr.*, *Gov.*) are not breaks, and neither is punctuation inside a closing quote mid-headline:

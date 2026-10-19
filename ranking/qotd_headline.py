@@ -33,7 +33,7 @@ NOT_VERBS = {"news", "times", "politics", "affairs", "arms", "means", "lovers", 
 
 
 def _toks(t):
-    return [re.sub(r"[^a-z']", "", w.lower().replace("’", "'")) for w in t.split()]
+    return [re.sub(r"[^a-z']", "", w.lower().replace("’", "'")) for w in h.open_dashes(t).split()]
 
 
 def has_verb(t):
@@ -66,13 +66,15 @@ def problems(headline, sty=None):
     out = []
     if not t:
         return ["empty"]
-    words = t.split()
+    words = h.open_dashes(t).split()
     if len(words) > MAX_WORDS or len(t) > MAX_CHARS:
         out.append(f"too long ({len(words)} words, {len(t)} chars; max {MAX_WORDS}/{MAX_CHARS})")
     if any(c in t for c in '"“”'):
         out.append("double quotes (use single curly ‘…’)")
     if "'" in t:
         out.append("straight apostrophe or quote (use ’ and ‘…’)")
+    if h.dashes(t) != t:
+        out.append("dash style (use a closed em dash: ‘Word—Word’, never ‘ -- ’ or ‘ — ’)")
     if t.endswith(("…", "...", ",", ";", ":", "—", "–", "-")):
         out.append("trails off")
     first = _toks(t)[0] if _toks(t) else ""
