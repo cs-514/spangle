@@ -889,14 +889,20 @@ def weighted_pick(items, h, scale=1000):
 def fallback_quote(today, bank_file="qotd_bank.json"):
     try:
         with open(os.path.join(HERE, bank_file)) as f:
-            bank = [q for q in json.load(f)["quotes"] if q.get("verified") and q.get("source_type") in ("primary", "column")
+            raw = json.load(f)
+        author_w = raw.get("author_weights") or {}
+        bank = [q for q in raw["quotes"] if q.get("verified") and q.get("source_type") in ("primary", "column")
+                    and q.get("status") not in ("retired", "low_impact")
                     and len(q["quote"].split()) <= quote_word_limit(q)]
     except Exception:
         return None
     if not bank:
         return None
     import hashlib
-    q = dict(weighted_pick(bank, int(hashlib.sha256(today.encode()).hexdigest(), 16)))
+    # effective weight: guest weight x author rotation weight x impact (1-5, scaled so 4 = 1.0)
+    weighted = [dict(q, weight=float(q.get("weight", 1)) * float(author_w.get(q["id"].split("-")[0], 1))
+                     * float(q.get("impact", 4)) / 4) for q in bank]
+    q = dict(weighted_pick(weighted, int(hashlib.sha256(today.encode()).hexdigest(), 16)))
     words = q["quote"].replace("—", " ").replace(";", ".").split()
     # A curated bank headline is final (the news pipeline would turn "One Omen" into "1 Omen" or drop
     # "His"); only a headline derived from the quote's opening words goes through clean().
