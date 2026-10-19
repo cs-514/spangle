@@ -83,8 +83,6 @@ class ShortPrepositions(unittest.TestCase):
         self.assertEqual(self.tc("Trump Fires Back at Critics"), "Trump Fires Back at Critics")
         self.assertEqual(self.tc("Fed Shuts Down Bank"), "Fed Shuts Down Bank")
 
-    def test_overrides_follow_rule(self):
-        import json, re
-        from _helpers import ROOT
-        for v in json.load(open(f"{ROOT}/headline_overrides.json")).values():
-            self.assertIsNone(re.search(r"\s(With|From|Into|Onto|Upon)\s", v.split(": ")[-1] if ": " in v else v[1:]), v)
+    def test_overrides_are_cleaned_to_rule(self):
+        # override values pass through clean() at display time, so a capitalized 'With' in the data self-heals
+        self.assertEqual(clean("Trump Feuds With Rivals Over Rule")[0], "Trump Feuds with Rivals over Rule")

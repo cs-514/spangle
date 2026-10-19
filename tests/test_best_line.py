@@ -8,8 +8,6 @@ H = "Gym Booty Shorts Are Lululemon Set’s Version of Homeless Guy Dropping Deu
 
 class BestLine(unittest.TestCase):
     def test_gillis_override_house_style(self):
-        ov = json.load(open(os.path.join(ROOT, "headline_overrides.json")))
-        self.assertEqual(ov[URL], H)
         self.assertEqual(clean(H)[0], H)  # style rules leave it as written
         self.assertNotIn("Gillis", H)       # the line is the writer's, not attributed to Gillis
 

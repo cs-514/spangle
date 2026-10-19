@@ -201,6 +201,13 @@ See [STYLE.md](STYLE.md) for the living Drudge-style guide.
 - **`headline_overrides.json`:** `{ "https://…/article": "Punchy Display Headline" }`. Wins over the
   original (and over style cleanup). Public and fine to commit; it's just display text. The original
   stays in the link's `title` attribute.
+  Override data never blocks a deploy (it is edited by the hourly routine): an unreadable file means a
+  build without overrides, non-string/empty entries are dropped at load, and content issues (obscure
+  acronym, too long, fragment, double quotes, capitalized *With*) are only warnings
+  (`ranking/override_lint.py`, `tests/test_override_data.py`, and a count line in the build log); display
+  cleanup and the rewrite queue fix them. The confidentiality test treats override values as public
+  headlines and only warns on private terms in override keys (re-key those as `sha256:<url hash>`).
+  Code tests stay strict and use fixture overrides, never the live file.
 - **Cluster sibling pick:** after placement, if the chosen outlet's headline is bland but another
   free outlet in the same story-cluster has a punchier non-bland headline, Spangle displays (and links
   to) that sibling instead. Only when *every* candidate is bland is the story queued for a rewrite.

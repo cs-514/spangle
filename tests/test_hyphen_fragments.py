@@ -28,12 +28,10 @@ class Hyphens(unittest.TestCase):
         self.assertEqual(clean("NRSC launches ad")[0], "NRSC Launches Ad")
         self.assertEqual(clean("CENTCOM chief speaks")[0], "CENTCOM Chief Speaks")
 
-    def test_overrides_survive_cleaning(self):
-        ov = json.load(open(os.path.join(ROOT, "headline_overrides.json")))
-        for v in ov.values():
-            if isinstance(v, str) and v:
-                self.assertNotIn("Sjsu", clean(v)[0])
-                self.assertNotRegex(clean(v)[0], r"-(On|Of|To|In|And|The)-")
+    def test_override_style_survives_cleaning(self):
+        for v in ("Ex-SJSU Coach Sues", "Flanagan Put Fraudster on Soft-On-Crime Board"):
+            self.assertNotIn("Sjsu", clean(v)[0])
+            self.assertNotRegex(clean(v)[0], r"-(On|Of|To|In|And|The)-")
 
 
 class Fragments(unittest.TestCase):
@@ -61,9 +59,8 @@ class Fragments(unittest.TestCase):
         import inspect, aggregator
         self.assertIn('"reason": "fragment"', inspect.getsource(aggregator))
 
-    def test_hormuz_override_has_verb(self):
-        ov = json.load(open(os.path.join(ROOT, "headline_overrides.json")))
-        v = ov["https://redstate.com/bobhoge/2026/10/16/centcom-chief-strait-of-hormuz-open-for-business-while-desperate-iran-cant-even-pay-own-troops-n2208242"]
+    def test_verb_rewrite_is_not_fragment(self):
+        v = "Iran’s Hormuz Attacks Fizzle as Broke Regime Can’t Pay Troops"
         self.assertTrue(h.has_strong_verb(v))
         self.assertFalse(h.fragment(v))
         self.assertFalse(h.too_long(clean(v)[0]))

@@ -36,9 +36,12 @@ class ImprimisRecast(unittest.TestCase):
 
     def test_override_wins(self):
         url = "https://imprimis.hillsdale.edu/the-rise-of-democratic-socialism/"
-        self.assertEqual(json.load(open(os.path.join(ROOT, "headline_overrides.json")))[url],
-                         "Socialism’s Persistent, Disturbing Rise")
-        s, st = self.run_decorate(url)
+        old = A.headline_mod._OVERRIDES
+        A.headline_mod._OVERRIDES = A.headline_mod._Overrides({url: "Socialism’s Persistent, Disturbing Rise"})
+        try:
+            s, st = self.run_decorate(url)
+        finally:
+            A.headline_mod._OVERRIDES = old
         self.assertEqual(s["display"], "Socialism’s Persistent, Disturbing Rise")
         self.assertFalse([x for x in st["queue"] if x["reason"] == "imprimis"])
 

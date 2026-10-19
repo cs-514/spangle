@@ -1122,6 +1122,11 @@ def main():
     now = datetime.now(timezone.utc)
     ctx = {"now": now}
     pcfg = ranking.private.load(ctx)
+    try:  # override data problems are warnings, never build failures
+        from ranking.override_lint import summary
+        print(f"overrides: {len(headline_mod.overrides())} loaded; warnings: {summary(dict(headline_mod.overrides()))}")
+    except Exception as ex:
+        print(f"overrides: lint skipped ({type(ex).__name__})")
     settings["sources"]["tiers"].update(pcfg.get("source_tiers") or {})  # private feed tiers stay out of settings.json
     if pcfg.get("lifestyle"):
         settings["lifestyle"] = {"max_per_column": pcfg["lifestyle"].get("max_per_column", 1)}

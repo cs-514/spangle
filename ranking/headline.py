@@ -60,9 +60,17 @@ def overrides():
         path = os.path.join(HERE, "headline_overrides.json")
         try:
             with open(path) as f:
-                _OVERRIDES = _Overrides(json.load(f) or {})
-        except Exception:
-            _OVERRIDES = {}
+                raw = json.load(f) or {}
+            if not isinstance(raw, dict):
+                raise ValueError("not an object")
+        except Exception as ex:  # a broken overrides file must never block a deploy
+            print(f"overrides: unreadable ({type(ex).__name__}); building without overrides")
+            raw = {}
+        from .override_lint import sanitize
+        good, dropped = sanitize(raw)
+        if dropped:
+            print(f"overrides: dropped {len(dropped)} invalid entries")
+        _OVERRIDES = _Overrides(good)
     return _OVERRIDES
 
 

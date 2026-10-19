@@ -19,9 +19,8 @@ class HeadlineQuotes(unittest.TestCase):
         t = clean("He Said “I Won’t Say ‘Never’” to Reporters")[0]
         self.assertEqual(clean(t)[0], t)
 
-    def test_overrides_have_no_double_quotes(self):
-        ov = json.load(open(os.path.join(ROOT, "headline_overrides.json")))
-        self.assertEqual([v for v in ov.values() if any(c in v for c in '“”"')], [])
+    def test_override_double_quotes_become_single(self):
+        self.assertEqual(clean('Mayor Calls Plan "Insane"')[0], "Mayor Calls Plan ‘Insane’")
 
     def test_qotd_body_untouched(self):
         self.assertEqual(smartquotes('He said "no."'), "He said “no.”")  # body text path keeps double quotes
