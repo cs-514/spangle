@@ -130,3 +130,17 @@ class Gossip(unittest.TestCase):
         cs, _ = run("Jon Voight Slams Democrats in Dazzling Speech")
         self.assertEqual(cs[0].get("celebrity"), "conservative")
 
+    def test_one_celebrity_sibling_drops_the_cluster(self):
+        cs = [{"id": 0, "outlets": ["a", "b"], "items": [
+            story("Model and Daughter Honor Son After Shooting Death"),   # incidental core word
+            story("Model Shares Heartbreaking Tribute After Late Son’s Death")]}]
+        N.compute(cs, {}, {"alignment_cfg": CFG})
+        self.assertTrue(cs[0].get("dropped"))
+
+    def test_hook_in_a_sibling_keeps_the_cluster(self):
+        cs = [{"id": 0, "outlets": ["a", "b"], "items": [
+            story("Illegal Alien Charged in Shooting of Model’s Son"),
+            story("Model Shares Heartbreaking Tribute After Late Son’s Death")]}]
+        N.compute(cs, {}, {"alignment_cfg": CFG})
+        self.assertFalse(cs[0].get("dropped"))
+        self.assertEqual([x["title"] for x in cs[0]["items"]], ["Illegal Alien Charged in Shooting of Model’s Son"])

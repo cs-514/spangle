@@ -240,7 +240,8 @@ terms). The `lifestyle` hooks, `outrage` terms and boost keywords also count as 
   celebrity when the headline has a celebrity term, the URL has an entertainment path, or the headline has
   celebrity personal-life / gossip cues (private `celebrity_gossip_terms`, matched as whole words) and no
   political or national hook outside those cues. Celebrity names are not in any lexicon, so the cues catch
-  name-only gossip from mixed outlets. Two cues outweigh an incidental core word. The exceptions:
+  name-only gossip from mixed outlets. Two cues outweigh an incidental core word. One celebrity sibling makes the whole cluster celebrity
+  unless some sibling headline has a political or national hook. The exceptions:
   (a) a conservative celebrity speaking out: kept and scored favorably;
   (b) a celebrity making a fool of themselves on politics or geopolitics (a politics term plus a
   backlash/ridicule term): kept.

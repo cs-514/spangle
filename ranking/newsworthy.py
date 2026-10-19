@@ -60,6 +60,12 @@ def _hit(rx, text):
     return bool(rx and rx.search(text))
 
 
+def _news_hook(item, lx):
+    """A political / national hook in the headline that is not itself a celebrity term."""
+    t = item["title"].lower().replace("’", "'")
+    return any(not _hit(lx["celeb"], m.group(0)) for m in lx["hooks"].finditer(t)) if lx.get("hooks") else False
+
+
 def classify(item, lx):
     """-> "conservative" | "fool" | "drop" (celebrity cases), "core" or "off" (everything else)."""
     t = item["title"].lower().replace("’", "'")
@@ -117,6 +123,10 @@ def compute(clusters, settings, ctx):
             k = "business_or_aligned"
         elif "fool" in kinds:
             k = "fool"
+        elif "drop" in kinds and not any(_news_hook(s, lx) for s in c["items"]):
+            # one sibling already identifies it as a celebrity story (siblings are the same story; a
+            # bare-name sibling like 'X and Daughter Honor Y' can hit an incidental core word in its blurb)
+            k = "drop"
         elif "core" in kinds:
             k = "core"
         elif "routine" in kinds:  # local crime/court item: national only with wide coverage
@@ -125,6 +135,9 @@ def compute(clusters, settings, ctx):
             k = "drop"
         else:
             k = "off"
+        if k != "drop" and "drop" in kinds and len(kinds) > 1:
+            # kept on a news angle: the celebrity-gossip siblings never supply its headline or link
+            c["items"] = [x for x, kk in zip(c["items"], kinds) if kk != "drop"] or c["items"]
         if k == "drop":
             c["dropped"] = True; out[c["id"]] = 0.0
         elif k == "off":
