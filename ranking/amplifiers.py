@@ -2,7 +2,7 @@
 (e.g. a public figure's post archive RSS). Feed list and weights come from the
 private config key "amplifiers": [{"name", "url", "weight", "max_age_hours"}].
 Optional AMPLIFIER_ITEMS env var supplies a JSON list of
-[{"url", "text", "ts", "weight"}] posts (per-item weight; default from private "amplifier_items_weight").
+[{"url", "text", "ts", "weight"}] posts, or {"generated_at", "sources_blocked", "items": [...]} (per-item weight; default from private "amplifier_items_weight").
 Exact link match = full credit; strong headline-term overlap = partial credit."""
 import json, os, re, html, urllib.request
 import xml.etree.ElementTree as ET
@@ -45,18 +45,41 @@ def newest_age_hours(data, now=None):
     return min(ages) if ages else None
 
 
+def _payload(raw):
+    """AMPLIFIER_ITEMS is either a bare list of items (legacy) or {"generated_at", "items", "sources_blocked"}."""
+    data = json.loads(raw)
+    if isinstance(data, dict):
+        return data.get("items") if isinstance(data.get("items"), list) else [], data
+    return data, {}
+
+
+def _age_h(ts, now=None):
+    try:
+        return ((now or datetime.now(timezone.utc)) - datetime.fromisoformat(str(ts).replace("Z", "+00:00"))).total_seconds() / 3600
+    except Exception:
+        return None
+
+
 def staleness(stale_hours=6):
-    """Warn (GitHub Actions annotation) when AMPLIFIER_ITEMS is missing or its newest item is too old."""
+    """Warn (GitHub Actions annotation) when the AMPLIFIER_ITEMS harvest is missing or too old. Freshness is the
+    harvest time (generated_at), not the newest post: a quiet hour or one blocked source is not staleness, and
+    each item is still aged out on its own (amplifier_items_max_age_hours)."""
     raw = os.environ.get("AMPLIFIER_ITEMS", "").strip()
     try:
-        age = newest_age_hours(json.loads(raw)) if raw else None
+        items, meta = _payload(raw) if raw else ([], {})
     except Exception:
-        age = None
-    if age is None or age > stale_hours:
-        msg = "missing or undated" if age is None else f"newest item {age:.1f}h old"
+        items, meta = [], {}
+    newest = newest_age_hours(items)
+    harvest = _age_h(meta.get("generated_at")) if meta.get("generated_at") else newest
+    blocked = int(meta.get("sources_blocked") or 0)
+    note = f"newest item {newest:.1f}h old" if newest is not None else "no dated items"
+    if blocked:
+        note += f"; {blocked} source(s) blocked, their last items kept until they age out"
+    if harvest is None or harvest > stale_hours:
+        msg = "missing or undated" if harvest is None else f"harvest {harvest:.1f}h old, {note}"
         print(f"::warning::amplifier data stale ({msg}; limit {stale_hours}h). Refresh the AMPLIFIER_ITEMS secret.")
         return True
-    print(f"  amplifier items fresh: newest {age:.1f}h old")
+    print(f"  amplifier items fresh: harvest {harvest:.1f}h old, {note}")
     return False
 
 
@@ -65,7 +88,7 @@ def _items_from_env(max_age_hours=48):
     if not raw:
         return []
     try:
-        data = json.loads(raw)
+        data, _ = _payload(raw)
     except Exception:
         print("  amplifier items: invalid JSON")
         return []

@@ -422,6 +422,12 @@ gh secret set ALIGNMENT_CONFIG -R cs-514/spangle < /path/to/alignment_config.jso
 gh secret set AMPLIFIER_ITEMS -R cs-514/spangle < /path/to/amplifier_items.json
 ```
 
+`AMPLIFIER_ITEMS` is `{"generated_at": <harvest time>, "sources_blocked": n, "items": [...]}` (a bare item list
+is still accepted). Freshness is the harvest time, not the newest post, so a blocked source or a quiet hour
+doesn't mark the data stale. Each item still ages out on its own after `amplifier_items_max_age_hours` (48h by
+default, also applied to consensus items). When one source is blocked, its last items are kept until they age
+out, and the other sources' fresh items are still pushed.
+
 Schema (all keys optional):
 
 ```json

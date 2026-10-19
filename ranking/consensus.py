@@ -7,6 +7,7 @@ and stamps each item with "consensus" (0..1) and "consensus_accounts" (n). Group
 min_accounts distinct accounts carry 0. Per cluster: best consensus of any matching item (exact link, or
 headline-term overlap at 0.6x). Logs counts only."""
 from .util import tokens
+from . import private
 from .engagement import ucanon, _overlap
 from . import amplifiers
 
@@ -17,11 +18,15 @@ def compute(clusters, settings, ctx):
     items = []
     import json, os
     raw = os.environ.get("AMPLIFIER_ITEMS", "").strip()
+    from .amplifiers import _payload, _age_h
     try:
-        data = json.loads(raw) if raw else []
+        data = _payload(raw)[0] if raw else []
     except Exception:
         data = []
+    max_age = float((private.load(ctx) or {}).get("amplifier_items_max_age_hours", 48))
     for it in data if isinstance(data, list) else []:
+        if isinstance(it, dict) and it.get("ts") and (_age_h(it["ts"]) or 0) > max_age:
+            continue  # a blocked source's last items age out like any other
         if isinstance(it, dict) and float(it.get("consensus") or 0) > 0:
             items.append((ucanon(it.get("url") or ""), set(tokens(it.get("text") or "")), float(it["consensus"])))
     if not items:

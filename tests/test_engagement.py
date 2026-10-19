@@ -130,10 +130,14 @@ class Engagement(unittest.TestCase):
         self.assertEqual(self.run_sig([mk()], data(u))[1], 0.0)
 
     def test_stale_or_missing(self):
+        import contextlib, io
         c = [cl(1, story("X"))]
-        self.assertIsNone(self.run_sig(c, data(age_h=9)))
-        self.assertIsNone(self.run_sig(c, ""))
-        self.assertIsNone(self.run_sig(c, "{bad json"))
+        buf = io.StringIO()  # keep the fixture's stale warning out of the CI log (it is not the real data)
+        with contextlib.redirect_stdout(buf):
+            self.assertIsNone(self.run_sig(c, data(age_h=9)))
+            self.assertIsNone(self.run_sig(c, ""))
+            self.assertIsNone(self.run_sig(c, "{bad json"))
+        self.assertIn("stale", buf.getvalue())
 
     def test_canon(self):
         self.assertEqual(engagement.ucanon("https://www.foxnews.com/politics/a-b.amp"), "foxnews.com/politics/a-b")
@@ -173,3 +177,48 @@ class Wiring(unittest.TestCase):
 
     def test_workflow_passes_secret(self):
         self.assertIn("ENGAGEMENT_DATA: ${{ secrets.ENGAGEMENT_DATA }}", open(f"{ROOT}/.github/workflows/build.yml").read())
+
+
+class AmplifierFreshness(unittest.TestCase):
+    def _stale(self, payload):
+        import contextlib, io
+        from ranking import amplifiers
+        buf = io.StringIO()
+        with Env(AMPLIFIER_ITEMS=json.dumps(payload)), contextlib.redirect_stdout(buf):
+            return amplifiers.staleness(6), buf.getvalue()
+
+    def ts(self, h):
+        return (NOWS - timedelta(hours=h)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    def test_fresh_harvest_with_blocked_source_is_not_stale(self):
+        st, out = self._stale({"generated_at": self.ts(0.2), "sources_blocked": 1,
+                               "items": [{"url": "https://e.com/a", "text": "a", "ts": self.ts(40)}]})
+        self.assertFalse(st)
+        self.assertIn("1 source(s) blocked", out)
+
+    def test_old_harvest_is_stale(self):
+        st, _ = self._stale({"generated_at": self.ts(9), "items": []})
+        self.assertTrue(st)
+
+    def test_legacy_list_uses_newest_item(self):
+        self.assertTrue(self._stale([{"url": "https://e.com/a", "text": "a", "ts": self.ts(47)}])[0])
+        self.assertFalse(self._stale([{"url": "https://e.com/a", "text": "a", "ts": self.ts(1)}])[0])
+
+    def test_items_age_out_individually_in_dict_payload(self):
+        from ranking import amplifiers
+        p = {"generated_at": self.ts(0.1), "items": [{"url": "https://e.com/old", "text": "old story", "ts": self.ts(60)},
+                                                   {"url": "https://e.com/new", "text": "new story", "ts": self.ts(1)}]}
+        with Env(AMPLIFIER_ITEMS=json.dumps(p)):
+            got = amplifiers._items_from_env(48)
+        self.assertEqual(len(got), 1)
+
+    def test_consensus_reads_dict_and_ages_out(self):
+        a = story("Senate Passes Border Wall Funding Bill", link="https://e.com/a")
+        p = {"generated_at": self.ts(0.1), "items": [
+            {"url": "https://e.com/a", "text": "x", "ts": self.ts(1), "consensus": 0.8},
+            {"url": "https://e.com/b", "text": "y", "ts": self.ts(60), "consensus": 1.0}]}
+        b = story("Something Else Entirely Happens Today", link="https://e.com/b")
+        with Env(AMPLIFIER_ITEMS=json.dumps(p)):
+            out = consensus.compute([cl(1, a), cl(2, b)], S, {})
+        self.assertAlmostEqual(out[1], 0.8)
+        self.assertEqual(out[2], 0.0)
