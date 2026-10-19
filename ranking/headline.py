@@ -497,6 +497,11 @@ def has_strong_verb(t):
 
 
 def fragment(display, original=None):
+    """True when the display headline is not a complete thought (see incomplete())."""
+    return incomplete(display, original) is not None
+
+
+def _fragment_core(display, original=None):
     """True when a display headline reads as a cut-off fragment: it ends on a dangling function word,
     it dropped every strong verb the original had ('‘Vast Majority’ of Iran’s Attempted Attacks' from
     '... Attacks on Hormuz Are Unsuccessful, CENTCOM Says'), or it stops a 'that/which/who' clause before
@@ -522,6 +527,145 @@ def fragment(display, original=None):
                     and not any(x in STRONG_VERBS or x.endswith("ed") for x in toks[i + 1:]) and len(otoks) > len(toks):
                 return True
     return False
+
+
+_MORE_VERBS = set("""
+accuse accuses accused add adds added admit admitted announce announces announced arrest arrests ask asks asked
+attack attacks attacked become becomes became begin begins began blame blames blamed break breaks broke bring brings brought
+build builds built buy buys bought catch catches caught charge charges charged claim cut cuts dies died drop dropped
+end ends ended expose fall falls fell feel feels felt find finds found flee flees fled fly flies flew force forces forced
+get give go goes gone hand hands handed help helps helped hide hides hid hold holds held keep kill lead leave leaves left
+let lets lie lies lied look looks looked lose meet meets met move moves moved pay plan plans planned push pushes pushed
+quit quits raise raises raised reveal reveals revealed run runs ran see sees saw seen seek seeks sought sell sells sold
+send sent show shows showed shown sit sits sat speak speaks spoke spend spends spent stand stands stood start starts started
+stop stops stopped take tell tells told threaten threatens threatened try tries tried win wins write writes wrote
+threw throw throws shot shoot shoots tied tie ties hit struck strike strikes slain slay sank sink rose rise rises
+hung hang swore swear beaten beat thrown stolen steal steals stole fought fight fights sought wrote written drew
+draw draws grew grow shut shuts quit spread spreads led bit bite bites bought rode rides ride drove drive drives
+promise promises deliver delivers make slam probe seize seizes back reject warn vow sue ban block fire hit eye eyes
+eyed weigh weighs mull mulls urge urges push pull pulls rip rips torch rally rallies erupt erupts surge surges soar
+soars plunge plunges sink sinks fear fears sparks spark ignite ignites target targets mock mocks defend defends
+shall believe believes care cares differ differs hire hires hurt hurts help kill killing fail cost costs win lose love hate hates want need serve serves
+""".split())
+_DET = {"the", "a", "an", "of", "his", "her", "their", "its", "our", "my", "your", "this", "that", "these", "those",
+       "for", "in", "on", "at", "by", "with", "from", "into", "over", "about", "and", "or", "new", "top", "big"}
+_NOT_VERB_S = {"news", "times", "politics", "affairs", "us", "u.s", "dems", "democrats", "republicans", "americans",
+              "states", "texas", "kansas", "illinois", "arkansas", "paris", "chaos", "crisis", "isis", "status",
+              "series", "species", "jews", "christians", "kids", "parents", "voters", "officials", "students",
+              "police", "troops", "rights", "lives", "jobs", "taxes", "prices", "sales", "rates", "ties", "this",
+              "his", "its", "has", "was", "is", "as", "yes", "thanks", "less", "ess", "boss", "class", "press",
+              "business", "congress", "progress", "witness", "access", "process", "glass", "mass", "loss",
+              "illness", "fitness", "madness", "weakness", "kindness", "darkness", "sickness"}
+
+
+
+def _vtoks(t):
+    return [re.sub(r"[^a-z0-9'.-]", "", w.lower().replace("’", "'").replace("‘", "'")).strip(".'") for w in t.split()]
+
+
+
+_PREPS = {"before", "after", "while", "without", "against", "toward", "towards", "across", "through", "beyond",
+          "via", "per", "like", "than", "amid", "during", "since", "until", "upon", "within", "behind", "under"}
+_PLURAL_SUBJ = {"media", "gop", "police", "people", "dems", "democrats", "republicans", "feds", "justices", "voters",
+                "officials", "parents", "students", "critics", "experts", "leaders", "lawmakers", "democrats", "americans"}
+_ADVERBS = {"still", "also", "now", "never", "finally", "quietly", "again", "even", "just", "already", "reportedly"}
+
+
+def finite_verb(t):
+    """Heuristic finite-verb test for title-case headlines (no tagger available in the build)."""
+    raw = [w for w in t.split() if _vtoks(w)[0]]
+    ws = [_vtoks(w)[0] for w in raw]
+    poss = [bool(re.search(r"(?:s[’']|[’']s)[^A-Za-z]*$", w)) for w in raw]  # Dems’ / Iran’s
+    for i, w in enumerate(ws):
+        prev = ws[i - 1] if i else ""
+        prev_poss = poss[i - 1] if i else False
+        if i and not prev_poss and prev not in _DET and prev not in _PREPS:
+            plural_prev = (prev.endswith("s") and not prev.endswith(("ss", "us", "is")) and prev not in _NOT_VERB_S - _PLURAL_SUBJ) \
+                or prev in _PLURAL_SUBJ or (prev in _ADVERBS and i >= 2) or (i >= 2 and ws[i - 2] == "and")
+            if plural_prev and len(w) > 2 and w not in _DET and w not in _PREPS and not w.endswith(("s", "ed", "ing", "ly")) \
+                    and not w[0].isdigit() and i + 1 < len(ws):
+                return True  # base-form verb after a plural subject: 'Dems Approach a', 'Media Skip', 'Justices Grant 3'
+            if len(w) > 5 and w.endswith("ing") and w not in ("morning", "evening", "building", "thing", "spring", "string") \
+                    and not raw[i - 1].endswith(","):  # 'Persistent, Disturbing Rise' is an adjective list
+                return True  # predicate progressive: 'Pain-Gain Formula Working Against Trump'
+        prev = "" if prev_poss and not prev.endswith("'s") else prev
+        if re.search(r"'(?:re|m|ve|ll|d)$", w) or w in ("it's", "he's", "she's", "that's", "there's", "what's", "who's", "here's"):
+            return True  # 'You're Losing', 'It's Over'
+        if prev in ("i", "you", "we", "they", "he", "she", "it", "who") and w not in _DET:
+            return True  # pronoun subject: the next word is its verb ('I Believe', 'You Rule')
+        if len(w) > 5 and w.endswith("ing") and prev.endswith("ly"):
+            return True  # 'Trump Reportedly Reconsidering ...'
+        if any(p in STRONG_VERBS or p in _MORE_VERBS for p in w.split("-")[1:]):
+            return True  # 'Co-Wrote', 'Re-Elected'
+        if w in STRONG_VERBS or w in _MORE_VERBS:
+            aux = w in _AUXV
+            if not aux and (prev in _DET or prev.endswith("'s") or (prev.endswith(("ing", "ed")) and len(prev) > 5)):
+                continue  # 'Disturbing Rise', 'Iran's Attacks', 'Attempted Attacks', 'the Fall'
+            return True
+        if prev == "to" and i >= 2 and len(w) > 2 and w not in _DET:
+            return True  # 'Trump to Sign Bill' (headline future)
+        if len(w) > 4 and w.endswith("ed") and prev not in _DET and not prev.endswith("'s"):
+            return True  # 'Ex-Coach Arrested', 'Fires Raged'
+        if len(w) > 3 and w.endswith("s") and not w.endswith(("ss", "'s", "us", "is")) and w not in _NOT_VERB_S \
+                and i > 0 and prev not in _DET and not prev.endswith("'s") and not prev.endswith("ed") and not prev.isdigit():
+            return True  # 'Trump Signs', 'Iran Fires'
+    return False
+
+_AUXV = {"is", "are", "was", "were", "has", "have", "had", "will", "won't", "can", "can't", "could", "would",
+         "should", "must", "may", "might", "do", "does", "did", "don't", "doesn't", "didn't", "isn't", "aren't",
+         "wasn't", "hasn't", "haven't", "says", "said", "shall"}
+
+
+def missing_verb(t):
+    """No finite verb anywhere: a noun phrase ('Socialism's Persistent, Disturbing Rise'). Accepted
+    headline-ese counts as a verb: a predicate participle ('Ex-Coach Arrested', 'Dad Tied to ...'), the
+    headline future ('Trump to Sign'), a progressive after an adverb, and labeled / speaker-colon forms
+    ('Homan: ...', 'WSJ: ...'), or a quoted line with its own verb."""
+    t = t.strip()
+    if re.match(r"^[^:]{2,30}:\s", t):  # 'Homan: ...', 'WSJ: ...'
+        return False
+    if re.search(r"[‘“].{6,}[’”]", t) and finite_verb(re.sub(r".*?[‘“](.*?)[’”].*", r"\1", t)):
+        return False
+    return not finite_verb(t)
+
+
+_COMPLEMENT_VERBS = {"put", "puts", "putting", "placed", "placing"}
+_PARTICLES = {"on", "in", "under", "at", "to", "into", "onto", "behind", "back", "up", "off", "out", "down", "away",
+              "aside", "before", "over", "through", "forward", "atop", "inside", "outside", "near", "beside", "beyond", "above", "below", "ahead", "first", "last"}
+_WH = {"why", "how", "what", "when", "where", "who"}
+
+
+def missing_complement(t):
+    """'Why Obama Admin Put Abdul El-Sayed's Sister-in-Law' (from '... on Terror Watch List'): a verb
+    that needs a place or second object ('put', 'placed') with nothing after it to say where."""
+    ws = [w for w in _toks(t) if w]
+    idx = [i for i, w in enumerate(ws) if w in _COMPLEMENT_VERBS]
+    return bool(idx) and not any(w in _PARTICLES for w in ws[idx[-1] + 1:])
+
+
+def incomplete(display, original=None):
+    """Why a displayed headline is not a complete thought, or None. Checked on every displayed headline
+    (source, shortened, override): dangling or cut-off endings (fragment rules below), no finite verb,
+    a verb missing its required complement, or an explainer ('Why ...', 'How ...') cut short."""
+    if _fragment_core(display, original):
+        return "cut_off"
+    if missing_verb(display):
+        return "no_finite_verb"
+    if missing_complement(display):
+        return "missing_complement"
+    ws = [w for w in _toks(display) if w]
+    for i, w in enumerate(ws):  # 'Racist Claim That Arab Mothers': a relative clause that never gets its verb
+        rest = ws[i + 1:]
+        if w in ("that", "which") and 0 < i and 0 < len(rest) <= 2 and not rest[0].endswith("ly") \
+                and rest[0].strip("'") not in ("way", "time", "much", "many", "far", "long", "day", "point", "one", "kind") \
+                and not any(x in STRONG_VERBS or x in _MORE_VERBS or x.endswith("ed") for x in rest):
+            return "cut_off"
+    if original is not None:
+        ws, os_ = [w for w in _toks(display) if w], [w for w in _toks(original) if w]
+        main = [w for w in _toks(re.split(r"\s[—–|]\s|:\s", original)[0]) if w]
+        if ws and ws[0] in _WH and len(ws) < len(main) and os_[:len(ws)] == ws:
+            return "cut_explainer"  # an explainer question needs its whole predicate
+    return None
 
 
 def needs_rewrite(title, styl=None):

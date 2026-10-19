@@ -632,6 +632,10 @@ def clean_links(lead, top, cols, clusters, settings, now, get=None):
     return st
 
 
+FRAGMENT_GUIDANCE = ("Not a complete thought: write a headline with a subject and a finite verb, from the article. "
+                     "Accepted headline-ese: a predicate participle ('Ex-Coach Arrested'), the headline future "
+                     "('Trump to Sign'), a speaker colon ('Homan: ...'). Never a noun phrase, never an explainer cut "
+                     "short ('Why Obama Admin Put X' needs 'on Terror Watch List').")
 OBSCURE_ACRONYM_GUIDANCE = (
     "Use only acronyms a general national reader instantly recognizes (FBI, DOJ, CIA, ICE, GOP, SCOTUS, NATO, DOGE, "
     "NCAA). Replace an obscure one (school initials, local agencies, niche orgs) with a plain generic descriptor, "
@@ -790,12 +794,28 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
             stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": cleaned,
                                    "reason": "too_long", "chars": len(cleaned), "words": len(cleaned.split()),
                                    "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
-        if headline_mod.fragment(s["display"], best["title"]) and not any(q["url"] == best["link"] for q in stats["queue"]):
+        why = headline_mod.incomplete(s["display"], best["title"])
+        if why and not any(q["url"] == best["link"] for q in stats["queue"]):
             # verbless / cut-off fragment (e.g. a trim that dropped the verb): ask for a real rewrite
             stats["queued_fragment"] = stats.get("queued_fragment", 0) + 1
             stats["queue"].append({"url": best["link"], "title": best["title"], "cleaned": s["display"],
-                                   "reason": "fragment",
+                                   "reason": "fragment", "fragment_kind": why, "framing": FRAGMENT_GUIDANCE,
                                    "siblings": [{"url": x["link"], "title": x["title"]} for x in cands]})
+    queued = {q["url"] for q in stats["queue"]}
+    for s in placed:  # every displayed headline (source, shortened or override) must be a complete thought
+        if s.get("drop") or s.get("quote_item") or not s.get("display") or s["link"] in queued:
+            continue
+        is_ov = bool(ov.get(s["link"]) or ov.get(s["link"].split("?", 1)[0]))
+        why = headline_mod.incomplete(s["display"], None if is_ov else s.get("original_title"))
+        if why == "no_finite_verb" and s.get("source") == "Imprimis":
+            why = None  # essays keep their possessive / parallel-fragment form (IMPRIMIS_GUIDANCE)
+        if why:
+            stats["queued_fragment"] = stats.get("queued_fragment", 0) + 1
+            c = by_id.get(id(s)) or by_link.get(s["link"])
+            stats["queue"].append({"url": s["link"], "title": s.get("original_title") or s["title"], "cleaned": s["display"],
+                                   "reason": "fragment", "fragment_kind": why, "override": is_ov, "framing": FRAGMENT_GUIDANCE,
+                                   "siblings": [{"url": x["link"], "title": x["title"]} for x in (c["items"] if c else [s])]})
+            queued.add(s["link"])
     for s in placed:  # obscure acronyms (school initials, niche orgs): queue for a plain-descriptor rewrite
         if s.get("drop") or s.get("quote_item") or not s.get("display"):
             continue

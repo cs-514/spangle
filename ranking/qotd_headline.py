@@ -84,7 +84,7 @@ def problems(headline, sty=None):
         main = rest or t
     if not t.endswith("?") and not has_verb(main) and not any(has_verb(p) for p in re.split(r"[,;:]", main)):
         out.append("no verb: a noun phrase, not a complete thought")
-    if h.fragment(t):
+    if h._fragment_core(t):
         out.append("ends on a dangling word")
     tc = h.title_case(t, sty)
     if tc != t:

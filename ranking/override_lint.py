@@ -38,7 +38,8 @@ def lint(d, sty=None):
             out["obscure_acronym"].append(k)
         if h.too_long(c, sty):
             out["too_long"].append(k)
-        if h.fragment(c):
+        why = h.incomplete(c)
+        if why and not (why == "no_finite_verb" and "imprimis.hillsdale.edu" in k):  # essays keep possessive form
             out["fragment"].append(k)
     return {r: ks for r, ks in out.items() if ks}
 

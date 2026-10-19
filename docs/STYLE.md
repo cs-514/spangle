@@ -177,6 +177,16 @@ The Quote of the Day is not touched.
   (*Rally Comes Days*). Dropping a whole dash/colon tail is fine. Any displayed headline that still reads as a
   fragment is queued for rewrite (`reason: "fragment"`); the fix is an override with a verb. An override
   also applies when link cleanup relinks a story to the overridden URL after the headline was chosen.
+- **Every displayed headline is a complete thought** (`headline.incomplete`), whether it is the source
+  title, a shortened trim or an override. Flagged kinds: `cut_off` (the rules above), `no_finite_verb`
+  (a noun phrase: *Trump’s Big Week*), `missing_complement` (a verb that needs a place left without one:
+  *Why Obama Admin Put Abdul El-Sayed’s Sister-in-Law*, trimmed from *… on Terror Watch List*) and
+  `cut_explainer` (a *Why/How …* explainer cut short). Accepted headline-ese: a predicate participle
+  (*Ex-Coach Arrested*, *Dad Tied to …*), the headline future (*Trump to Sign*), a plural subject with a
+  base verb (*Media Skip …*), a predicate progressive (*Formula Working Against Trump*), and speaker or label
+  colons (*Homan: …*, *WSJ: …*). Flagged headlines are queued (`reason: "fragment"`, `fragment_kind`), and the
+  rewrite tool rejects a rewrite that is still a fragment. Imprimis essays keep their possessive form
+  (exempt from `no_finite_verb` only).
 - **Sentence starts:** the first word after a real sentence break (`.` `?` `!`, or a colon, including after an
   opening quote) is capitalized: *Abortions. But Why?* Ellipses (*. . .*, *...*) and abbreviations (*U.S.*,
   *D.C.*, *Mr.*, *Gov.*) are not breaks, and neither is punctuation inside a closing quote mid-headline:
