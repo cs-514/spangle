@@ -17,6 +17,7 @@ CFG = {"newsworthiness": {
     "win_terms": ["unveils", "wins", "launches"],
     "routine_court_terms": ["bond", "judge", "murder", "convicted", "sentenced", "arraign", "charged", "shooting"],
     "national_hooks": ["illegal", "official", "teacher"],
+    "celebrity_gossip_terms": ["heartbreaking tribute", "late son", "beau", "dazzling", "custody wars", "insider claims", "divorce"],
     "routine_min_outlets": 4, "routine_drop": True,
     "penalty": 0.15}}
 
@@ -105,3 +106,27 @@ class Newsworthiness(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Gossip(unittest.TestCase):
+    """Celebrity personal-life stories with no celebrity term (names aren't in any lexicon)."""
+    def test_tribute_dropped(self):
+        cs, _ = run("Model Shares Heartbreaking Tribute After Late Son’s Death")
+        self.assertTrue(cs[0].get("dropped"))
+
+    def test_gossip_beats_incidental_core_word(self):
+        cs, _ = run("Star’s Divorce and Custody Wars Explode as Insider Claims Her Rage Is Out of Control")
+        self.assertTrue(cs[0].get("dropped"))  # 'Wars' inside a gossip cue is not a news angle
+
+    def test_political_hook_keeps_it(self):
+        cs, _ = run("Trump Pays Heartbreaking Tribute to Fallen Soldiers at Dover")
+        self.assertFalse(cs[0].get("dropped"))
+
+    def test_bounded_cue(self):
+        cs, _ = run("Beautiful Border Wall Section Opens in Texas")  # 'beau' never matches 'Beautiful'
+        self.assertFalse(cs[0].get("dropped"))
+
+    def test_conservative_celebrity_still_kept(self):
+        cs, _ = run("Jon Voight Slams Democrats in Dazzling Speech")
+        self.assertEqual(cs[0].get("celebrity"), "conservative")
+

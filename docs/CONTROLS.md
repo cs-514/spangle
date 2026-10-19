@@ -236,7 +236,11 @@ First Things by default; poetry, fiction, book reviews and niche theology terms 
 celebrity terms, entertainment URL paths, conservative-celebrity list, speaking-out, ridicule/backlash and politics
 terms). The `lifestyle` hooks, `outrage` terms and boost keywords also count as core criteria.
 
-- **Celebrity / entertainment** stories are **dropped**, with two exceptions:
+- **Celebrity / entertainment** stories are **dropped**, with two exceptions (below). A story counts as
+  celebrity when the headline has a celebrity term, the URL has an entertainment path, or the headline has
+  celebrity personal-life / gossip cues (private `celebrity_gossip_terms`, matched as whole words) and no
+  political or national hook outside those cues. Celebrity names are not in any lexicon, so the cues catch
+  name-only gossip from mixed outlets. Two cues outweigh an incidental core word. The exceptions:
   (a) a conservative celebrity speaking out: kept and scored favorably;
   (b) a celebrity making a fool of themselves on politics or geopolitics (a politics term plus a
   backlash/ridicule term): kept.

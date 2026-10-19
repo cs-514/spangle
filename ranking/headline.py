@@ -886,7 +886,7 @@ def _sentence_end(prev):
 
 def lowercase_small_words(title, sty=None):
     """Lowercase Title-Case short prepositions/articles (In, Of, To, On, At, For, A, The) except
-    as the first word or right after ':', '—', '–', '|' or an opening quote. All-caps tokens are left alone,
+    as the first word or right after ':', '|', a sentence end or an opening quote (a dash is not a break). All-caps tokens are left alone,
     and 'A' is kept when it ends the line or is followed by punctuation (Plan A)."""
     cfg = (sty or style()).get("lowercase_small_words") or {}
     if not cfg.get("enabled"):
@@ -897,7 +897,7 @@ def lowercase_small_words(title, sty=None):
         w = toks[i]
         if w.lower() not in small or w == w.lower() or (len(w) > 1 and w.isupper()):
             continue
-        if toks[i - 1][-1:] in (":", "—", "–", "|", "‘", "“", "'", '"') or toks[i - 1] in ("-", "—", "–") \
+        if toks[i - 1][-1:] in (":", "|", "‘", "“", "'", '"') or toks[i - 1] == "-" \
                 or _sentence_end(toks[i - 1]):
             continue
         if w == "A" and (i + 1 >= len(toks) or not toks[i + 1][:1].isalnum()):
@@ -927,8 +927,8 @@ def hyphen_case(core, cfg=None):
 
 def title_case(title, sty=None):
     """AP/Chicago-style title case. Lowercase small words (a, an, the, and, but, or, nor, as, at,
-    by, for, if, in, of, on, to, vs, with, from, into, onto, upon) except first/last word or after ':', '—', '–', '|' or an
-    opening quote; capitalize every other lowercase word (incl. hyphen parts). Never lowercases
+    by, for, if, in, of, on, to, vs, with, from, into, onto, upon) except first/last word or after ':', '|', a
+    sentence end or an opening quote (not after a dash: 'Shows—and Leaves Unanswered'); capitalize every other lowercase word (incl. hyphen parts). Never lowercases
     words with internal capitals (acronyms, McDonald, iPhone) and keeps lowercase name particles
     before a capitalized name ('el Sayed'). 'Up' stays capitalized (phrasal particles: 'Take Up').
     'over' is lowercased as a preposition ('Feud over Rule') but capitalized as an adverb/particle
@@ -950,7 +950,8 @@ def title_case(title, sty=None):
         if not core or not core[0].isalpha() or w in keep or core in keep:
             out.append(w); continue
         prev = toks[i - 1] if i else ""
-        boundary = i == 0 or i == n - 1 or prev[-1:] in (":", "—", "–", "|") or prev in ("-", "—", "–") \
+        # a dash is not a boundary (Chicago): minor words after it stay lowercase ('Shows—and Leaves')
+        boundary = i == 0 or i == n - 1 or prev[-1:] in (":", "|") or prev == "-" \
             or _sentence_end(prev) or lead[-1:] in ("‘", "“", "(", "[")
         low = core.lower()
         pp = cfg.get("particle_prepositions") or {}

@@ -1,8 +1,8 @@
 """Newsworthiness gate + celebrity filter. Lexicons live in the private config key "newsworthiness"
 (with the "lifestyle" hooks, "outrage" terms and boost keywords also counted as core criteria).
 
-- Celebrity / entertainment stories (celebrity terms in the headline, or an entertainment URL path)
-  are DROPPED unless
+- Celebrity / entertainment stories (celebrity terms in the headline, an entertainment URL path, or
+  celebrity personal-life / gossip cues with no political or national hook in the headline) are DROPPED unless
     (a) a conservative celebrity is speaking out  -> kept and scored favorably, or
     (b) a Hollywood/celebrity figure makes a fool of themselves on politics or geopolitics
         (a politics term plus a backlash/ridicule term)  -> kept.
@@ -21,11 +21,18 @@ from . import private
 NAME = "newsworthy"
 
 
-def _rx(words):
+_SUFFIX = r"(?:s|es|ed|d|ing|er|ers|ship|ism|ist|ists|ly)?(?![a-z0-9])"
+
+
+def _rx(words, open_end=True):
+    """Word-start match (lexicons rely on prefixes: a term matches any word it begins). With
+    open_end=False a term may only take a common suffix ('tribute' -> 'tributes') and never runs into
+    another word ('beau' never matches 'beautiful'); used for the gossip cues."""
     words = [w.lower() for w in words if w]
     if not words:
         return None
-    return re.compile(r"(?<![a-z0-9])(?:" + "|".join(re.escape(w) for w in sorted(words, key=len, reverse=True)) + r")")
+    alt = "|".join(re.escape(w) for w in sorted(words, key=len, reverse=True))
+    return re.compile(r"(?<![a-z0-9])(?:" + alt + r")" + ("" if open_end else _SUFFIX))
 
 
 def lexicon(ctx):
@@ -36,6 +43,7 @@ def lexicon(ctx):
     core = list(nw.get("core_terms", [])) + list((pc.get("lifestyle") or {}).get("hooks", [])) \
         + list((pc.get("outrage") or {}).get("terms", [])) + list(pc.get("boost_keywords") or {})
     return {"core": _rx(core), "celeb": _rx(nw.get("celebrity_terms", [])),
+            "gossip": _rx(nw.get("celebrity_gossip_terms", []), open_end=False),
             "paths": [p.lower() for p in nw.get("entertainment_paths", [])],
             "cons": _rx(nw.get("conservative_celebs", [])), "speak": _rx(nw.get("speaking_out_terms", [])),
             "fool": _rx(nw.get("fool_terms", [])), "pol": _rx(nw.get("politics_terms", [])),
@@ -58,6 +66,17 @@ def classify(item, lx):
     hay = f"{t} {(item.get('desc') or '').lower()}".replace("’", "'")
     link = (item.get("link") or "").lower()
     celeb = _hit(lx["celeb"], t) or any(p in link for p in lx["paths"]) or t.startswith("review:")
+    if not celeb and lx.get("gossip"):
+        # celebrity personal-life / gossip story with no named celebrity term ('X Shares Heartbreaking
+        # Tribute After Son's Death', 'Y Beams as Z Makes Dazzling Debut'): celebrity unless the headline
+        # carries a political / national hook outside the gossip cue itself ('Custody Wars' is no war);
+        # two gossip cues outweigh an incidental core word
+        gm = list(lx["gossip"].finditer(t))
+        inside = lambda m: any(g.start() <= m.start() < g.end() for g in gm)
+        hook = any(not inside(m) for m in lx["hooks"].finditer(t)) if lx.get("hooks") else False
+        core_out = any(not inside(m) for m in lx["core"].finditer(t)) if lx.get("core") else False
+        g = {m.group(0) for m in gm}
+        celeb = bool(g) and not hook and (len(g) >= 2 or not core_out)
     cons = _hit(lx["cons"], t)
     if cons and (_hit(lx["speak"], t) or _hit(lx["pol"], hay)):
         return "conservative"

@@ -191,8 +191,10 @@ The Quote of the Day is not touched.
   Insists*. `--` (spaced or not), a spaced em dash ` — ` and a spaced en dash ` – ` all become `—`
   (`headline.dashes`). Number ranges keep the en dash, closed (*10 – 12* → *10–12*); hyphens and unspaced
   en dashes between words (*Harris–Walz*) are untouched. Outlet tails (*… — NY Post*) are stripped first,
-  and the shortening step still drops a whole dash tail. Title case treats the dash as a break, so the word
-  after it is capitalized (*Wins—And Dems Melt Down*). The same rule applies to the QOTD quote and
+  and the shortening step still drops a whole dash tail. After a dash, Chicago style: minor words (*and, but, or,
+  nor, for, as, the, a, an, to, of, in, on, at, by, with* …) stay lowercase (*Shows—and Leaves Unanswered*,
+  *Watch List—as He Insists*) and major words stay capitalized (*Burning—Is America Next?*). A colon or a
+  real sentence break still capitalizes the next word (*Abortions. But Why?*, *Homan: The Wall Works*). The same rule applies to the QOTD quote and
   headline, hover tooltips, rewrites (`rewrite_queue.py apply` normalizes them) and the QOTD bank; the
   QOTD validator rejects spaced dashes and `--`. No orphans: the closed dash stays a line-break point,
   so only the words after the last dash are glued with a no-break space, and a last chunk like
