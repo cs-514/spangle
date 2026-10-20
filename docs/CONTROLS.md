@@ -156,7 +156,7 @@ Ronald Reagan, Abraham Lincoln, Robert Bork (D.C. Circuit opinions, verified on 
 AZQuotes are kept out until verified. Public mentions of these authors are limited to this quote
 feature and are never tied to ranking/alignment.
 
-**Freshness guard.** `quote_of_the_day.json` is used only if its `date` is today (UTC). Otherwise
+**Freshness guard.** `quote_of_the_day.json` is used only if its `date` is today (US Eastern, `America/New_York`; the routine dates its pick the same way). Otherwise
 (the daily routine did not run) the build picks a quote deterministically from `qotd_bank.json`
 in the repo, which holds only primary-source-verified quotes, so a stale quote is never shown.
 

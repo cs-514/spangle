@@ -871,10 +871,11 @@ def display_outlets(items):
 
 
 def load_daily_quote(filename="quote_of_the_day.json", today=None, bank_file="qotd_bank.json"):
-    """Today's quote. If the file is missing, invalid, or dated another day (the box routine did not
-    run), fall back to a deterministic pick from the public, primary-source-verified bank, so a stale
-    quote is never shown."""
-    today = today or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    """Today's quote. "Today" is the US Eastern date, the same day the box routine dates its pick (UTC rolled
+    over at 8 PM ET and discarded the routine's pick every evening). If the file is missing, invalid, or dated
+    another day (the box routine did not run), fall back to a deterministic pick from the public,
+    primary-source-verified bank, so a stale quote is never shown."""
+    today = today or datetime.now(ET_TZ).strftime("%Y-%m-%d")
     try:
         with open(os.path.join(HERE, filename)) as f:
             q = json.load(f)
