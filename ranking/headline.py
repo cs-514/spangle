@@ -450,6 +450,65 @@ def headline_quotes(text):
     return "".join(out)
 
 
+_OPEN_Q = {"‘": "’", "“": "”"}
+
+
+def _quote_scan(text, stop=None):
+    """Walk curly quotes; -> (stack of unclosed openers, stray double closers). An opener is ‘ or “;
+    ” closes an innermost “ (otherwise it is stray). ’ closes an innermost ‘ only when it is not an apostrophe: between two
+    letters (don’t, McConaughey’s) or before a digit it is always an apostrophe, and with no ‘ open it
+    is one too (Democrats’, ’90s), so apostrophes never count as unmatched closers."""
+    stack, stray = [], 0
+    end = len(text) if stop is None else stop
+    for i in range(end):
+        ch = text[i]
+        prev, nxt = text[i - 1:i], text[i + 1:i + 2]
+        if ch in _OPEN_Q:
+            stack.append(ch)
+        elif ch == "”":
+            if stack and stack[-1] == "“":
+                stack.pop()
+            else:
+                stray += 1  # no “ open, or it would close across an open ‘ (mis-nested)
+        elif ch == "’" and stack and stack[-1] == "‘" and not (prev.isalpha() and nxt.isalpha()) and not nxt.isdigit():
+            stack.pop()
+    return stack, stray
+
+
+def balanced_quotes(text):
+    """True when every opening quote in a (curly) headline has its closing quote."""
+    st, stray = _quote_scan(text or "")
+    return not st and not stray
+
+
+def inside_quote(text, pos):
+    """True when position pos falls inside an open quotation (a cut there would orphan the opener)."""
+    return bool(_quote_scan(text, pos)[0])
+
+
+def repair_quotes(text):
+    """Balance a headline's quotes: drop stray double closers and a dangling opener at the very end, then
+    close any quotation still open at the end of the headline (‘Alright -> ‘Alright’). Idempotent."""
+    if not text or balanced_quotes(text):
+        return text
+    t = text.rstrip()
+    # a ” that cannot close (no “ innermost) is dropped below; '’' never is (it may be an apostrophe)
+    while t and t[-1] in _OPEN_Q:
+        t = t[:-1].rstrip()
+    out, depth = [], 0
+    for ch in t:  # stray ” with no “ open
+        if ch == "“":
+            depth += 1
+        elif ch == "”":
+            if not depth:
+                continue
+            depth -= 1
+        out.append(ch)
+    t = "".join(out)
+    st, _ = _quote_scan(t)
+    return t + "".join(_OPEN_Q[q] for q in reversed(st))
+
+
 def smartquotes_html(markup):
     """Apply smartquotes to text nodes only (never tags/attributes/URLs)."""
     parts = re.split(r"(<[^>]*>)", markup)
@@ -498,13 +557,14 @@ def shorten(title, styl=None):
     if not fits(t):
         t = open_dashes(t)
         for sep in (" — ", " – ", " | ", ": "):
-            if sep in t:
+            if sep in t and not inside_quote(t, t.index(sep)):
                 left = t.split(sep, 1)[0].strip()
                 if len(left.split()) >= 4 and not contentless(left) and not fragment(left, t):
                     t = left
                     break
     if not fits(t):
         cuts = [m.start() for m in _PREP.finditer(t)] + [m.start() for m in re.finditer(r",\s", t)]
+        cuts = [p for p in cuts if not inside_quote(t, p)]  # never cut inside a quotation (orphans its opener)
         for pos in sorted(cuts, reverse=True):  # smallest removal first
             cand = t[:pos].rstrip(" ,;:")
             if len(cand.split()) >= 6 and fits(cand) and not contentless(cand) and not fragment(cand, t):
@@ -513,7 +573,8 @@ def shorten(title, styl=None):
     t = t.rstrip(" ,;:")
     if t == title.strip():
         return title
-    return clean(t, sty)[0] or title
+    out = clean(t, sty)[0] or title
+    return out if balanced_quotes(out) or not balanced_quotes(title) else title
 
 
 STRONG_VERBS = {

@@ -51,6 +51,28 @@ class Celebrity(unittest.TestCase):
         cs, _ = run("Late-Night Host Preaches About Israel, Draws Backlash")
         self.assertEqual(cs[0]["celebrity"], "fool")
 
+    def test_name_only_headline_with_celebrity_blurb_dropped(self):
+        s = story("Jane Roe Says Habit Changed Her Voice Forever",
+                  desc="Singer and actress Jane Roe admitted on Sunday that a habit changed her voice.")
+        cs = [{"id": 0, "outlets": ["x"], "items": [s]}]
+        N.compute(cs, {}, {"alignment_cfg": CFG})
+        self.assertTrue(cs[0].get("dropped"))
+
+    def test_celebrity_blurb_with_political_hook_kept(self):
+        s = story("John Doe’s Election Pitch Draws Fire From Democrats",
+                  desc="Actor John Doe urged voters to back independents ahead of the election.")
+        cs = [{"id": 0, "outlets": ["x"], "items": [s]}]
+        N.compute(cs, {}, {"alignment_cfg": CFG})
+        self.assertFalse(cs[0].get("dropped"))
+
+    def test_celebrity_word_without_named_subject_not_celebrity(self):
+        for d in ["Bad actors linked to a foreign state breached the utility.",
+                  "Officials said the breach was serious. A singer was among the witnesses."]:
+            s = story("Hackers Breach Water Utility", desc=d)
+            cs = [{"id": 0, "outlets": ["x"], "items": [s]}]
+            N.compute(cs, {}, {"alignment_cfg": CFG})
+            self.assertFalse(cs[0].get("dropped"), d)
+
     def test_celebrity_politics_without_backlash_dropped(self):
         cs, _ = run("Singer Says She Will Vote in the Election")
         self.assertTrue(cs[0]["dropped"])

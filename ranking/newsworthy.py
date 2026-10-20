@@ -1,7 +1,8 @@
 """Newsworthiness gate + celebrity filter. Lexicons live in the private config key "newsworthiness"
 (with the "lifestyle" hooks, "outrage" terms and boost keywords also counted as core criteria).
 
-- Celebrity / entertainment stories (celebrity terms in the headline, an entertainment URL path, or
+- Celebrity / entertainment stories (celebrity terms in the headline or in the blurb's opening words, an
+  entertainment URL path, or
   celebrity personal-life / gossip cues with no political or national hook in the headline) are DROPPED unless
     (a) a conservative celebrity is speaking out  -> kept and scored favorably, or
     (b) a Hollywood/celebrity figure makes a fool of themselves on politics or geopolitics
@@ -61,7 +62,7 @@ def lexicon(ctx):
             "routine": _rx(nw.get("routine_court_terms", [])), "routine_set": {w.lower() for w in nw.get("routine_court_terms", [])},
             "hooks": _rx(nw.get("national_hooks", []) + nw.get("politics_terms", []) + nw.get("aligned_figures", [])),
             "routine_min": int(nw.get("routine_min_outlets", 4)), "routine_drop": bool(nw.get("routine_drop", True)),
-            "sports": _sports_lexicon(nw),
+            "sports": _sports_lexicon(nw), "blurb_words": int(nw.get("celebrity_blurb_words", 6)),
             "penalty": float(nw.get("penalty", 0.15)), "cons_score": float(nw.get("conservative_celeb_score", 1.0))}
 
 
@@ -132,6 +133,22 @@ def _news_hook(item, lx):
     return any(not _hit(lx["celeb"], m.group(0)) for m in lx["hooks"].finditer(t)) if lx.get("hooks") else False
 
 
+def _blurb_celebrity(desc, lx):
+    """The blurb opens by introducing a named person by a celebrity occupation: a celebrity term among its
+    first words, followed within a few words by a capitalized two-word name ('Singer and actress Jane Roe
+    admitted', 'Actor John Doe faced'). 'Bad actors linked to ...' has no name after it, and a term deep in
+    the blurb never counts."""
+    words = re.sub(r"<[^>]+>", " ", desc).replace("’", "'").split()[:lx["blurb_words"] + 4]
+    name = lambda w: bool(re.match(r"[A-Z][a-z]+(?:[A-Z][a-z]+)?[.,']?s?$", w))
+    for i, w in enumerate(words[:lx["blurb_words"]]):
+        if not _hit(lx["celeb"], w.lower()):
+            continue
+        after = words[i + 1:i + 5]
+        if any(name(a) and name(b) for a, b in zip(after, after[1:])):
+            return True
+    return False
+
+
 def _celeb_domain(link, domains):
     host = re.sub(r"^https?://(www\.)?", "", link).split("/")[0]
     return any(host == d or host.endswith("." + d) for d in domains)
@@ -146,6 +163,10 @@ def classify(item, lx):
     if not celeb and lx.get("domains") and _celeb_domain(link, lx["domains"]):
         # celebrity outlet (private list): celebrity unless the headline has a political / national hook
         celeb = not _news_hook(item, lx)
+    if not celeb and lx["celeb"] and not _news_hook(item, lx):
+        # name-only headline whose blurb introduces the subject by a celebrity occupation ('Singer and
+        # actress X admitted ...'): celebrity unless the headline has a political / national hook
+        celeb = _blurb_celebrity(item.get("desc") or "", lx)
     if not celeb and lx.get("gossip"):
         # celebrity personal-life / gossip story with no named celebrity term ('X Shares Heartbreaking
         # Tribute After Son's Death', 'Y Beams as Z Makes Dazzling Debut'): celebrity unless the headline

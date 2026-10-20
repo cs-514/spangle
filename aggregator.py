@@ -837,10 +837,24 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
                 and ranking.defeatism.classify(s["title"], dcfg) != "exclude":
             s["display"] = headline_mod.clean(s["title"], sty)[0]  # never let a rewrite add defeatist framing
             stats["defeatist_reverted"] = stats.get("defeatist_reverted", 0) + 1
+    for s in [lead] + top + [x for c in cols for x in c]:  # QC: every displayed headline has balanced quotes
+        if not s or s.get("drop") or not s.get("display") or headline_mod.balanced_quotes(s["display"]):
+            continue
+        fixed = headline_mod.repair_quotes(s["display"])
+        if not headline_mod.balanced_quotes(fixed):
+            src = headline_mod.clean(s["title"], sty)[0]
+            fixed = src if headline_mod.balanced_quotes(src) else fixed
+        print(f"::warning::headline QC: unbalanced quotes repaired: {s['display']!r} -> {fixed!r}")
+        s["display"] = fixed
+        stats["quotes_repaired"] = stats.get("quotes_repaired", 0) + 1
+        if not headline_mod.balanced_quotes(fixed):
+            stats["quotes_unbalanced"] = stats.get("quotes_unbalanced", 0) + 1
+            print(f"::warning::headline QC: quotes still unbalanced: {fixed!r}")
     print(f"headlines: kept {stats['kept']}, swapped {stats['swapped']}, "
           f"queued_bland {stats['queued_bland']}, queued_too_long {stats['queued_too_long']}, "
           f"styled {stats['styled']}, overrides {stats['override']}, shortened {stats['shortened']}, "
-          f"fragments {stats.get('queued_fragment', 0)}, obscure_acronyms {stats.get('queued_obscure_acronym', 0)}")
+          f"fragments {stats.get('queued_fragment', 0)}, obscure_acronyms {stats.get('queued_obscure_acronym', 0)}, "
+          f"quote QC repaired {stats.get('quotes_repaired', 0)}")
     try:
         with open(os.path.join(HERE, "..", "rewrite_queue.json"), "w") as f:
             json.dump({"generated": datetime.now(timezone.utc).isoformat(), "items": stats["queue"]}, f, indent=1)
