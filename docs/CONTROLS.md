@@ -255,6 +255,17 @@ terms). The `lifestyle` hooks, `outrage` terms and boost keywords also count as 
   private `routine_court_terms`) don't count as core unless they carry a national hook (private `national_hooks`:
   prominent person, illegal-immigration, political or culture-war angle) or have `routine_min_outlets` (4+)
   outlets. Otherwise they are dropped (`routine_drop`).
+- **Pure sports stories are dropped.** Games, players, trades, injuries, coaches and team drama never appear
+  unless the headline has a genuine national political or culture-war hook (a national anthem protest, trans
+  athletes in women's sports, a player criticizing or praising a politician, a White House visit, DEI or woke
+  league policy, a government action involving a league). A story is sports when its URL has a sports path,
+  its headline has an unambiguous sports cue, or an ambiguous team nickname is corroborated by a sports cue in
+  the blurb or URL. Hooks come from the headline only: a dedicated sports hook counts anywhere in it, but a
+  generic political word (a politician's name, "police") counts only when it is central, i.e. the headline's
+  subject or right next to a speaking/acting verb. Routine crime/court words never count. One sports sibling
+  in an otherwise political cluster is shed; a mostly-sports cluster with no hooked headline is dropped.
+  Cue lists, hooks and verbs are private (`sports_terms`, `sports_team_terms`, `sports_paths`, `sports_hooks`,
+  `sports_hook_verbs`, `sports_hook_ignore`). Tests: `tests/test_sports.py`.
 - **Featured slots need a core criterion.** A story with no political, policy, culture-war, legal,
   national-security or outrage angle never leads or enters Top Stories, and is scored `penalty` (0.15) so it
   sinks in the columns.

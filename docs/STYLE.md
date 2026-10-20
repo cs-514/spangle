@@ -288,6 +288,9 @@ put a writer's or source's words in someone else's mouth (no "Gillis:" prefix fo
 - Soft: "Everything We Know About…", "Here's Why…", "What to Know About…"
 - Subtitle pile-ups: "Topic: Subtopic — More Context | Outlet"
 - Sports/lifestyle chrome in political slots (those are gated out of the lead anyway)
+- Pure sports (games, players, trades, injuries, coaches, team drama) never runs at all unless the headline
+  carries a genuine national political or culture-war hook; a politician or "police" mentioned in passing is
+  not a hook
 
 ## Academic / explainer posts (Volokh and similar)
 

@@ -12,6 +12,13 @@
 - Routine local crime/court items (bond hearings, arraignments, local sentencing: only routine court words)
   don't count as core unless they carry a national hook (prominent person, illegal-immigration, political or
   culture-war angle) or have 4+ outlets; otherwise they are dropped.
+- Pure sports stories (games, players, trades, injuries, coaches, team drama) are DROPPED unless the
+  headline carries a genuine national political / culture-war hook. A story is sports when its URL has a
+  sports path, its headline has an unambiguous sports cue, or it has an ambiguous team-nickname cue that the
+  URL slug or blurb corroborates with an unambiguous sports cue. Hooks are read from the headline only: a dedicated sports-hook
+  term counts anywhere in it; a generic political word counts only when it is central (the headline's subject,
+  i.e. within its first words, or right next to a speaking / acting verb), and routine crime/court words and
+  ignored generic words never count. Cue lists, hooks and verbs live in the private config.
 - Every other story must hit at least one core criterion (political, policy, culture-war, legal,
   national-security or outrage angle) to be featured. Stories with none are kept out of the lead and
   Top Stories and scored `penalty` (heavily downranked in the columns).
@@ -54,7 +61,65 @@ def lexicon(ctx):
             "routine": _rx(nw.get("routine_court_terms", [])), "routine_set": {w.lower() for w in nw.get("routine_court_terms", [])},
             "hooks": _rx(nw.get("national_hooks", []) + nw.get("politics_terms", []) + nw.get("aligned_figures", [])),
             "routine_min": int(nw.get("routine_min_outlets", 4)), "routine_drop": bool(nw.get("routine_drop", True)),
+            "sports": _sports_lexicon(nw),
             "penalty": float(nw.get("penalty", 0.15)), "cons_score": float(nw.get("conservative_celeb_score", 1.0))}
+
+
+def _sports_lexicon(nw):
+    """Sports gate (private keys sports_terms, sports_team_terms, sports_paths, sports_hooks,
+    sports_hook_verbs, sports_hook_ignore). None when no sports cues are configured."""
+    terms, teams = nw.get("sports_terms") or [], nw.get("sports_team_terms") or []
+    if not terms and not teams and not nw.get("sports_paths"):
+        return None
+    skip = {w.lower() for w in (nw.get("sports_hook_ignore") or []) + (nw.get("routine_court_terms") or [])}
+    cues = {w.lower() for w in terms + teams}
+    generic = [w for w in (nw.get("politics_terms") or []) + (nw.get("national_hooks") or [])
+               + (nw.get("aligned_figures") or []) if w.lower() not in skip and w.lower() not in cues]
+    return {"terms": _rx(terms, open_end=False), "teams": _rx(teams, open_end=False),
+            "paths": [p.lower() for p in nw.get("sports_paths") or []],
+            "hooks": _rx(nw.get("sports_hooks") or []), "generic": _rx(generic, open_end=False),
+            "verbs": _rx(nw.get("sports_hook_verbs") or [], open_end=False),
+            "subject_words": int(nw.get("sports_subject_words", 2)), "verb_window": int(nw.get("sports_verb_window", 3))}
+
+
+_WORD = re.compile(r"[a-z0-9][a-z0-9'.-]*")
+
+
+def is_sports(item, sp):
+    """Sports by URL path, an unambiguous headline cue, or an ambiguous team-nickname cue corroborated by an
+    unambiguous cue in the blurb or URL slug (a nickname alone is often an ordinary political word)."""
+    t = item["title"].lower().replace("’", "'")
+    link = (item.get("link") or "").lower()
+    if any(p in link for p in sp["paths"]) or _hit(sp["terms"], t):
+        return True
+    teams = {m.group(0) for m in sp["teams"].finditer(t)} if sp["teams"] else set()
+    if not teams:
+        return False
+    blurb = (item.get("desc") or "").lower().replace("’", "'")
+    return _hit(sp["terms"], blurb) or _hit(sp["terms"], link.replace("-", " ").replace("/", " "))
+
+
+def sports_hook(title, sp):
+    """A genuine political / culture-war hook in a sports headline. Dedicated sports hooks count anywhere;
+    a generic political word only when central: among the first words (the subject) or within a few words
+    of a speaking / acting verb. Words inside a sports cue (a team nickname that is also a political word) never count."""
+    t = title.lower().replace("’", "'")
+    cue_spans = [m.span() for rx in (sp["terms"], sp["teams"]) if rx for m in rx.finditer(t)]
+    inside = lambda m: any(a <= m.start() < b for a, b in cue_spans)
+    if sp["hooks"] and any(not inside(m) for m in sp["hooks"].finditer(t)):
+        return True
+    if not sp["generic"]:
+        return False
+    words = [(m.start(), m.end()) for m in _WORD.finditer(t)]
+    idx = lambda pos: sum(1 for a, _ in words if a < pos)
+    verbs = [idx(m.start()) for m in sp["verbs"].finditer(t)] if sp["verbs"] else []
+    for m in sp["generic"].finditer(t):
+        if inside(m):
+            continue
+        i = idx(m.start())
+        if i < sp["subject_words"] or any(abs(i - v) <= sp["verb_window"] for v in verbs):
+            return True
+    return False
 
 
 def _hit(rx, text):
@@ -99,6 +164,10 @@ def classify(item, lx):
         if _hit(lx["pol"], hay) and _hit(lx["fool"], hay):
             return "fool"
         return "drop"
+    sp = lx.get("sports")
+    if sp and is_sports(item, sp):
+        # pure sports (games, players, trades, injuries, coaches) unless a central national/culture-war hook
+        return "sports_core" if sports_hook(item["title"], sp) else "sports"
     biz = _hit(lx.get("biz"), t)                                    # major business / tech breakthrough
     ally = _hit(lx.get("fig"), hay) and _hit(lx.get("win"), t)      # win by a conservative-aligned figure
     if biz and ally:
@@ -121,10 +190,14 @@ def compute(clusters, settings, ctx):
     lx = lexicon(ctx)
     if lx is None:
         return None
-    out, n = {}, {"drop": 0, "off": 0, "conservative": 0, "fool": 0}
+    out, n = {}, {"drop": 0, "off": 0, "conservative": 0, "fool": 0, "sports": 0}
     for c in clusters:
         kinds = [classify(s, lx) for s in c["items"]]
-        if "conservative" in kinds:
+        sports = "sports" in kinds and "sports_core" not in kinds and kinds.count("sports") * 2 >= len(kinds)
+        kinds = ["core" if x == "sports_core" else ("sib" if x == "sports" else x) for x in kinds]
+        if sports and not any(x in ("conservative", "both", "business_or_aligned", "fool") for x in kinds):
+            k = "drop"; n["sports"] += 1  # mostly pure-sports headlines and none with a political hook
+        elif "conservative" in kinds:
             k = "conservative"
         elif "both" in kinds:
             k = "both"
@@ -144,9 +217,9 @@ def compute(clusters, settings, ctx):
             k = "drop"
         else:
             k = "off"
-        if k != "drop" and "drop" in kinds and len(kinds) > 1:
-            # kept on a news angle: the celebrity-gossip siblings never supply its headline or link
-            c["items"] = [x for x, kk in zip(c["items"], kinds) if kk != "drop"] or c["items"]
+        if k != "drop" and ("drop" in kinds or "sib" in kinds) and len(kinds) > 1:
+            # kept on a news angle: celebrity-gossip and pure-sports siblings never supply its headline or link
+            c["items"] = [x for x, kk in zip(c["items"], kinds) if kk not in ("drop", "sib")] or c["items"]
         if k == "drop":
             c["dropped"] = True; out[c["id"]] = 0.0
         elif k == "off":
@@ -164,5 +237,5 @@ def compute(clusters, settings, ctx):
             n[k] += 1
     print(f"signal newsworthy: {n['drop']} celebrity dropped, {n['off']} off-criteria kept off front, "
           f"{n['conservative']} conservative-celebrity, {n['fool']} celebrity-politics backlash, "
-          f"{n.get('biz', 0)} business/tech or aligned-figure wins")
+          f"{n.get('biz', 0)} business/tech or aligned-figure wins, {n['sports']} pure-sports dropped")
     return out
