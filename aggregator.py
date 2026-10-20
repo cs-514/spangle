@@ -22,6 +22,7 @@ from ranking import lean
 import curators
 from ranking import coverage
 from ranking import opinion as opinion_mod
+from ranking import satire
 
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/120 Safari/537.36 Spangle/1.0"}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -76,7 +77,7 @@ FEEDS = [
      {"max_age_hours": 840, "column_age_hours": 840, "no_front": True, "reserved_slot": True}),
     ("LifeZette", "https://www.lifezette.com/feed/", False),
     ("Courthouse News", "https://www.courthousenews.com/feed/", False),
-    ("Not the Bee", "https://notthebee.com/feed", True),  # satirical commentary on real news
+    ("Not the Bee", "https://notthebee.com/feed", True),  # wry commentary on real news (not satire: front-eligible)
 ]
 
 # Paywalled feeds: ingested ONLY when archive fallback is on. They count toward cross-outlet
@@ -192,7 +193,8 @@ def _fetch(feed, settings=None):
             continue
         desc = re.sub(r"<[^>]+>", " ", txt(it, "description", f"{A}summary"))[:600]
         author = txt(it, f"{DC}creator", "author", f"{A}author/{A}name")
-        cats = " ".join((c.text or c.get("term") or "") for c in it.findall("category") + it.findall(f"{A}category"))
+        tags = [(c.text or c.get("term") or "").strip() for c in it.findall("category") + it.findall(f"{A}category")]
+        cats = " ".join(tags)
         when = parse_date(txt(it, "pubDate", f"{DC}date", f"{A}updated", f"{A}published"))
         if opts.get("substack_free_only") and not substack_free(link):
             continue
@@ -201,7 +203,7 @@ def _fetch(feed, settings=None):
         item = dict(max_age_hours=opts.get("max_age_hours"), column_age_hours=opts.get("column_age_hours"),
                     no_front=bool(opts.get("no_front")), reserved_slot=bool(opts.get("reserved_slot")),
                     title=title, link=link, feed_link=feed_link, desc=html.unescape(desc), author=author,
-                    cats=cats, when=when, source=name, opinion=op_feed or "/opinion/" in link or "/commentary/" in link)
+                    cats=cats, tags=[t for t in tags if t], when=when, source=name, opinion=op_feed or "/opinion/" in link or "/commentary/" in link)
         if settings is not None and not lean.keep(item, name, settings, outlet=name, author=author):
             continue
         out.append(item)
@@ -351,7 +353,7 @@ def fits(s, slot, settings, now):
     age = age_hours(s, now)
     if slot == "column":
         return age is None or age < (s.get("column_age_hours") or col_h)
-    if s.get("no_front"):
+    if s.get("no_front") or satire.is_satire(s, settings):  # satire: columns only, never lead/Top
         return False
     return age is not None and age < (lead_h if slot == "lead" else top_h)
 
@@ -411,7 +413,9 @@ def place(clusters, settings, ctx):
     if lead is None:
         lead = next((x for x in picked if ok_front(x, "lead") and not x.get("truncated")), None)
     if lead is None:  # nothing fresh enough: the freshest dated, non-lifestyle story
-        pool = [x for x in picked if x.get("when") and not x.get("lifestyle")] or picked
+        pool = [x for x in picked if x.get("when") and not x.get("lifestyle") and not x.get("no_front")
+                and not satire.is_satire(x, settings)] \
+            or [x for x in picked if not x.get("no_front") and not satire.is_satire(x, settings)] or picked
         lead = max(pool, key=lambda x: x["when"].timestamp() if x.get("when") else 0)
     rest = [x for x in picked if x is not lead]
     top = [x for x in rest if ok_front(x, "top")][:n_top]

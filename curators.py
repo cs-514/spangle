@@ -29,7 +29,7 @@ OUTLETS = {
     "cnsnews.com": "CNS News", "catholicvote.org": "CatholicVote", "lifenews.com": "LifeNews", "cbn.com": "CBN News",
     "campusreform.org": "Campus Reform", "thecollegefix.com": "The College Fix", "unherd.com": "UnHerd",
     "semafor.com": "Semafor", "nationalpost.com": "National Post", "dailywire.com": "Daily Wire",
-    "notthebee.com": "Not the Bee", "courthousenews.com": "Courthouse News", "scotusblog.com": "SCOTUSblog",
+    "notthebee.com": "Not the Bee", "babylonbee.com": "The Babylon Bee", "courthousenews.com": "Courthouse News", "scotusblog.com": "SCOTUSblog",
     "reason.com": "Reason", "cato.org": "Cato Institute", "heritage.org": "Heritage Foundation", "aei.org": "AEI",
     "washingtonpost.com": "Washington Post", "wsj.com": "Wall Street Journal", "nytimes.com": "New York Times",
     "theepochtimes.com": "The Epoch Times", "newsweek.com": "Newsweek", "foxnews.com": "Fox News",

@@ -240,7 +240,10 @@ terms). The `lifestyle` hooks, `outrage` terms and boost keywords also count as 
   celebrity when the headline has a celebrity term, the URL has an entertainment path, or the headline has
   celebrity personal-life / gossip cues (private `celebrity_gossip_terms`, matched as whole words) and no
   political or national hook outside those cues. Celebrity names are not in any lexicon, so the cues catch
-  name-only gossip from mixed outlets. Two cues outweigh an incidental core word. One celebrity sibling makes the whole cluster celebrity
+  name-only gossip from mixed outlets; they include a celebrity family member's personal tragedy (addiction,
+  rehab, sober-living, overdose cues), which otherwise reads as a crime story. A link on a celebrity outlet
+  (private `celebrity_domains`) is celebrity unless its headline has a political or national hook. Entertainment
+  paths include section names such as `/celebrity-news/`. Two cues outweigh an incidental core word. One celebrity sibling makes the whole cluster celebrity
   unless some sibling headline has a political or national hook. The exceptions:
   (a) a conservative celebrity speaking out: kept and scored favorably;
   (b) a celebrity making a fool of themselves on politics or geopolitics (a politics term plus a
@@ -256,6 +259,23 @@ terms). The `lifestyle` hooks, `outrage` terms and boost keywords also count as 
   national-security or outrage angle never leads or enters Top Stories, and is scored `penalty` (0.15) so it
   sinks in the columns.
 - Weight `weights.newsworthy` (0.15). Tests: `tests/test_newsworthy.py`.
+
+## Satire (`satire`, `ranking/satire.py`)
+
+Satire may appear in the columns but is **never the lead or a Top Story** (`fits()` refuses it for those slots, and
+the no-fresh-lead fallback skips it). It is classified **per item**, because mostly-real outlets run satire
+sections. The first signal that fires:
+
+- **outlet**: the source or link domain is a satire outlet (The Babylon Bee, The Onion, Duffel Blog, The Hard
+  Times, ClickHole, Reductress, The Beaverton and similar; defaults in `ranking/satire.py`);
+- **url**: a path segment such as `/satire/` or `/parody/` (Washington Free Beacon's satire section);
+- **category**: an RSS category or tag *Satire*, *Parody*, *Satirical* or *Spoof*;
+- **title**: an explicit label (*Satire:*, *(Parody)*);
+- **summary**: an explicit disclaimer (*This is satire*); a blurb that only mentions satire does not count.
+
+Not the Bee reports real stories with commentary, so it is not satire and stays front-eligible (tagged Opinion, so
+it doesn't lead over reported news). Settings: `satire.enabled`; `outlets`, `domains`, `url_segments`,
+`categories` replace the defaults when set. Tests: `tests/test_satire.py`.
 
 ## `lead`: lead eligibility (`ranking/lead.py`)
 
@@ -332,7 +352,7 @@ Feeds added Oct 2026: **Judicial Watch** (`judicialwatch.org/feed/`, press relea
 | key | default | meaning |
 |---|---|---|
 | `default_tier` | 0.5 | Tier for any feed not listed |
-| `tiers` | per outlet, 0.5–0.9 (legal analysis rated high: SCOTUSblog 0.9, Volokh Conspiracy 0.85; think tanks Cato Institute 0.85, Heritage Foundation 0.85, AEI 0.85, Courthouse News 0.85; Not the Bee 0.5, since it's satirical commentary) | Source weight (0–1). It also decides which outlet's link represents a cluster. |
+| `tiers` | per outlet, 0.5–0.9 (legal analysis rated high: SCOTUSblog 0.9, Volokh Conspiracy 0.85; think tanks Cato Institute 0.85, Heritage Foundation 0.85, AEI 0.85, Courthouse News 0.85; Not the Bee 0.5, wry commentary on real news: not satire, front-eligible) | Source weight (0–1). It also decides which outlet's link represents a cluster. |
 
 ## `social`
 | key | default | meaning |

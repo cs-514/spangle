@@ -104,6 +104,45 @@ class Newsworthiness(unittest.TestCase):
         self.assertIsNone(N.compute([], {}, {"alignment_cfg": {}}))
 
 
+class CelebrityFamilyTragedy(unittest.TestCase):
+    """A celebrity family member's personal tragedy (addiction, rehab, overdose) is gossip, even with
+    crime/news words ('suspected', 'police', 'officials') in the headline or blurb."""
+    def cfg(self):
+        import copy
+        c = copy.deepcopy(CFG); n = c["newsworthiness"]
+        n["core_terms"] += ["police"]; n["routine_court_terms"] += ["police", "suspect"]
+        n["national_hooks"] += ["police"]
+        n["entertainment_paths"] += ["/celebrity-news/"]
+        n["celebrity_domains"] = ["gossip.example"]
+        n["celebrity_gossip_terms"] += ["sober house", "suspected od", "rehab stint", "brother's death"]
+        return c
+
+    def run1(self, title, link="https://news.example/us/x", desc=""):
+        s = story(title, link=link, desc=desc)
+        cs = [{"id": 0, "outlets": ["x"], "items": [s]}]
+        N.compute(cs, {}, {"alignment_cfg": self.cfg()})
+        return cs[0]
+
+    BLURB = "Officials responded to a call from the residence in February, per police records."
+
+    def test_sober_house_overdose_dropped(self):
+        t = "Sober house where model’s son died had a previous suspected OD call earlier this year: report"
+        self.assertTrue(self.run1(t, desc=self.BLURB).get("dropped"))
+
+    def test_celebrity_news_path_dropped(self):
+        c = self.run1("Home where heir died had earlier police call", link="https://news.example/2026/10/19/celebrity-news/home")
+        self.assertTrue(c.get("dropped"))
+
+    def test_celebrity_outlet_dropped_without_hook(self):
+        self.assertTrue(self.run1("Heir’s final weeks revealed", link="https://www.gossip.example/2026/a", desc=self.BLURB).get("dropped"))
+
+    def test_celebrity_outlet_with_political_hook_kept(self):
+        self.assertFalse(self.run1("Trump aide’s tax fight revealed", link="https://www.gossip.example/2026/b").get("dropped"))
+
+    def test_overdose_policy_story_kept(self):
+        self.assertFalse(self.run1("Border crackdown cuts overdose deaths, police say").get("dropped"))
+
+
 if __name__ == "__main__":
     unittest.main()
 

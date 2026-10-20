@@ -45,6 +45,7 @@ def lexicon(ctx):
     return {"core": _rx(core), "celeb": _rx(nw.get("celebrity_terms", [])),
             "gossip": _rx(nw.get("celebrity_gossip_terms", []), open_end=False),
             "paths": [p.lower() for p in nw.get("entertainment_paths", [])],
+            "domains": [d.lower() for d in nw.get("celebrity_domains", [])],
             "cons": _rx(nw.get("conservative_celebs", [])), "speak": _rx(nw.get("speaking_out_terms", [])),
             "fool": _rx(nw.get("fool_terms", [])), "pol": _rx(nw.get("politics_terms", [])),
             "biz": _rx(nw.get("business_terms", [])), "fig": _rx(nw.get("aligned_figures", [])),
@@ -66,12 +67,20 @@ def _news_hook(item, lx):
     return any(not _hit(lx["celeb"], m.group(0)) for m in lx["hooks"].finditer(t)) if lx.get("hooks") else False
 
 
+def _celeb_domain(link, domains):
+    host = re.sub(r"^https?://(www\.)?", "", link).split("/")[0]
+    return any(host == d or host.endswith("." + d) for d in domains)
+
+
 def classify(item, lx):
     """-> "conservative" | "fool" | "drop" (celebrity cases), "core" or "off" (everything else)."""
     t = item["title"].lower().replace("’", "'")
     hay = f"{t} {(item.get('desc') or '').lower()}".replace("’", "'")
     link = (item.get("link") or "").lower()
     celeb = _hit(lx["celeb"], t) or any(p in link for p in lx["paths"]) or t.startswith("review:")
+    if not celeb and lx.get("domains") and _celeb_domain(link, lx["domains"]):
+        # celebrity outlet (private list): celebrity unless the headline has a political / national hook
+        celeb = not _news_hook(item, lx)
     if not celeb and lx.get("gossip"):
         # celebrity personal-life / gossip story with no named celebrity term ('X Shares Heartbreaking
         # Tribute After Son's Death', 'Y Beams as Z Makes Dazzling Debut'): celebrity unless the headline

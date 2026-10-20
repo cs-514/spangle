@@ -568,5 +568,9 @@
     "enabled": true,
     "min_gain": 0.08,
     "lighter_variants": true
+  },
+  "satire": {
+    "enabled": true,
+    "_note": "Satire runs in the columns only, never lead/Top. Detected per item (outlet/domain, URL segment, feed category/tag, title label, summary disclaimer); defaults in ranking/satire.py. Lists set here replace the defaults."
   }
 }
