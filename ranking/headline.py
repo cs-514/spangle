@@ -154,12 +154,31 @@ def fix_allcaps(title, sty=None):
             return p[:1] + p[1:].lower()
         return p
 
+    # Shouting title (most words ALL CAPS): only known acronyms keep their caps. Otherwise an isolated
+    # ALL-CAPS token of 2-6 letters is the source's own acronym (WNBA, EBT, ALCS): keep it as written
+    # rather than inventing 'Wnba'; obscure_acronyms() then queues it if readers won't know it. A run
+    # of 2+ unknown caps words is emphasis ('MIKE DAVIS', 'PARTIALLY UNREDACTED') and is title-cased.
+    wtoks = re.findall(r"[A-Za-z][A-Za-z’']*", title)
+    shout = bool(wtoks) and sum(1 for x in wtoks if len(x) >= 2 and x.upper() == x) / len(wtoks) > 0.5
+
+    def bare(x):
+        return re.sub(r"[’']S$", "", re.sub(r"^[^A-Za-z]+|[^A-Za-z’']+$", "", x))
+
+    def emphasis_run(start, end):
+        nb = re.findall(r"[A-Za-z][A-Za-z’']*", title[:start])[-1:] + re.findall(r"[A-Za-z][A-Za-z’']*", title[end:])[:1]
+        return any(len(bare(x)) >= 2 and bare(x).isupper() and bare(x).isalpha() and not keep(bare(x)) for x in nb)
+
     def fix(m):
         lead, w, trail = m.group(1), m.group(2), m.group(3)
         if w in words:
             return lead + words[w] + trail
         if keep(w):
             return m.group(0)
+        run = w.isalpha() and emphasis_run(m._m.start(2), m._m.end(2))
+        if not shout and w.isalpha() and 2 <= len(w) <= 6 and w not in common and not run:
+            return m.group(0)
+        if run and len(w) >= 3 and re.search(r"[AEIOUY]", w):
+            return lead + w[:1] + w[1:].lower() + trail  # 'JOE ROSS:' -> 'Joe Ross:'; 'NBC NEWS' keeps NBC
         if "-" in w:  # each part of a compound on its own: EX-SJSU -> Ex-SJSU, MS-13 stays
             ps = w.split("-")
             return lead + "-".join(p if keep(p) else (p[:1] + p[1:].lower() if len(p) > 1 else p) for p in ps) + trail

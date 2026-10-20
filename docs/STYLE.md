@@ -124,6 +124,12 @@ their own (*Ex-SJSU*); dotted forms must be listed dotted (*U.S.*, *S.C.*); Roma
 (*F-35*, *Q3*), `well_known_phrases` (*MS Now*) and two-letter initials before a name (*JD Vance*) are not
 flagged. A rewrite that still uses an obscure acronym is rejected. The other house rules still apply (single
 curly quotes; *with*, *to*, *over* lowercase; no orphans; *Dems*, never *DEMS*).
+- **Source ALL-CAPS tokens:** in a normal mixed-case title an isolated ALL-CAPS token of 2-6 letters that
+  isn't a known acronym keeps its caps as the source wrote it (*WNBA*, *ALCS*, *Navy-UTSA*) instead of being
+  title-cased into *Wnba*; if it isn't in `acronyms.well_known` it is queued as `obscure_acronym` for a
+  plain-descriptor rewrite. Shouting titles (most words in caps) and emphasis runs of two or more caps words
+  (*JOE ROSS:*, *PARTIALLY UNREDACTED*) are still title-cased, and listed shout words
+  (`allcaps_common`: *WATCH, SLAMS, NOT* …) are title-cased anywhere.
 
 ## Drop redundant possessives
 
