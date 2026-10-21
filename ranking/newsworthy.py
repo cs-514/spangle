@@ -13,6 +13,8 @@
 - Routine local crime/court items (bond hearings, arraignments, local sentencing: only routine court words)
   don't count as core unless they carry a national hook (prominent person, illegal-immigration, political or
   culture-war angle) or have 4+ outlets; otherwise they are dropped.
+- Devotional / church-life pieces (preaching, discipleship, worship, prayer, ministry advice) use the same
+  gate as sports below: DROPPED unless the headline has a central national political / culture-war hook.
 - Pure sports stories (games, players, trades, injuries, coaches, team drama) are DROPPED unless the
   headline carries a genuine national political / culture-war hook. A story is sports when its URL has a
   sports path, its headline has an unambiguous sports cue, or it has an ambiguous team-nickname cue that the
@@ -62,24 +64,31 @@ def lexicon(ctx):
             "routine": _rx(nw.get("routine_court_terms", [])), "routine_set": {w.lower() for w in nw.get("routine_court_terms", [])},
             "hooks": _rx(nw.get("national_hooks", []) + nw.get("politics_terms", []) + nw.get("aligned_figures", [])),
             "routine_min": int(nw.get("routine_min_outlets", 4)), "routine_drop": bool(nw.get("routine_drop", True)),
-            "sports": _sports_lexicon(nw), "blurb_words": int(nw.get("celebrity_blurb_words", 6)),
+            "gates": [g for g in ((name, _gate_lexicon(nw, name)) for name in GATES) if g[1]], "blurb_words": int(nw.get("celebrity_blurb_words", 6)),
             "penalty": float(nw.get("penalty", 0.15)), "cons_score": float(nw.get("conservative_celeb_score", 1.0))}
 
 
-def _sports_lexicon(nw):
-    """Sports gate (private keys sports_terms, sports_team_terms, sports_paths, sports_hooks,
-    sports_hook_verbs, sports_hook_ignore). None when no sports cues are configured."""
-    terms, teams = nw.get("sports_terms") or [], nw.get("sports_team_terms") or []
-    if not terms and not teams and not nw.get("sports_paths"):
+GATES = ("sports", "devotional")  # topic gates: dropped unless the headline has a central political hook
+
+
+def _gate_lexicon(nw, name="sports"):
+    """A topic gate (sports; devotional / church-life) from private keys <name>_terms, <name>_team_terms
+    (ambiguous cues that need corroboration), <name>_paths, <name>_hooks, <name>_hook_verbs and
+    <name>_hook_ignore (verbs and ignore list fall back to the sports ones); <name>_hooks_include_core adds the
+    core terms to the generic (centrality-tested) hooks. None when unconfigured."""
+    key = lambda k: nw.get(f"{name}_{k}") if nw.get(f"{name}_{k}") is not None else (nw.get(f"sports_{k}") if k in ("hook_verbs", "hook_ignore") else None)
+    terms, teams = key("terms") or [], key("team_terms") or []
+    if not terms and not teams and not key("paths"):
         return None
-    skip = {w.lower() for w in (nw.get("sports_hook_ignore") or []) + (nw.get("routine_court_terms") or [])}
+    skip = {w.lower() for w in (key("hook_ignore") or []) + (nw.get("routine_court_terms") or [])}
     cues = {w.lower() for w in terms + teams}
-    generic = [w for w in (nw.get("politics_terms") or []) + (nw.get("national_hooks") or [])
-               + (nw.get("aligned_figures") or []) if w.lower() not in skip and w.lower() not in cues]
+    pool = (nw.get("politics_terms") or []) + (nw.get("national_hooks") or []) + (nw.get("aligned_figures") or []) \
+        + ((nw.get("core_terms") or []) if nw.get(f"{name}_hooks_include_core") else [])
+    generic = [w for w in pool if w.lower() not in skip and w.lower() not in cues]
     return {"terms": _rx(terms, open_end=False), "teams": _rx(teams, open_end=False),
-            "paths": [p.lower() for p in nw.get("sports_paths") or []],
-            "hooks": _rx(nw.get("sports_hooks") or []), "generic": _rx(generic, open_end=False),
-            "verbs": _rx(nw.get("sports_hook_verbs") or [], open_end=False),
+            "paths": [p.lower() for p in key("paths") or []],
+            "hooks": _rx(key("hooks") or []), "generic": _rx(generic, open_end=False),
+            "verbs": _rx(key("hook_verbs") or [], open_end=False),
             "subject_words": int(nw.get("sports_subject_words", 2)), "verb_window": int(nw.get("sports_verb_window", 3))}
 
 
@@ -185,10 +194,11 @@ def classify(item, lx):
         if _hit(lx["pol"], hay) and _hit(lx["fool"], hay):
             return "fool"
         return "drop"
-    sp = lx.get("sports")
-    if sp and is_sports(item, sp):
-        # pure sports (games, players, trades, injuries, coaches) unless a central national/culture-war hook
-        return "sports_core" if sports_hook(item["title"], sp) else "sports"
+    for name, sp in lx.get("gates") or []:
+        if is_sports(item, sp):
+            # pure sports (games, players, trades, injuries, coaches) or devotional / church-life advice
+            # (preaching, discipleship, worship, ministry) unless a central national / culture-war hook
+            return "gate_core" if sports_hook(item["title"], sp) else "gate:" + name
     biz = _hit(lx.get("biz"), t)                                    # major business / tech breakthrough
     ally = _hit(lx.get("fig"), hay) and _hit(lx.get("win"), t)      # win by a conservative-aligned figure
     if biz and ally:
@@ -211,13 +221,14 @@ def compute(clusters, settings, ctx):
     lx = lexicon(ctx)
     if lx is None:
         return None
-    out, n = {}, {"drop": 0, "off": 0, "conservative": 0, "fool": 0, "sports": 0}
+    out, n = {}, {"drop": 0, "off": 0, "conservative": 0, "fool": 0, "sports": 0, "devotional": 0}
     for c in clusters:
         kinds = [classify(s, lx) for s in c["items"]]
-        sports = "sports" in kinds and "sports_core" not in kinds and kinds.count("sports") * 2 >= len(kinds)
-        kinds = ["core" if x == "sports_core" else ("sib" if x == "sports" else x) for x in kinds]
+        gated = [x for x in kinds if x.startswith("gate:")]
+        sports = gated and "gate_core" not in kinds and len(gated) * 2 >= len(kinds)
+        kinds = ["core" if x == "gate_core" else ("sib" if x.startswith("gate:") else x) for x in kinds]
         if sports and not any(x in ("conservative", "both", "business_or_aligned", "fool") for x in kinds):
-            k = "drop"; n["sports"] += 1  # mostly pure-sports headlines and none with a political hook
+            k = "drop"; n[max(set(gated), key=gated.count)[5:]] += 1  # mostly gated-topic headlines, none hooked
         elif "conservative" in kinds:
             k = "conservative"
         elif "both" in kinds:
@@ -258,5 +269,6 @@ def compute(clusters, settings, ctx):
             n[k] += 1
     print(f"signal newsworthy: {n['drop']} celebrity dropped, {n['off']} off-criteria kept off front, "
           f"{n['conservative']} conservative-celebrity, {n['fool']} celebrity-politics backlash, "
-          f"{n.get('biz', 0)} business/tech or aligned-figure wins, {n['sports']} pure-sports dropped")
+          f"{n.get('biz', 0)} business/tech or aligned-figure wins, {n['sports']} pure-sports dropped, "
+          f"{n['devotional']} devotional dropped")
     return out

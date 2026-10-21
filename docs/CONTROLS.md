@@ -266,6 +266,12 @@ terms). The `lifestyle` hooks, `outrage` terms and boost keywords also count as 
   in an otherwise political cluster is shed; a mostly-sports cluster with no hooked headline is dropped.
   Cue lists, hooks and verbs are private (`sports_terms`, `sports_team_terms`, `sports_paths`, `sports_hooks`,
   `sports_hook_verbs`, `sports_hook_ignore`). Tests: `tests/test_sports.py`.
+- **Devotional / church-life pieces are dropped** by the same gate mechanism: preaching, discipleship, worship,
+  prayer, ministry or theology advice never appears unless the headline has a genuine national political or
+  culture-war hook (a religious-liberty case, government action on churches, abortion, a persecution story, a
+  politician at the center of the headline). Faith-life words themselves never count as the hook. Cue lists and
+  hooks are private (`devotional_terms`, `devotional_paths`, `devotional_hooks`, `devotional_hook_ignore`;
+  `devotional_hooks_include_core` lets central core terms count). Tests: `tests/test_devotional.py`.
 - **Featured slots need a core criterion.** A story with no political, policy, culture-war, legal,
   national-security or outrage angle never leads or enters Top Stories, and is scored `penalty` (0.15) so it
   sinks in the columns.
@@ -337,7 +343,10 @@ These rules apply to every item, whether it comes from a feed, a curated pick or
 - **`WALL_PATTERNS`:** each chosen link is fetched (when `placement.check_links` is on) and dropped if its HTML contains a
   specific wall marker. Examples are the schema.org `isAccessibleForFree: false` flag, "subscribe to continue reading", "create a free account to
   continue", "sign in to keep reading", "you have reached your article limit", Blaze Media's `topic-premium`, National Review Plus and
-  Substack paid posts. A link is also dropped if it redirects onto a blocked domain.
+  Substack paid posts. Also caught: an article-level wall section (`<section class="article-paywall …">`, which
+  SCOTUSblog's members-only posts put after a short teaser; its free posts have none, so the domain stays
+  linkable post by post), and content-tier / paywall meta tags or JSON (`article:content_tier` = locked/metered,
+  `paywall` = subscriber, `contentTier: premium`). A link is also dropped if it redirects onto a blocked domain.
 - Generic words like "subscribe", "paywall" or the Piano, Tinypass and Zephr scripts aren't used, because many free sites load them
   (Hot Air, Townhall, PJ Media, SCOTUSblog and the Washington Examiner all do) and they would cause false positives.
 - **Blaze+ (BlazeTV premium) teasers:** detected by the `Premium` post section (`topic-premium` sailthru tag,

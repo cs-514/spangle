@@ -115,6 +115,15 @@ WALL_PATTERNS = [re.compile(p) for p in [
     r"sections:\s*\[[^\]]*'premium'", r"'post_sections':\s*\"\[[^\]]*'premium'",  # Blaze+ section in page context
     r"nr-plus|nrplus",                                         # National Review Plus pieces
     r'"audience"\s*:\s*"only_paid"',                          # Substack paid posts
+    # article-level wall section (SCOTUSblog members-only posts end their short teaser with
+    # <section class="article-paywall piano-container">; its free posts have no such section)
+    r'<section[^>]*class="[^"]*\barticle-paywall\b',
+    # content-tier / paywall meta tags (either attribute order) and their JSON equivalents
+    r'<meta[^>]+(?:name|property)="(?:article:content_tier|content[_-]tier|paywall|access[_-]level)"[^>]*'
+    r'content="(?:locked|metered|premium|paid|subscriber|subscribers|subscription|members?|registered)"',
+    r'<meta[^>]+content="(?:locked|metered|premium|paid|subscriber|subscribers|subscription|members?|registered)"[^>]*'
+    r'(?:name|property)="(?:article:content_tier|content[_-]tier|paywall|access[_-]level)"',
+    r'"(?:content_?tier|contenttier)"\s*:\s*"(?:locked|metered|premium|paid)"',
 ]]
 
 

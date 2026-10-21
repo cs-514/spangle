@@ -291,6 +291,8 @@ put a writer's or source's words in someone else's mouth (no "Gillis:" prefix fo
 - Pure sports (games, players, trades, injuries, coaches, team drama) never runs at all unless the headline
   carries a genuine national political or culture-war hook; a politician or "police" mentioned in passing is
   not a hook
+- Devotional or church-life advice (preaching, discipleship, worship, prayer, ministry) never runs unless the
+  headline carries a genuine national political or culture-war hook
 
 ## Academic / explainer posts (Volokh and similar)
 

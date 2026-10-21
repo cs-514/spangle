@@ -49,5 +49,44 @@ class SiblingSwapRespectsWalls(unittest.TestCase):
         self.assertTrue(A.suppressed("https://www.theblaze.com/columns/opinion/billy-crystal-no-longer-trusts-god-christians-should-listen", s))
 
 
+PIANO_SCRIPTS = ('<link rel="preload" href="https://experience.tinypass.com/xbuilder/experience/load?aid=x" as="script"/>'
+                 '<link rel="preconnect" href="https://api.piano.io"/><div class="piano-fixed-bottom-content piano-container"></div>'
+                 "<p>Free readers receive the Friday edition. Full access is for members.</p>")  # on every page of the site
+
+
+class MeteredSections(unittest.TestCase):
+    """Members-only posts on a mostly-free site: a short teaser followed by an article-level wall section."""
+    def test_member_post_detected(self):
+        body = PIANO_SCRIPTS + '<p>Teaser paragraph.</p><section class="article-paywall piano-container not-prose"></section>'
+        self.assertIsNotNone(A.wall_marker(body))
+
+    def test_free_post_on_same_site_not_flagged(self):
+        self.assertIsNone(A.wall_marker(PIANO_SCRIPTS + "<p>Full free article text.</p>" * 40))
+
+    def test_content_tier_meta_detected(self):
+        for m in ['<meta property="article:content_tier" content="locked"/>',
+                  '<meta content="metered" name="content-tier">',
+                  '<meta name="paywall" content="subscriber">',
+                  '{"contentTier": "premium"}']:
+            self.assertIsNotNone(A.wall_marker(m), m)
+
+    def test_free_tier_meta_not_flagged(self):
+        for m in ['<meta property="article:content_tier" content="free"/>', '<meta name="paywall" content="none">',
+                  '{"isAccessibleForFree": true}', '<div class="paywall-placeholder"></div>']:
+            self.assertIsNone(A.wall_marker(m), m)
+
+    def test_walled_link_dropped_and_free_sibling_used(self):
+        A.WALL_CACHE.clear()
+        orig = A._url_ok
+        A._url_ok = lambda s: "walled.example" not in s["link"]
+        try:
+            settings = {"placement": {"check_links": True}}
+            walled = story("Justice Roe Comments on Court", source="Law Blog", link="https://walled.example/2026/roe")
+            free = story("Justice Roe Says Court Has Changed", source="Fox News", link="https://free.example/roe")
+            self.assertFalse(A.link_free(walled, settings)); self.assertTrue(A.link_free(free, settings))
+        finally:
+            A._url_ok = orig; A.WALL_CACHE.clear()
+
+
 if __name__ == "__main__":
     unittest.main()
