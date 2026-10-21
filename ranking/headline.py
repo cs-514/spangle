@@ -537,6 +537,30 @@ _AUX = re.compile(r"\b(?:Was|Were|Is|Are|Has Been|Have Been)\s+(?=[A-Za-z]+ed\b)
 _PREP = re.compile(r"\s(?:at|in|on|after|amid|over|during|near|from|with|despite|following|as|across|outside|inside|before|into|against|amid)\s", re.I)
 
 
+_ABBR = {"mr", "mrs", "ms", "dr", "st", "jr", "sr", "gov", "sen", "rep", "gen", "lt", "col", "sgt", "vs", "no", "inc", "co", "corp", "ft", "mt"}
+_SENT_BREAK = re.compile(r"[.?!][’”'\"]?\s+(?=[A-Z‘“'\"0-9])")
+
+
+def sentences(t):
+    """Split a headline at real sentence breaks ('Took His Wife. He’s Now Been Charged'), never after an
+    abbreviation or initials ('U.S. Says', 'Gov. Abbott', 'J.D. Vance')."""
+    out, start = [], 0
+    for m in _SENT_BREAK.finditer(t or ""):
+        word = (t[start:m.start() + 1].split() or [""])[-1]
+        if re.fullmatch(r"(?:[A-Za-z]\.)+", word) or word.rstrip(".").lower() in _ABBR:
+            continue
+        out.append(t[start:m.end()].strip()); start = m.end()
+    out.append((t or "")[start:].strip())
+    return [x for x in out if x]
+
+
+_FILLER_WORDS = {"just", "now", "officially", "actually", "literally", "even"}
+
+
+def _core_toks(t):
+    return [w for w in _toks(t) if w and w not in _FILLER_WORDS]
+
+
 def shorten(title, styl=None):
     """Deterministic, meaning-preserving trims for over-long headlines (never truncation, no ellipsis).
     Applied in order until the headline fits max_chars/max_words: parentheticals, leading article,
@@ -554,7 +578,8 @@ def shorten(title, styl=None):
         if fits(t):
             break
         t = re.sub(r"\s{2,}", " ", f(t)).strip()
-    if not fits(t):
+    multi = len(sentences(t)) >= 2  # 'X Claimed Y. Now He Is Charged': the later sentence is the payoff
+    if not fits(t) and not multi:
         t = open_dashes(t)
         for sep in (" — ", " – ", " | ", ": "):
             if sep in t and not inside_quote(t, t.index(sep)):
@@ -562,7 +587,7 @@ def shorten(title, styl=None):
                 if len(left.split()) >= 4 and not contentless(left) and not fragment(left, t):
                     t = left
                     break
-    if not fits(t):
+    if not fits(t) and not multi:  # every cut is cut-to-end, so it would drop the payoff sentence
         cuts = [m.start() for m in _PREP.finditer(t)] + [m.start() for m in re.finditer(r",\s", t)]
         cuts = [p for p in cuts if not inside_quote(t, p)]  # never cut inside a quotation (orphans its opener)
         for pos in sorted(cuts, reverse=True):  # smallest removal first
@@ -574,7 +599,11 @@ def shorten(title, styl=None):
     if t == title.strip():
         return title
     out = clean(t, sty)[0] or title
-    return out if balanced_quotes(out) or not balanced_quotes(title) else title
+    if not balanced_quotes(out) and balanced_quotes(title):
+        return title
+    if _payoff_cut(out, title):
+        return title  # never trade a whole headline for a stub; the caller queues a rewrite instead
+    return out
 
 
 STRONG_VERBS = {
@@ -588,7 +617,11 @@ STRONG_VERBS = {
     "gave", "fails", "fizzle", "fizzles", "grows", "grew", "burns", "burned", "admits", "demands", "rips", "torches",
     "launches", "joins", "invites", "honors", "turns", "probes", "stirs", "sends", "files", "drops", "pays",
     "know", "knows", "think", "thinks", "prefer", "prefers", "need", "needs", "keeps", "kept"}
-_DANGLING = {"that", "which", "whose", "of", "the", "a", "an", "and", "or", "but", "than"}
+_DANGLING = {"that", "which", "whose", "of", "the", "a", "an", "and", "or", "but", "than", "so", "yet"}
+_STUB_ADVERBS = {"now", "then"}
+_NEEDS_OBJECT = {"charged", "accused", "indicted", "convicted", "sentenced", "sued", "blamed", "linked", "tied",
+                 "cited", "fined", "arrested", "booked", "jailed", "busted", "nabbed", "caught"}
+_OBJ_PREPS = {"with", "for", "in", "of", "to", "over", "after"}
 
 
 _TIME_UNITS = {"days", "hours", "weeks", "months", "years", "minutes", "moments", "day", "hour", "week", "month", "year"}
@@ -609,6 +642,34 @@ def fragment(display, original=None):
     return incomplete(display, original) is not None
 
 
+def _payoff_cut(display, original=None):
+    """A multi-sentence / trailing-adverb cut that lost the news: a period-split stub ('… Nabbed Her. Now'),
+    a trailing 'Now'/'Then' where the source goes on, a later sentence whose verb lost its object
+    ('He’s Been Charged' from '… Charged with Killing Her'), or a charge-type participle cut before its object."""
+    toks = [w for w in _toks(display) if w]
+    if not toks:
+        return False
+    sents = sentences(display)
+    if len(sents) >= 2 and missing_verb(sents[-1]):
+        return True  # period-split stub: 'Husband Claims ICE Nabbed Her. Now'
+    if toks[-1] in _STUB_ADVERBS and re.search(r"[.,;:!?]\s*\S+[.!?]?$", display.strip()):
+        return True  # 'X Did Y, Then' / '... Her. Now'
+    if original is not None:
+        dc, oc = _core_toks(display), _core_toks(original)
+        if toks[-1] in _STUB_ADVERBS and len(oc) > len(dc) and oc[:len(dc)] == dc:
+            return True  # trailing 'Now' / 'Then' where the source goes on
+        osents = sentences(original)
+        if len(sents) >= 2 and len(osents) >= len(sents):
+            last, src = _core_toks(sents[-1]), _core_toks(osents[len(sents) - 1])
+            if last and len(src) > len(last) and src[:len(last)] == last:
+                return True  # a later sentence lost its verb's object: 'He’s Been Charged' (… with Killing Her)
+        if toks[-1] in _NEEDS_OBJECT:
+            k = len(dc)
+            if k and len(oc) > k + 1 and oc[:k] == dc and oc[k] in _OBJ_PREPS:
+                return True  # 'Ex-Aide Charged' cut from 'Ex-Aide Charged with Fraud'
+    return False
+
+
 def _fragment_core(display, original=None):
     """True when a display headline reads as a cut-off fragment: it ends on a dangling function word,
     it dropped every strong verb the original had ('‘Vast Majority’ of Iran’s Attempted Attacks' from
@@ -618,6 +679,8 @@ def _fragment_core(display, original=None):
     if not toks:
         return False
     if toks[-1] in _DANGLING:
+        return True
+    if _payoff_cut(display, original):
         return True
     if original is not None:
         left = [w for w in _toks(re.split(r"\s*—\s*|\s[–|]\s|:\s", original)[0]) if w]

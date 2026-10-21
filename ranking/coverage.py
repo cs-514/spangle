@@ -70,7 +70,8 @@ SYN = {"probe": "inves", "probi": "inves", "subpo": "inves", "raid": "inves", "r
        "inqui": "inves", "lives": "lives", "live-": "lives", "seize": "inves", "seizu": "inves", "seiza": "inves", "passp": "inves",
        "mail": "lette", "maile": "lette", "envel": "lette", "packa": "lette",
        "sue": "lawsu", "sues": "lawsu", "sued": "lawsu", "suing": "lawsu",
-       "indic": "charg", "arres": "charg", "convi": "charg"}
+       "indic": "charg", "arres": "charg", "convi": "charg",
+       "killi": "murde", "kille": "murde", "kills": "murde", "slain": "murde", "slayi": "murde"}
 GENERIC = {"repor", "says", "trump", "presi", "news", "state", "house", "democ", "repub", "polit", "biden",
            "white", "watch", "video", "breaking", "exclu", "opini", "ameri", "gover", "feder", "offic"}
 
@@ -101,9 +102,13 @@ def event_merge(clusters, stories, person_df=25, event_df=20, min_idf=2.85):
           or generic topic) seen in <= person_df headlines, or one side names that person by surname only, or
       (b) they share at least 3 event terms (each in <= event_df headlines) whose summed IDF reaches
           min_idf x log(corpus size) (so rare words like "powder" count far more than common ones), with synonyms folded
-          (probe/subpoena/raid -> investigation, mail/envelope -> letter, sue -> lawsuit)."""
+          (probe/subpoena/raid -> investigation, mail/envelope -> letter, sue -> lawsuit, killing/slain -> murder).
+          Event terms are stems of 4+ letters, or a 3-letter acronym written in capitals (ICE, FBI)."""
     sdf, edf = {}, {}
     n = len(stories) or 1
+    # 3-letter agency acronyms (ICE, FBI, DOJ) are event terms too, when written in capitals
+    acr = {w.lower() for s in stories for w in re.findall(r"\b[A-Z]{3}\b", s["title"])} - GENERIC
+    term = lambda w: len(w) >= 4 or w in acr
     # Proper names: words capitalized mid-headline in sentence-case headlines (title-case noise excluded)
     proper = set()
     for s in stories:
@@ -137,8 +142,8 @@ def event_merge(clusters, stories, person_df=25, event_df=20, min_idf=2.85):
         if (not nb and last(pa) & wb) or (not na and last(pb) & wa):
             return True
         shared = ra & rb
-        return (sum(1 for w in shared if sdf.get(w, 0) <= event_df and len(w) >= 4) >= 3
-                and sum(math.log(n / sdf[w]) for w in shared if len(w) >= 4) >= min_idf * math.log(max(n, 3)))
+        return (sum(1 for w in shared if sdf.get(w, 0) <= event_df and term(w)) >= 3
+                and sum(math.log(n / sdf[w]) for w in shared if term(w)) >= min_idf * math.log(max(n, 3)))
 
     heads = []  # (cluster, [founding signatures of every cluster merged into it])
     for c in clusters:
