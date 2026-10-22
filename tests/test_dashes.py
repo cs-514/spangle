@@ -66,8 +66,8 @@ class Quote(unittest.TestCase):
         self.assertEqual(s["display"], "A—B Wins")
 
     def test_validator(self):
-        self.assertTrue(Q.problems("Courage Is Every Virtue -- at the Testing Point"))
-        self.assertEqual(Q.problems("Courage Is Every Virtue—at the Testing Point"), [])
+        self.assertTrue(Q.problems("Every Virtue -- the Same Exam"))
+        self.assertEqual(Q.problems("Every Virtue Faces—the Same Exam"), [])
 
     def test_bank_closed_dashes(self):
         for q in json.load(open(f"{ROOT}/qotd_bank.json"))["quotes"]:

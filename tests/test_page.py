@@ -18,7 +18,7 @@ class QuotePlacement(unittest.TestCase):
         old, A.HERE = A.HERE, d
         try:
             json.dump({"quotes": [{"id": "p1", "quote": "Fresh primary quote here.", "author": "Y", "work": "W",
-                                   "verification_url": "https://example.org", "verified": True, "source_type": "primary"},
+                                   "headline": "Fresh Quotes Win", "verification_url": "https://example.org", "verified": True, "source_type": "primary"},
                                   {"id": "s1", "quote": "Secondary.", "author": "Z", "verified": False, "source_type": "secondary"}]},
                       open(f"{d}/b.json", "w"))
             q = A.load_daily_quote("q.json", today="2026-10-15", bank_file="b.json")

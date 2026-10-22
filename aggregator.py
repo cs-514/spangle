@@ -940,7 +940,7 @@ def fallback_quote(today, bank_file="qotd_bank.json"):
             raw = json.load(f)
         author_w = raw.get("author_weights") or {}
         bank = [q for q in raw["quotes"] if q.get("verified") and q.get("source_type") in ("primary", "column")
-                    and q.get("status") not in ("retired", "low_impact")
+                    and q.get("status") not in ("retired", "low_impact") and (q.get("headline") or "").strip()
                     and len(q["quote"].split()) <= quote_word_limit(q)]
     except Exception:
         return None
@@ -951,10 +951,9 @@ def fallback_quote(today, bank_file="qotd_bank.json"):
     weighted = [dict(q, weight=float(q.get("weight", 1)) * float(author_w.get(q["id"].split("-")[0], 1))
                      * float(q.get("impact", 4)) / 4) for q in bank]
     q = dict(weighted_pick(weighted, int(hashlib.sha256(today.encode()).hexdigest(), 16)))
-    words = q["quote"].replace("—", " ").replace(";", ".").split()
-    # A curated bank headline is final (the news pipeline would turn "One Omen" into "1 Omen" or drop
-    # "His"); only a headline derived from the quote's opening words goes through clean().
-    q["headline"] = (q.get("headline") or "").strip() or headline_mod.clean(" ".join(words[:8]).rstrip(".,;:"))[0]
+    # Only quotes with a curated bank headline are eligible, and that headline is final: a short framing
+    # vetted against the quote. Never derive one from the quote's opening words (that gives the quote away).
+    q["headline"] = q["headline"].strip()
     q["date"] = today
     return q
 

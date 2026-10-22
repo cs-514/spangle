@@ -1,13 +1,16 @@
 """Quote-of-the-Day headline validator. A QOTD headline must be a complete, standalone thought: a subject plus
 a verb ("Pride Only Wants More Than the Next Man"), a crisp imperative ("Know the Enemy and Know Yourself"), or a
 question ("Where Shall the Power to Tax Stop?"). Never a noun phrase ("The Inherent Right of Self-Defense") or a
-subordinate clause that trails off ("How Politics Curdled Equality into Resentment"). House style: title case
+subordinate clause that trails off ("How Politics Curdled Equality into Resentment"). Short: at most 8 words and
+50 characters (aim for 3-7), a framing or thesis that sets the quote up; never the quote's punchline or its
+opening copied out (the reader gets the payoff in the quote itself). House style: title case
 (with/to/over lowercase), single curly quotes. Reuses the news fragment detector for dangling endings."""
 import re
 from . import headline as h
 
-MAX_WORDS = 11
-MAX_CHARS = 62
+MAX_WORDS = 8   # a short framing (aim for 3-7 words), not the quote's opening copied out
+MAX_CHARS = 50
+SPOIL_SHARE = 0.6  # share of the headline's content words found in the quote's closing / punchiest line
 SUBORDINATE = {"how", "why", "what", "when", "where", "which", "who", "whose", "that", "because", "if", "while",
                "although", "though", "whether"}
 # Finite / imperative verbs common in quote headlines (in addition to headline.STRONG_VERBS).
@@ -26,6 +29,10 @@ smile speak stand stands stop stops strive study studies swear take takes taken 
 trade treat turned turn turns use uses want wants weigh weighs win wins worsened wrote written
 encourage exclude detest believe believes eyes mislead misleads ended asserted begins belongs evaporates limits
 spread threaten threatens return returns emanates benefits benefit insists sought rises fails stands marches
+describes misses sharpens draws depend ignores upended questions skip shaped sounds erodes challenges meant
+learn settled drew announce accuses names ties hold lays placed diagnoses defines issues sustains frames champions
+begin survive mourns refuse backed finds rejects tests dissects recalls inherit accepts craves outlast predicts bets explains check treats prizes matters decides favors meet exist
+answers refuses defends scorns restores steadies owns chooses condemns rallies rebukes longs mocks backfire settles
 """.split())
 AMBIGUOUS = {"called"}  # participles that usually modify a noun ('This Breed Called Americans')
 REL = {"what", "that", "which", "who", "whom", "whose", "when", "where", "how", "why"}  # 'to' is an infinitive, not a clause
@@ -60,8 +67,39 @@ def has_verb(t):
     return False
 
 
-def problems(headline, sty=None):
-    """List of reasons the headline fails (empty = OK)."""
+_STOP = set("""a an the and or but nor so yet of to in on at by for with from into over as is are was were be been
+it its this that these those than then there their they them he she his her him we our us you your i my me not no
+do does did will would shall should can could may might must have has had what which who whom when where how why
+all any each every some such only own just very more most much many""".split())
+
+
+def _content(t):
+    return {w[:5] for w in re.findall(r"[a-z]+", (t or "").lower().replace("’", "'")) if w not in _STOP and len(w) > 2}
+
+
+def _sentences(q):
+    return [x for x in re.split(r"(?<=[.!?])[’”\"']?\s+", (q or "").strip()) if x.strip()]
+
+
+def spoils(headline, quote):
+    """The headline gives away the payoff: most of its content words come from the quote's closing sentence
+    or its punchiest short line (a sentence of 12 words or fewer). The headline should frame the quote
+    ('Power Grabs Rarely Announce Themselves'), not repeat its best line ('This Wolf Comes as a Wolf')."""
+    hw = _content(headline)
+    if not hw or not quote:
+        return False
+    sents = _sentences(quote)
+    lines = sents[-1:] + [x for x in sents[:-1] if len(x.split()) <= 12]
+    for line in lines:
+        shared = hw & _content(line)
+        if len(shared) >= 2 and len(shared) / len(hw) >= SPOIL_SHARE:
+            return True
+    return False
+
+
+def problems(headline, sty=None, quote=None):
+    """List of reasons the headline fails (empty = OK). With the quote, also rejects a headline that repeats
+    the quote's closing or punchiest line (it must set the quote up, not spoil it)."""
     t = (headline or "").strip()
     out = []
     if not t:
@@ -88,11 +126,13 @@ def problems(headline, sty=None):
         out.append("no verb: a noun phrase, not a complete thought")
     if h._fragment_core(t):
         out.append("ends on a dangling word")
+    if quote and spoils(t, quote):
+        out.append("repeats the quote's punchline (frame or set up the quote; let the quote deliver its best line)")
     tc = h.title_case(t, sty)
     if tc != t:
         out.append(f"not house title case (expected: {tc})")
     return out
 
 
-def ok(headline, sty=None):
-    return not problems(headline, sty)
+def ok(headline, sty=None, quote=None):
+    return not problems(headline, sty, quote)
