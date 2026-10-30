@@ -51,7 +51,7 @@ otherwise the story prefers a sibling headline, goes to the rewrite queue, and c
 ## Meta line
 The outlet's display name (never a raw domain such as "lifezette.com"), then the time:
 "American Greatness · Oct 15, 10:02 AM" — all displayed times are US Eastern (America/New_York, DST-aware), 12-hour with AM/PM, no zone suffix on items; no zone label anywhere (no "ET"). Header: "Friday, October 16, 2026 · Updated 6:38 AM" (Eastern date; the Updated part shows time only, each half kept unbroken so mobile wraps only at the "·"). No "UTC" anywhere on the page; ranking stays in UTC internally. No "+N outlets" count (coverage is used only for ranking).
-No Opinion tags (Drudge-style); no leading or doubled "·". The Quote of the Day shows a small QUOTE kicker above its headline, then the quote text, then the source line "Author · Work, locator".
+No Opinion tags (Drudge-style); no leading or doubled "·". The Quote of the Day box shows a plain "Quote of the Day" heading, then the quote text, then the source line "Author · Work, locator". There is no per-quote headline.
 
 ## Abbreviations (use these when they shorten)
 
@@ -200,9 +200,9 @@ The Quote of the Day is not touched.
   and the shortening step still drops a whole dash tail. After a dash, Chicago style: minor words (*and, but, or,
   nor, for, as, the, a, an, to, of, in, on, at, by, with* …) stay lowercase (*Shows—and Leaves Unanswered*,
   *Watch List—as He Insists*) and major words stay capitalized (*Burning—Is America Next?*). A colon or a
-  real sentence break still capitalizes the next word (*Abortions. But Why?*, *Homan: The Wall Works*). The same rule applies to the QOTD quote and
-  headline, hover tooltips, rewrites (`rewrite_queue.py apply` normalizes them) and the QOTD bank; the
-  QOTD validator rejects spaced dashes and `--`. No orphans: the closed dash stays a line-break point,
+  real sentence break still capitalizes the next word (*Abortions. But Why?*, *Homan: The Wall Works*). The same rule applies to the QOTD quote text,
+  hover tooltips, rewrites (`rewrite_queue.py apply` normalizes them) and the QOTD bank (`qotd.py`
+  normalizes quote dashes on pick/apply). No orphans: the closed dash stays a line-break point,
   so only the words after the last dash are glued with a no-break space, and a last chunk like
   *Nothing—Wrong* is never glued across the dash.
 - **Sentence starts:** the first word after a real sentence break (`.` `?` `!`, or a colon, including after an
@@ -229,8 +229,7 @@ The Quote of the Day is not touched.
 ## No orphans (line breaks)
 
 A multi-line headline never ends on a one-word line (*…Totally Unfit for / Use*, *…Ban / ICE*, *…Back*). The
-renderer joins the **last two words of every headline** (lead, Top Stories, columns and the Quote of the Day
-headline) with a non-breaking space (`&nbsp;`), so they always wrap together. Exception: if the last two words
+renderer joins the **last two words of every headline** (lead, Top Stories and columns) with a non-breaking space (`&nbsp;`), so they always wrap together. Exception: if the last two words
 together are longer than 20 characters the space is left alone, so a long pair can't overflow a narrow phone
 column. CSS `text-wrap: pretty` is also set on headline links as a progressive enhancement (browsers that support
 it balance the last lines further; others ignore it). The column-balance height estimate wraps the joined pair as
@@ -251,7 +250,7 @@ the item is **dropped from the page** and queued (`reason: "contentless"`) until
 
 ## Smart quotes — always curly
 
-All displayed text (headlines, overrides, rewrites, Quote of the Day headline/text/tooltip,
+All displayed text (headlines, overrides, rewrites, Quote of the Day heading/text/tooltip,
 attribution, meta lines) uses curly quotes ‘ ’ “ ”, never straight ' ". `smartquotes()` in
 `ranking/headline.py` runs **after** all other style rules (toggle: `"smart_quotes": true` in
 `headline_style.json`). Rules: apostrophes in words and leading elisions (’90s, ’em, ’tis) → ’;
@@ -259,8 +258,7 @@ quotes after start/space/([{—/– open (‘ “); everything else closes (’ 
 (`&#39;`, `&quot;`) are decoded first; only text is transformed, never URLs or attribute names.
 Tests: `python3 -m unittest tests/test_smartquotes.py`.
 
-**Headlines quote with single quotes.** In headlines only (feed titles, overrides, rewrites, the QOTD
-headline), quotations use ‘…’, not “…” or straight "…": *Dems’ ‘Affordability’ Pitch*, not *Dems’ “Affordability”
+**Headlines quote with single quotes.** In headlines only (feed titles, overrides, rewrites), quotations use ‘…’, not “…” or straight "…": *Dems’ ‘Affordability’ Pitch*, not *Dems’ “Affordability”
 Pitch*. A quote nested inside a quote takes double: *Said ‘I Won’t Say “Never”’*. Apostrophes are untouched
 (*Dems’*, *Won’t*, *’90s*). The Quote of the Day body text keeps normal double quotes. `headline_quotes()` runs at
 the end of `clean()` (toggle: `"single_quotes": true` in `headline_style.json`).
@@ -336,22 +334,20 @@ applies a mechanical fallback (*The Rise of X* → *X’s Rise*, *The Hard Truth
 
 See [CONTROLS.md](CONTROLS.md) for the knobs.
 
-## Quote of the Day headlines
-A QOTD headline is punchy and drawn from the quote itself; a famous line can be the headline
-(*Mr. Gorbachev, Tear Down This Wall!*, *The Power to Tax Involves the Power to Destroy*,
-*All Warfare Is Based on Deception*). Use a teaser instead only when the payoff is a surprise twist
-the headline would spoil. Bank entries may carry a bespoke `headline` field (e.g. st-006,
-*Supreme Excellence Against Adversaries*); entries without one fall back to the quote's opening words.
+## Quote of the Day heading
+The QOTD box has no per-quote headline. It always shows the plain heading **Quote of the Day**, then the
+quote text, then the attribution line (*Author · Work, locator*). No headline is written, vetted or
+required for a quote to be eligible; any legacy `headline` field in a bank entry or in
+`quote_of_the_day.json` is ignored by the renderer.
 
 ## Compression
-Shorter, punchier headlines (QOTD and rewrites):
+Shorter, punchier headlines (rewrites):
 - Drop leading articles (The / A / An) unless part of a name (*The Hill*, *The Almighty*).
 - Cut linking or filler verbs (involves, is, are, means, represents) when parallel noun phrases carry
   the meaning, and join the fragments with a comma: *The Power to Tax Involves the Power to Destroy* →
   **Power to Tax, Power to Destroy**.
 - Strip throat-clearing ("Here’s why", "What to know").
-- Keep iconic verbatim lines as spoken (*Mr. Gorbachev, Tear Down This Wall!*) and chosen headlines
-  (*Supreme Excellence Against Adversaries*).
+- Keep iconic verbatim lines as spoken (*Mr. Gorbachev, Tear Down This Wall!*).
 - News: never drop an action verb; the verb is often the story. The automatic compressor
   (`headline.compress`, `headline_style.json` → `compression`) only drops a leading article and turns
   *X Involves/Means/Equals Y* into *X, Y* when the two sides are short parallel phrases.

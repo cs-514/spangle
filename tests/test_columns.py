@@ -102,8 +102,8 @@ class NoOrphans(unittest.TestCase):
     def test_rendered_everywhere(self):
         from _helpers import story
         lead = story("Lead Story Is Here", 1); top = [story("Top Take Goes Here", 2)]
-        q = A.quote_as_story({"quote": "Q text.", "author": "X", "work": "W", "headline": "Unfit for Use"})
+        q = A.quote_as_story({"quote": "Q text.", "author": "X", "work": "W"})
         h = A.render(lead, top, [[q, story("Col Item Fires Back", 3)], [], []], A.datetime.now(A.timezone.utc), [], {"placement": {}})
-        for frag in ("Is&nbsp;Here", "Goes&nbsp;Here", "for&nbsp;Use", "Fires&nbsp;Back"):
+        for frag in ("Is&nbsp;Here", "Goes&nbsp;Here", "Fires&nbsp;Back"):
             self.assertIn(frag, h)
         self.assertIn("text-wrap:pretty", h)

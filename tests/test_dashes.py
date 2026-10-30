@@ -1,6 +1,6 @@
 import json, unittest
 from _helpers import ROOT
-from ranking import headline as h, qotd_headline as Q
+from ranking import headline as h
 import aggregator as A
 
 
@@ -63,11 +63,7 @@ class Quote(unittest.TestCase):
     def test_qotd_rendering(self):
         s = A.quote_as_story({"quote": "Equality -- and resentment", "author": "X", "headline": "A — B Wins"})
         self.assertEqual(s["quote_text"], "Equality—and resentment")
-        self.assertEqual(s["display"], "A—B Wins")
-
-    def test_validator(self):
-        self.assertTrue(Q.problems("Every Virtue -- the Same Exam"))
-        self.assertEqual(Q.problems("Every Virtue Faces—the Same Exam"), [])
+        self.assertEqual(s["display"], "Quote of the Day")  # legacy headline fields are ignored
 
     def test_bank_closed_dashes(self):
         for q in json.load(open(f"{ROOT}/qotd_bank.json"))["quotes"]:

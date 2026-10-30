@@ -478,9 +478,8 @@ header{text-align:center;border-bottom:3px double var(--ink);padding:18px 0 10px
 .col a{font-weight:600;font-size:19px;line-height:1.3;overflow:visible;text-overflow:clip;white-space:normal}
 .lead a,.top a,.col a{text-wrap:pretty}
 .meta{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:5px;letter-spacing:.02em}
-.kicker{font-family:var(--sans);line-height:1;margin-bottom:4px}
+.qh{font-weight:600;font-size:19px;line-height:1.3;color:var(--ink)}
 .qt{font-family:var(--serif);font-style:italic;font-size:16.5px;line-height:1.4;color:var(--ink);margin-top:5px}
-.tag{font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;color:var(--red);margin-right:2px}
 footer{font-family:var(--sans);font-size:13px;color:var(--muted);border-top:3px double var(--ink);margin-top:36px;padding-top:14px;line-height:1.6}
 @media(max-width:900px){.cols{grid-template-columns:1fr 1fr}.col:nth-child(3){grid-column:1/-1;border-left:0;padding-left:0}}
 @media(max-width:620px){body{font-size:18px}.wrap{padding:0 16px 32px}.cols{grid-template-columns:1fr}.col{border-left:0;padding-left:0}.top a{font-size:21px}}
@@ -940,7 +939,7 @@ def fallback_quote(today, bank_file="qotd_bank.json"):
             raw = json.load(f)
         author_w = raw.get("author_weights") or {}
         bank = [q for q in raw["quotes"] if q.get("verified") and q.get("source_type") in ("primary", "column")
-                    and q.get("status") not in ("retired", "low_impact") and (q.get("headline") or "").strip()
+                    and q.get("status") not in ("retired", "low_impact")
                     and len(q["quote"].split()) <= quote_word_limit(q)]
     except Exception:
         return None
@@ -951,9 +950,8 @@ def fallback_quote(today, bank_file="qotd_bank.json"):
     weighted = [dict(q, weight=float(q.get("weight", 1)) * float(author_w.get(q["id"].split("-")[0], 1))
                      * float(q.get("impact", 4)) / 4) for q in bank]
     q = dict(weighted_pick(weighted, int(hashlib.sha256(today.encode()).hexdigest(), 16)))
-    # Only quotes with a curated bank headline are eligible, and that headline is final: a short framing
-    # vetted against the quote. Never derive one from the quote's opening words (that gives the quote away).
-    q["headline"] = q["headline"].strip()
+    # No per-quote headline is needed or shown (the box renders a plain "Quote of the Day" heading);
+    # any legacy "headline" field in the bank is ignored.
     q["date"] = today
     return q
 
@@ -979,6 +977,9 @@ def judicial_source(q):
     return text, markup
 
 
+QOTD_HEADING = "Quote of the Day"
+
+
 def quote_as_story(q):
     """Turn quote_of_the_day.json into a column item shaped like any other story."""
     work = (q.get("work") or "").strip()
@@ -993,9 +994,9 @@ def quote_as_story(q):
     else:
         source = q["author"]
     quote_text = headline_mod.dashes(q["quote"].strip())  # house dash style: closed em dash ('achievements—and')
-    headline = headline_mod.dashes((q.get("headline") or "").strip())
-    if not headline:
-        headline = quote_text if len(quote_text.split()) <= 12 else " ".join(quote_text.split()[:10])
+    # No per-quote headline: the box always shows the plain heading "Quote of the Day", then the quote text,
+    # then the attribution line. Any "headline" field in the file or bank is ignored.
+    headline = QOTD_HEADING
     link = (q.get("verification_url") or "").strip() or "#"
     return {
         "title": headline,
@@ -1035,7 +1036,7 @@ def item_height(s, cfg):
 
 
 def qotd_height(story, cfg):
-    """Estimated QOTD block height: kicker + attribution + padding, the wrapped headline, and the italic
+    """Estimated QOTD block height: attribution + padding, the 'Quote of the Day' heading, and the italic
     quote text (narrower glyphs, ~48 characters per line, 23px lines). Falls back to qotd_px."""
     cfg = cfg or {}
     if not story:
@@ -1171,8 +1172,8 @@ def render(lead, top, cols, now, sources, settings):
     def li(s):
         if s.get("quote_item"):
             body = f'<div class="qt">“{t(s.get("quote_text", ""))}”</div>' if s.get("quote_text") else ""
-            kicker = '<div class="kicker"><span class="tag">Quote</span></div>'
-            return f'<li class="qotd">{kicker}{show(s)}{body}{meta(s)}</li>'
+            heading = f'<div class="qh">{t(QOTD_HEADING)}</div>'  # plain heading, no per-quote headline
+            return f'<li class="qotd">{heading}{body}{meta(s)}</li>'
         return f'<li>{show(s)}{meta(s)}</li>'
 
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)

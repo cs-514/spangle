@@ -18,7 +18,7 @@ class QuotePlacement(unittest.TestCase):
         old, A.HERE = A.HERE, d
         try:
             json.dump({"quotes": [{"id": "p1", "quote": "Fresh primary quote here.", "author": "Y", "work": "W",
-                                   "headline": "Fresh Quotes Win", "verification_url": "https://example.org", "verified": True, "source_type": "primary"},
+                                   "verification_url": "https://example.org", "verified": True, "source_type": "primary"},
                                   {"id": "s1", "quote": "Secondary.", "author": "Z", "verified": False, "source_type": "secondary"}]},
                       open(f"{d}/b.json", "w"))
             q = A.load_daily_quote("q.json", today="2026-10-15", bank_file="b.json")
@@ -68,12 +68,17 @@ class Render(unittest.TestCase):
         self.assertNotIn("Opinion", h)  # Drudge-style: no opinion tag text anywhere on the page
         self.assertNotIn("OPINION", h)
         self.assertNotIn('<div class="meta"> · ', h)
-        self.assertIn('<div class="kicker"><span class="tag">Quote</span></div>', h)
-        # QUOTE kicker sits above the headline; source line stays below the quote text
-        k, a, qt, src = (h.index('<div class="kicker"><span class="tag">Quote</span></div>'), h.index('>Q&nbsp;text.<'),
-                         h.index('<div class="qt">'), h.index('George Washington · Farewell Address'))
-        self.assertTrue(k < a <= qt < src)
-        self.assertNotIn('<span class="tag">Quote</span> · ', h)
+        # plain 'Quote of the Day' heading, then the quote text, then the source line; no per-quote headline
+        self.assertNotIn('class="kicker"', h)
+        hd, qt, src = (h.index('<div class="qh">Quote of the Day</div>'), h.index('<div class="qt">“Q text.”</div>'),
+                       h.index('George Washington · Farewell Address'))
+        self.assertTrue(hd < qt < src)
+
+    def test_qotd_ignores_headline_field(self):
+        q = A.quote_as_story({"quote": "Q text.", "author": "X", "work": "W", "headline": "Some Old Headline"})
+        h = A.render(story("Lead Story", 1), [], [[q], [], []], NOW, [], {"placement": {}})
+        self.assertNotIn("Some Old Headline", h)
+        self.assertIn('<li class="qotd"><div class="qh">Quote of the Day</div><div class="qt">', h)
         self.assertIn("All rights belong to their respective publishers. © 2026 Spangle", h)
 
 

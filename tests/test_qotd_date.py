@@ -16,7 +16,7 @@ class EasternDate(unittest.TestCase):
     def test_evening_et_keeps_routine_pick(self):
         """After 8 PM ET the UTC date has rolled over; the routine's pick for the Eastern day must still show."""
         with tempfile.TemporaryDirectory() as d:
-            json.dump({"date": "2026-10-19", "headline": "Routine Pick Stays Up", "quote": "Q.", "author": "A"},
+            json.dump({"date": "2026-10-19", "quote": "Routine pick stays up.", "author": "A"},
                       open(os.path.join(d, "q.json"), "w"))
             old_here, old_dt = A.HERE, A.datetime
             A.HERE, A.datetime = d, _Clock
@@ -25,7 +25,7 @@ class EasternDate(unittest.TestCase):
             finally:
                 A.HERE, A.datetime = old_here, old_dt
         self.assertIsNotNone(q)
-        self.assertEqual(q["headline"], "Routine Pick Stays Up")
+        self.assertEqual(q["quote"], "Routine pick stays up.")
 
 
 if __name__ == "__main__":

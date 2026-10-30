@@ -128,15 +128,14 @@ and never printed). Builds run at :07 and :37 each hour; a running build is queu
 ## Quote of the Day
 
 One public editorial feature (independent of ranking). Rendered as a **regular column item**
-with the same markup as other headlines: a small red `QUOTE` kicker above the headline, the
-full quote text below it, then the source line `Author · Work, locator`. The link goes to
-`verification_url` when present. It is the only tag shown on the page.
+as a plain `Quote of the Day` heading, the full quote text below it, then the source line
+`Author · Work, locator`. There is no per-quote headline; a `headline` field, if present, is ignored.
 
 | File | Apply script | Input scratch |
 |---|---|---|
 | `quote_of_the_day.json` | `/workspace/qotd.py apply` | `/workspace/qotd_today.json` |
 
-Schema: `date`, `headline`, `quote`, `author`, `work`, `locator`, optional `verification_url`.
+Schema: `date`, `quote`, `author`, `work`, `locator`, optional `verification_url`.
 Unified verified bank: `/workspace/qotd_bank.json` (extensible `authors[]` + `quotes[]`).
 Rotation: one author per day, no consecutive same author, no quote-id repeats
 (`python3 /workspace/qotd.py pick`). Usage: `/workspace/quote_used.json`. Prefer ≤60 words.

@@ -48,19 +48,20 @@ class Bank(unittest.TestCase):
         self.assertTrue(q["quote"].endswith("faithful in love."))
 
 
-class CuratedHeadline(unittest.TestCase):
-    def test_bank_headline_kept_verbatim(self):
+class NoHeadlineNeeded(unittest.TestCase):
+    def test_bank_quote_without_headline_is_eligible(self):
         import os, tempfile
         with tempfile.TemporaryDirectory() as d:
             json.dump({"quotes": [{"id": "hom-x", "quote": "One omen is best, to fight for our own country.", "author": "Homer",
-                                   "work": "Iliad", "headline": "One Omen Is Best", "verification_url": "https://example.org",
+                                   "work": "Iliad", "verification_url": "https://example.org",
                                    "verified": True, "source_type": "primary"}]}, open(os.path.join(d, "b.json"), "w"))
             old, A.HERE = A.HERE, d
             try:
                 q = A.fallback_quote("2026-10-17", "b.json")
             finally:
                 A.HERE = old
-        self.assertEqual(q["headline"], "One Omen Is Best")
+        self.assertEqual(q["id"], "hom-x")
+        self.assertEqual(A.quote_as_story(q)["display"], "Quote of the Day")
 
     def test_homer_entries(self):
         bank = json.load(open(f"{ROOT}/qotd_bank.json"))["quotes"]
