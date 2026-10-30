@@ -479,8 +479,9 @@ header{text-align:center;border-bottom:3px double var(--ink);padding:18px 0 10px
 .lead a,.top a,.col a{text-wrap:pretty}
 .meta{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:5px;letter-spacing:.02em}
 .col .meta a{font-weight:inherit;font-size:inherit;line-height:inherit}
-.qh{font-weight:600;font-size:19px;line-height:1.3;color:var(--ink)}
+.kicker{font-family:var(--sans);line-height:1;margin-bottom:4px}
 .qt{font-family:var(--serif);font-style:italic;font-size:16.5px;line-height:1.4;color:var(--ink);margin-top:5px}
+.tag{font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;color:var(--red);margin-right:2px}
 footer{font-family:var(--sans);font-size:13px;color:var(--muted);border-top:3px double var(--ink);margin-top:36px;padding-top:14px;line-height:1.6}
 @media(max-width:900px){.cols{grid-template-columns:1fr 1fr}.col:nth-child(3){grid-column:1/-1;border-left:0;padding-left:0}}
 @media(max-width:620px){body{font-size:18px}.wrap{padding:0 16px 32px}.cols{grid-template-columns:1fr}.col{border-left:0;padding-left:0}.top a{font-size:21px}}
@@ -995,7 +996,7 @@ def quote_as_story(q):
     else:
         source = q["author"]
     quote_text = headline_mod.dashes(q["quote"].strip())  # house dash style: closed em dash ('achievements—and')
-    # No per-quote headline: the box always shows the plain heading "Quote of the Day", then the quote text,
+    # No per-quote headline: the box shows a small red QUOTE OF THE DAY kicker, then the quote text,
     # then the attribution line. Any "headline" field in the file or bank is ignored.
     headline = QOTD_HEADING
     link = (q.get("verification_url") or "").strip() or "#"
@@ -1038,12 +1039,14 @@ def item_height(s, cfg):
 
 
 def qotd_height(story, cfg):
-    """Estimated QOTD block height: attribution + padding, the 'Quote of the Day' heading, and the italic
-    quote text (narrower glyphs, ~48 characters per line, 23px lines). Falls back to qotd_px."""
+    """Estimated QOTD block height: kicker + attribution + padding, any wrapped headline (rendered quote
+    items have none: just the QUOTE OF THE DAY kicker), and the italic quote text (narrower glyphs,
+    ~48 characters per line, 23px lines). Falls back to qotd_px."""
     cfg = cfg or {}
     if not story:
         return cfg.get("qotd_px", 268)
-    return (cfg.get("qotd_base_px", 80) + cfg.get("qotd_headline_line_px", 24.7) * _wrap_lines(no_orphan_text(story.get("display") or story.get("title")), cfg.get("chars_per_line", 40))
+    head = 0 if story.get("quote_item") else _wrap_lines(no_orphan_text(story.get("display") or story.get("title")), cfg.get("chars_per_line", 40))
+    return (cfg.get("qotd_base_px", 80) + cfg.get("qotd_headline_line_px", 24.7) * head
             + cfg.get("qotd_text_line_px", 23.1) * _wrap_lines(story.get("quote_text") or "", cfg.get("qotd_text_chars_per_line", 48)))
 
 
@@ -1178,8 +1181,9 @@ def render(lead, top, cols, now, sources, settings):
     def li(s):
         if s.get("quote_item"):
             body = f'<div class="qt">“{t(s.get("quote_text", ""))}”</div>' if s.get("quote_text") else ""
-            heading = f'<div class="qh">{t(QOTD_HEADING)}</div>'  # plain heading, no per-quote headline
-            return f'<li class="qotd">{heading}{body}{meta(s)}</li>'
+            # small red all-caps kicker (.tag uppercases it: QUOTE OF THE DAY); no per-quote headline
+            kicker = f'<div class="kicker"><span class="tag">{t(QOTD_HEADING)}</span></div>'
+            return f'<li class="qotd">{kicker}{body}{meta(s)}</li>'
         return f'<li>{show(s)}{meta(s)}</li>'
 
     col_html = "".join(f'<section class="col"><ul>{"".join(li(s) for s in c)}</ul></section>' for c in cols)

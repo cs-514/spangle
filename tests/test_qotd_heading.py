@@ -1,4 +1,4 @@
-"""Quote of the Day box: a plain 'Quote of the Day' heading, then the quote text, then the attribution line.
+"""Quote of the Day box: a small red all-caps QUOTE OF THE DAY kicker, then the quote text, then the attribution line.
 No per-quote headline is rendered or required; legacy "headline" fields in the bank are ignored."""
 import json, unittest
 from _helpers import ROOT
@@ -39,7 +39,7 @@ class SourceLink(unittest.TestCase):
     def test_attribution_links_to_source(self):
         h = self.render({"quote": "Q text.", "author": "X", "work": "W", "verification_url": "https://example.org/src"})
         self.assertIn('<div class="meta"><a href="https://example.org/src" rel="noopener">X · W</a></div>', h)
-        self.assertIn('<div class="qh">Quote of the Day</div>', h)  # heading stays plain, unlinked text
+        self.assertIn('<div class="kicker"><span class="tag">Quote of the Day</span></div>', h)  # red kicker stays unlinked text
         self.assertNotIn('<a href="https://example.org/src" rel="noopener">Quote of the Day', h)
 
     def test_no_url_no_link(self):
@@ -51,3 +51,9 @@ class SourceLink(unittest.TestCase):
         today = json.load(open(f"{ROOT}/quote_of_the_day.json"))
         if today.get("verification_url"):
             self.assertIn(f'<a href="{today["verification_url"]}" rel="noopener">', self.render(today))
+
+
+class Height(unittest.TestCase):
+    def test_kicker_only_block_has_no_headline_lines(self):
+        s = A.quote_as_story({"quote": " ".join(["wordy"] * 42), "author": "X"})
+        self.assertAlmostEqual(A.qotd_height(s, {}), 80 + 23.1 * 6, delta=1)

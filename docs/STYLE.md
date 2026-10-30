@@ -51,7 +51,7 @@ otherwise the story prefers a sibling headline, goes to the rewrite queue, and c
 ## Meta line
 The outlet's display name (never a raw domain such as "lifezette.com"), then the time:
 "American Greatness · Oct 15, 10:02 AM" — all displayed times are US Eastern (America/New_York, DST-aware), 12-hour with AM/PM, no zone suffix on items; no zone label anywhere (no "ET"). Header: "Friday, October 16, 2026 · Updated 6:38 AM" (Eastern date; the Updated part shows time only, each half kept unbroken so mobile wraps only at the "·"). No "UTC" anywhere on the page; ranking stays in UTC internally. No "+N outlets" count (coverage is used only for ranking).
-No Opinion tags (Drudge-style); no leading or doubled "·". The Quote of the Day box shows a plain "Quote of the Day" heading, then the quote text, then the source line "Author · Work, locator". There is no per-quote headline.
+No Opinion tags (Drudge-style); no leading or doubled "·". The Quote of the Day box shows a small red all-caps QUOTE OF THE DAY label (kicker), then the quote text in italics, then the source line "Author · Work, locator", which links to the quote’s source page (`verification_url`) when it has one. There is no per-quote headline.
 
 ## Abbreviations (use these when they shorten)
 
@@ -250,7 +250,7 @@ the item is **dropped from the page** and queued (`reason: "contentless"`) until
 
 ## Smart quotes — always curly
 
-All displayed text (headlines, overrides, rewrites, Quote of the Day heading/text/tooltip,
+All displayed text (headlines, overrides, rewrites, Quote of the Day text/tooltip,
 attribution, meta lines) uses curly quotes ‘ ’ “ ”, never straight ' ". `smartquotes()` in
 `ranking/headline.py` runs **after** all other style rules (toggle: `"smart_quotes": true` in
 `headline_style.json`). Rules: apostrophes in words and leading elisions (’90s, ’em, ’tis) → ’;
@@ -334,9 +334,11 @@ applies a mechanical fallback (*The Rise of X* → *X’s Rise*, *The Hard Truth
 
 See [CONTROLS.md](CONTROLS.md) for the knobs.
 
-## Quote of the Day heading
-The QOTD box has no per-quote headline. It always shows the plain heading **Quote of the Day**, then the
-quote text, then the attribution line (*Author · Work, locator*). No headline is written, vetted or
+## Quote of the Day label
+The QOTD box has no per-quote headline. It always shows the small red all-caps label **QUOTE OF THE DAY**
+(the `.kicker`/`.tag` style), then the
+quote text in italics, then the attribution line (*Author · Work, locator*), linked to the source page when
+the quote has a `verification_url`. No headline is written, vetted or
 required for a quote to be eligible; any legacy `headline` field in a bank entry or in
 `quote_of_the_day.json` is ignored by the renderer.
 

@@ -68,9 +68,9 @@ class Render(unittest.TestCase):
         self.assertNotIn("Opinion", h)  # Drudge-style: no opinion tag text anywhere on the page
         self.assertNotIn("OPINION", h)
         self.assertNotIn('<div class="meta"> · ', h)
-        # plain 'Quote of the Day' heading, then the quote text, then the source line; no per-quote headline
-        self.assertNotIn('class="kicker"', h)
-        hd, qt, src = (h.index('<div class="qh">Quote of the Day</div>'), h.index('<div class="qt">“Q text.”</div>'),
+        # small red all-caps QUOTE OF THE DAY kicker, then the quote text, then the source line; no per-quote headline
+        self.assertIn(".tag{font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;color:var(--red)", h)
+        hd, qt, src = (h.index('<div class="kicker"><span class="tag">Quote of the Day</span></div>'), h.index('<div class="qt">“Q text.”</div>'),
                        h.index('George Washington · Farewell Address'))
         self.assertTrue(hd < qt < src)
 
@@ -78,7 +78,7 @@ class Render(unittest.TestCase):
         q = A.quote_as_story({"quote": "Q text.", "author": "X", "work": "W", "headline": "Some Old Headline"})
         h = A.render(story("Lead Story", 1), [], [[q], [], []], NOW, [], {"placement": {}})
         self.assertNotIn("Some Old Headline", h)
-        self.assertIn('<li class="qotd"><div class="qh">Quote of the Day</div><div class="qt">', h)
+        self.assertIn('<li class="qotd"><div class="kicker"><span class="tag">Quote of the Day</span></div><div class="qt">', h)
         self.assertIn("All rights belong to their respective publishers. © 2026 Spangle", h)
 
 

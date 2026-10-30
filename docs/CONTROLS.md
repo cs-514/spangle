@@ -128,8 +128,9 @@ and never printed). Builds run at :07 and :37 each hour; a running build is queu
 ## Quote of the Day
 
 One public editorial feature (independent of ranking). Rendered as a **regular column item**
-as a plain `Quote of the Day` heading, the full quote text below it, then the source line
-`Author · Work, locator`. There is no per-quote headline; a `headline` field, if present, is ignored.
+with a small red all-caps `QUOTE OF THE DAY` kicker, the full quote text in italics below it, then the
+source line `Author · Work, locator`, linked to `verification_url` when present (no link otherwise). It is
+the only tag shown on the page. There is no per-quote headline; a `headline` field, if present, is ignored.
 
 | File | Apply script | Input scratch |
 |---|---|---|
