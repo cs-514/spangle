@@ -478,6 +478,7 @@ header{text-align:center;border-bottom:3px double var(--ink);padding:18px 0 10px
 .col a{font-weight:600;font-size:19px;line-height:1.3;overflow:visible;text-overflow:clip;white-space:normal}
 .lead a,.top a,.col a{text-wrap:pretty}
 .meta{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:5px;letter-spacing:.02em}
+.col .meta a{font-weight:inherit;font-size:inherit;line-height:inherit}
 .qh{font-weight:600;font-size:19px;line-height:1.3;color:var(--ink)}
 .qt{font-family:var(--serif);font-style:italic;font-size:16.5px;line-height:1.4;color:var(--ink);margin-top:5px}
 footer{font-family:var(--sans);font-size:13px;color:var(--muted);border-top:3px double var(--ink);margin-top:36px;padding-top:14px;line-height:1.6}
@@ -1007,6 +1008,7 @@ def quote_as_story(q):
         "when": None,
         "opinion": False,
         "quote_item": True,
+        "source_url": (q.get("verification_url") or "").strip(),
         "source_html": js[1] if js else None,
         "quote_text": quote_text,
         "outlets_n": 1,
@@ -1151,7 +1153,11 @@ def render(lead, top, cols, now, sources, settings):
         # Only the Quote of the Day shows an attribution line; news items show no outlet/time line
         # (the outlet stays internal for ranking and appears only in the hover tooltip).
         if s.get("quote_item"):
-            return f'<div class="meta">{s.get("source_html") or t(OUTLET(s))}</div>'
+            src = s.get("source_html") or t(OUTLET(s))
+            url = (s.get("source_url") or "").strip()  # the quote's source/verification page; no link without one
+            if url:
+                src = f'<a href="{e(url)}" rel="noopener">{src}</a>'
+            return f'<div class="meta">{src}</div>'
         return ""
 
     def show(s):
