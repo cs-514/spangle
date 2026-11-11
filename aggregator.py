@@ -725,7 +725,7 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
             # prefer: not bland, not too long, shorter, newer
             ranked.append(((0 if bland else 2) + (1 if x is org else 0), (0 if x.get("opinion") else 1), (0 if long else 1), -len(cleaned),
                            x.get("when").timestamp() if x.get("when") else 0, x, cleaned, changed, bland, long))
-        ranked.sort(reverse=True)
+        ranked.sort(key=lambda r: r[:5], reverse=True)
         # lazily wall-check siblings that would outrank the placed link; drop the walled ones
         bad = set()
         for r in ranked:
