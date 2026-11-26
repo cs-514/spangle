@@ -19,7 +19,21 @@ def private_terms():
     urls = {f["url"] for f in c.get("private_feeds") or []} | {a.get("url", "") for a in c.get("amplifiers") or [] if isinstance(a, dict)}
     bylines = {(f.get("options") or {}).get("byline", "") for f in c.get("private_feeds") or []}
     faction = set((c.get("faction") or {}).get("members") or [])  # never in code/docs; headlines are public news
-    return {t for t in names | handles | urls | bylines | faction if t and len(t) > 3}
+    return {t for t in names | handles | urls | bylines | faction | source_terms() if t and len(t) > 3}
+
+
+def source_terms():
+    """Accounts and endpoints from the AMPLIFIER_SOURCES secret (upkeep/amplifiers.py), when it is set."""
+    try:
+        src = json.loads(os.environ.get("AMPLIFIER_SOURCES", "").strip() or "{}")
+    except Exception:
+        return set()
+    out = set()
+    for f in src.get("feeds") or []:
+        out |= {h for h in (f.get("accounts") or {}) if not re.fullmatch(r"[A-Z][a-z]+", h)}
+        if f.get("api"):
+            out.add(f["api"].split("://", 1)[-1].rstrip("/"))
+    return out
 
 
 class Confidentiality(unittest.TestCase):

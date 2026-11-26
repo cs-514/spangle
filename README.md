@@ -7,7 +7,7 @@ A conservative news aggregator in the classic one-page, text-link style. Updated
 - Every headline links straight to the original publisher.
 - Stories are clustered across outlets and ranked by a modular engine (`ranking/`) with weights in `settings.json`.
   See [docs/CONTROLS.md](docs/CONTROLS.md).
-- Built by GitHub Actions every hour and published to GitHub Pages.
+- Built by GitHub Actions about every 30 minutes and published to GitHub Pages.
 
 ## Run locally
 
@@ -30,3 +30,10 @@ constrained measure for the lead (about 22ch), near-black ink on white, and a 3 
 See [docs/STYLE.md](docs/STYLE.md). Display overrides live in `headline_overrides.json`.
 
 A daily Quote of the Day appears as a regular column item (QUOTE tag) when `quote_of_the_day.json` is set.
+
+## Upkeep (all on GitHub Actions)
+
+Headline rewrites (7 AM and 4 PM ET), the Quote of the Day (1:10 AM ET), the amplifier refresh and an hourly
+self-healing watchdog all run as workflows in this repo. See [docs/UPKEEP.md](docs/UPKEEP.md) for the
+architecture, the secrets each job needs, costs, and how to run things locally. AI coding tools: read
+[AGENTS.md](AGENTS.md) first.

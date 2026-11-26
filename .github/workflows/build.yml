@@ -23,6 +23,7 @@ jobs:
       - name: Unit tests (fail the build on any failure)
         env:
           ALIGNMENT_CONFIG: ${{ secrets.ALIGNMENT_CONFIG }}
+          AMPLIFIER_SOURCES: ${{ secrets.AMPLIFIER_SOURCES }}
         run: python -m unittest discover -s tests -v
       - name: Build site
         env:
@@ -33,6 +34,7 @@ jobs:
       - name: Confidentiality guard on the built page
         env:
           ALIGNMENT_CONFIG: ${{ secrets.ALIGNMENT_CONFIG }}
+          AMPLIFIER_SOURCES: ${{ secrets.AMPLIFIER_SOURCES }}
         run: python -m unittest discover -s tests -p test_confidentiality.py -v
       - uses: actions/upload-pages-artifact@v3
         with:

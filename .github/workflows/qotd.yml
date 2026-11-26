@@ -1,0 +1,42 @@
+name: Quote of the Day
+# About 1:10 AM US Eastern. Scheduled at both candidate UTC hours; `upkeep.slot` keeps the right one.
+on:
+  schedule:
+    - cron: '10 5,6 * * *'    # 1:10 AM ET  (05:10 UTC in EDT, 06:10 UTC in EST)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Re-pick even if today already has a quote'
+        type: boolean
+        default: false
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: spangle-upkeep
+  cancel-in-progress: false
+jobs:
+  qotd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Schedule guard (Eastern time slot)
+        id: slot
+        run: python -m upkeep.slot check qotd 1 3
+      - name: Pick and publish the quote
+        if: steps.slot.outputs.run == 'true'
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL || vars.LLM_BASE_URL }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL || vars.LLM_MODEL }}
+          GH_TOKEN: ${{ github.token }}
+        run: python -m upkeep.qotd ${{ inputs.force && '--force' || '' }}
+      - name: Record the slot
+        if: steps.slot.outputs.run == 'true'
+        run: python -m upkeep.slot stamp qotd --commit

@@ -1,0 +1,27 @@
+name: Watchdog (site freshness)
+# Hourly self-healing check: GitHub sometimes skips the scheduled builds for hours. If the live page is
+# more than 90 minutes old or the last build failed, this dispatches Build and deploy.
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: write
+  issues: write
+concurrency:
+  group: spangle-watchdog
+  cancel-in-progress: true
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Deploy health check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m upkeep.health

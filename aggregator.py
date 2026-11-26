@@ -866,7 +866,7 @@ def decorate_headlines(lead, top, cols, clusters, settings=None, now=None, ctx=N
           f"fragments {stats.get('queued_fragment', 0)}, obscure_acronyms {stats.get('queued_obscure_acronym', 0)}, "
           f"quote QC repaired {stats.get('quotes_repaired', 0)}")
     try:
-        with open(os.path.join(HERE, "..", "rewrite_queue.json"), "w") as f:
+        with open(os.environ.get("SPANGLE_QUEUE_PATH") or os.path.join(HERE, "..", "rewrite_queue.json"), "w") as f:
             json.dump({"generated": datetime.now(timezone.utc).isoformat(), "items": stats["queue"]}, f, indent=1)
     except Exception as ex:
         print(f"rewrite queue write skipped: {type(ex).__name__}")
@@ -899,9 +899,9 @@ def display_outlets(items):
 
 
 def load_daily_quote(filename="quote_of_the_day.json", today=None, bank_file="qotd_bank.json"):
-    """Today's quote. "Today" is the US Eastern date, the same day the box routine dates its pick (UTC rolled
+    """Today's quote. "Today" is the US Eastern date, the same day the QOTD workflow dates its pick (UTC rolled
     over at 8 PM ET and discarded the routine's pick every evening). If the file is missing, invalid, or dated
-    another day (the box routine did not run), fall back to a deterministic pick from the public,
+    another day (the QOTD workflow did not run), fall back to a deterministic pick from the public,
     primary-source-verified bank, so a stale quote is never shown."""
     today = today or datetime.now(ET_TZ).strftime("%Y-%m-%d")
     try:
@@ -952,7 +952,7 @@ def fallback_quote(today, bank_file="qotd_bank.json"):
     weighted = [dict(q, weight=float(q.get("weight", 1)) * float(author_w.get(q["id"].split("-")[0], 1))
                      * float(q.get("impact", 4)) / 4) for q in bank]
     q = dict(weighted_pick(weighted, int(hashlib.sha256(today.encode()).hexdigest(), 16)))
-    # No per-quote headline is needed or shown (the box renders a plain "Quote of the Day" heading);
+    # No per-quote headline is needed or shown (the page shows the QUOTE OF THE DAY label);
     # any legacy "headline" field in the bank is ignored.
     q["date"] = today
     return q

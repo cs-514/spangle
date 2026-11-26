@@ -1,5 +1,80 @@
 {
- "description": "Primary-source-verified quotes used only when quote_of_the_day.json is stale.",
+ "version": 1,
+ "description": "Verified Quote of the Day bank for Spangle. Extensible: add authors under authors[] and quotes[]. Rotation: one author per day, no consecutive same author, no quote id repeats (see quote_used.json). Entries with \"guest\": true and a \"weight\" < 1 (prefix guest-) are occasional one-off authors, picked at that relative weight.",
+ "authors": [
+  {
+   "key": "lewis",
+   "name": "C. S. Lewis",
+   "id_prefix": "csl"
+  },
+  {
+   "key": "sowell",
+   "name": "Thomas Sowell",
+   "id_prefix": "ts",
+   "rotation_weight": 0.35
+  },
+  {
+   "key": "bork",
+   "name": "Robert Bork",
+   "id_prefix": "rb"
+  },
+  {
+   "key": "scalia",
+   "name": "Antonin Scalia",
+   "id_prefix": "as"
+  },
+  {
+   "key": "washington",
+   "name": "George Washington",
+   "id_prefix": "gw"
+  },
+  {
+   "key": "reagan",
+   "name": "Ronald Reagan",
+   "id_prefix": "rr"
+  },
+  {
+   "key": "lincoln",
+   "name": "Abraham Lincoln",
+   "id_prefix": "al"
+  },
+  {
+   "key": "marshall",
+   "name": "John Marshall",
+   "id_prefix": "jm"
+  },
+  {
+   "key": "suntzu",
+   "name": "Sun Tzu",
+   "id_prefix": "st"
+  },
+  {
+   "key": "newman",
+   "name": "John Henry Newman",
+   "id_prefix": "jhn"
+  },
+  {
+   "key": "shakespeare",
+   "name": "William Shakespeare",
+   "id_prefix": "ws"
+  },
+  {
+   "key": "aristotle",
+   "name": "Aristotle",
+   "id_prefix": "ar"
+  },
+  {
+   "key": "guest",
+   "name": "Guest (occasional)",
+   "id_prefix": "guest",
+   "weight": 0.25
+  },
+  {
+   "key": "homer",
+   "name": "Homer",
+   "id_prefix": "hom"
+  }
+ ],
  "quotes": [
   {
    "id": "csl-001",
@@ -868,12 +943,12 @@
    "verification_url": "https://www.law.cornell.edu/supremecourt/text/487/654",
    "verified": true,
    "source_type": "primary",
+   "verified_note": "checked verbatim against the opinion text (LII), Oct 20 2026",
    "citation": "Morrison v. Olson 487 U.S. 654, 699 (1988) (dissenting)",
    "source": "Antonin Scalia, Morrison v. Olson (1988)",
    "impact": 5,
    "status": "active",
-   "headline": "Power Grabs Rarely Announce Themselves",
-   "verified_note": "checked verbatim against the opinion text (LII), Oct 20 2026"
+   "headline": "Power Grabs Rarely Announce Themselves"
   },
   {
    "id": "as-007",
@@ -884,6 +959,7 @@
    "verification_url": "https://www.law.cornell.edu/supremecourt/text/487/654",
    "verified": true,
    "source_type": "primary",
+   "verified_note": "checked verbatim against the opinion text (LII), Oct 15 2026",
    "citation": "Morrison v. Olson 487 U.S. 654 (1988) (dissenting)",
    "source": "Antonin Scalia, Morrison v. Olson (1988)",
    "impact": 4,
@@ -944,6 +1020,7 @@
    "verification_url": "https://www.law.cornell.edu/supremecourt/text/487/654",
    "verified": true,
    "source_type": "primary",
+   "verified_note": "checked verbatim against the opinion text (LII), Oct 15 2026",
    "citation": "Morrison v. Olson 487 U.S. 654 (1988) (dissenting)",
    "source": "Antonin Scalia, Morrison v. Olson (1988)",
    "impact": 2,
@@ -974,6 +1051,7 @@
    "verification_url": "https://www.law.cornell.edu/supremecourt/text/505/833",
    "verified": true,
    "source_type": "primary",
+   "verified_note": "checked verbatim against the opinion text (LII), Oct 15 2026",
    "citation": "Planned Parenthood v. Casey 505 U.S. 833, 979 (1992) (dissenting)",
    "source": "Antonin Scalia, Planned Parenthood v. Casey (1992)",
    "impact": 4,
@@ -2746,6 +2824,36 @@
    "source_type": "primary",
    "public_domain": true,
    "verified_note": "Verbatim (each ellipsis segment) vs Butcher & Lang (1879), Gutenberg #1728, Oct 17 2026; Greek line numbers; Murray (Loeb) parallel: https://www.perseus.tufts.edu/hopper/text?doc=Perseus:text:1999.01.0136:book=9:card=1",
+   "impact": 4,
+   "status": "active"
+  },
+  {
+   "id": "ws-002",
+   "quote": "Men at some time are masters of their fates: / The fault, dear Brutus, is not in our stars, / But in ourselves, that we are underlings.",
+   "author": "William Shakespeare",
+   "work": "Julius Caesar",
+   "locator": "Act I, sc. ii",
+   "headline": "Cassius Rejects Fatalism",
+   "verification_url": "https://www.gutenberg.org/cache/epub/1522/pg1522.txt",
+   "verified": true,
+   "source_type": "primary",
+   "public_domain": true,
+   "verified_note": "Verbatim vs Gutenberg #1522 (Cassius), Oct 17 2026",
+   "impact": 5,
+   "status": "active"
+  },
+  {
+   "id": "ar-002",
+   "quote": "Hence it is evident that a city is a natural production, and that man is naturally a political animal…",
+   "author": "Aristotle",
+   "work": "Politics (trans. William Ellis)",
+   "locator": "Book I, ch. 2",
+   "headline": "Aristotle Defines Human Nature",
+   "verification_url": "https://www.gutenberg.org/cache/epub/6762/pg6762.txt",
+   "verified": true,
+   "source_type": "primary",
+   "public_domain": true,
+   "verified_note": "Verbatim vs Gutenberg #6762 (Ellis), Oct 17 2026; sentence continues after the ellipsis",
    "impact": 4,
    "status": "active"
   }

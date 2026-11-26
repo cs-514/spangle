@@ -320,7 +320,7 @@ Imprimis titles read like lecture or course titles: flat noun phrases such as *T
 
 Example: *The Rise of Democratic Socialism* → *Socialism’s Persistent, Disturbing Rise*.
 
-How it runs: every Imprimis item is queued for the box rewriter with reason `imprimis`, this guidance, a few-shot
+How it runs: every Imprimis item is queued for the rewriter (`upkeep/rewrite.py`) with reason `imprimis`, this guidance, a few-shot
 example and the essay's opening paragraphs. Until a rewrite lands, `imprimis_recast()` in `ranking/headline.py`
 applies a mechanical fallback (*The Rise of X* → *X’s Rise*, *The Hard Truth About X* → *X’s Hard Truth*,
 *Recovering the Lost Art of X* → *X’s Lost Art*, *Learning From X* → *Lessons of X*). Titles it can't recast safely
@@ -330,7 +330,7 @@ applies a mechanical fallback (*The Rise of X* → *X’s Rise*, *The Hard Truth
 
 1. Deterministic rules in `headline_style.json` run on every build (abbreviations, filler stripping, max length soft-trim).
 2. Manual pins in `manual_links.json` can set `title` (and optional `archive_url`).
-3. AI / human rewrites: the box script `/workspace/rewrite_queue.py` queues bland headlines; the parent agent (or a human) writes punchy replacements into `/workspace/rewrites_done.json`; `rewrite_queue.py apply` commits them as `headline_overrides.json` and triggers the hourly workflow.
+3. AI / human rewrites: the Upkeep workflow (`upkeep/rewrite.py`) queues bland headlines, has an LLM write punchy replacements, gates them, and commits them to `headline_overrides.json`. A human can also edit `headline_overrides.json` directly (`{article URL: headline}`). See [UPKEEP.md](UPKEEP.md).
 
 See [CONTROLS.md](CONTROLS.md) for the knobs.
 

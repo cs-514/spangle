@@ -1,0 +1,62 @@
+name: Upkeep (amplifiers, headline rewrites, health)
+# Twice a day at about 7 AM and 4 PM US Eastern. GitHub cron is UTC only, so each slot is scheduled at
+# both candidate UTC hours (EDT and EST) and `upkeep.slot` lets only the right one through (DST-proof).
+on:
+  schedule:
+    - cron: '0 11,12 * * *'   # 7 AM ET  (11:00 UTC in EDT, 12:00 UTC in EST)
+    - cron: '0 20,21 * * *'   # 4 PM ET  (20:00 UTC in EDT, 21:00 UTC in EST)
+  workflow_dispatch:
+permissions:
+  contents: write   # commit headline overrides and slot stamps
+  actions: write    # dispatch Build and deploy
+  issues: write     # open/close the site-outage issue
+concurrency:
+  group: spangle-upkeep   # shared with the QOTD workflow so their pushes never race
+  cancel-in-progress: false
+jobs:
+  upkeep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Schedule guard (Eastern time slot)
+        id: slot
+        run: |
+          if [ "$(TZ=America/New_York date +%-H)" -lt 12 ]; then echo "name=am" >> "$GITHUB_OUTPUT"; H=7; S=am
+          else echo "name=pm" >> "$GITHUB_OUTPUT"; H=16; S=pm; fi
+          python -m upkeep.slot check "$S" "$H" 3
+      - name: Refresh amplifier items (private sources; counts only in the log)
+        if: steps.slot.outputs.run == 'true'
+        continue-on-error: true
+        env:
+          AMPLIFIER_SOURCES: ${{ secrets.AMPLIFIER_SOURCES }}
+          AMPLIFIER_ITEMS: ${{ secrets.AMPLIFIER_ITEMS }}
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+          SECRETS_PAT: ${{ secrets.SECRETS_PAT }}
+        run: python -m upkeep.amplifiers --push
+      - name: Headline rewrites (LLM; skipped without LLM_API_KEY)
+        if: steps.slot.outputs.run == 'true'
+        continue-on-error: true
+        env:
+          ALIGNMENT_CONFIG: ${{ secrets.ALIGNMENT_CONFIG }}
+          AMPLIFIER_ITEMS: ${{ secrets.AMPLIFIER_ITEMS }}
+          AMPLIFIER_SOURCES: ${{ secrets.AMPLIFIER_SOURCES }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL || vars.LLM_BASE_URL }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL || vars.LLM_MODEL }}
+          REWRITE_GUIDANCE: ${{ secrets.REWRITE_GUIDANCE }}
+          GH_TOKEN: ${{ github.token }}
+        run: python -m upkeep.rewrite
+      - name: Record the slot
+        if: steps.slot.outputs.run == 'true'
+        run: python -m upkeep.slot stamp "${{ steps.slot.outputs.name }}" --commit
+      - name: Deploy health check (re-triggers a stale or failed build)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m upkeep.health

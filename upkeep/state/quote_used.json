@@ -1,0 +1,291 @@
+{
+ "used_ids": [
+  "csl-013",
+  "ts-004",
+  "gw-001",
+  "as-002",
+  "hom-012",
+  "al-009",
+  "ts-025",
+  "csl-019",
+  "rr-001",
+  "jm-002",
+  "as-006",
+  "rr-008",
+  "al-012",
+  "gw-011",
+  "hom-008",
+  "jm-007",
+  "rb-111",
+  "csl-011",
+  "al-002",
+  "st-002",
+  "gw-012",
+  "rr-002",
+  "jm-014",
+  "jm-001",
+  "ws-001",
+  "hom-004",
+  "as-009",
+  "rr-010",
+  "as-014",
+  "hom-002",
+  "al-005",
+  "rb-107",
+  "csl-005",
+  "rr-004",
+  "al-007",
+  "as-018",
+  "ar-002",
+  "st-010",
+  "jm-010",
+  "csl-017",
+  "ws-002",
+  "gw-010",
+  "guest-napier-001",
+  "al-013",
+  "csl-008",
+  "jhn-001"
+ ],
+ "last_author": "John Henry Newman",
+ "history": [
+  {
+   "date": "2026-10-15",
+   "bank_id": "csl-013",
+   "author": "C. S. Lewis",
+   "note": "pre-unification"
+  },
+  {
+   "date": "2026-10-15",
+   "bank_id": "ts-004",
+   "author": "Thomas Sowell",
+   "note": "pre-unification"
+  },
+  {
+   "date": "2026-10-15",
+   "bank_id": "gw-001",
+   "author": "George Washington"
+  },
+  {
+   "date": "2026-10-16",
+   "bank_id": "as-002",
+   "author": "Antonin Scalia"
+  },
+  {
+   "date": "2026-10-17",
+   "bank_id": "hom-012",
+   "author": "Homer"
+  },
+  {
+   "date": "2026-10-18",
+   "bank_id": "al-009",
+   "author": "Abraham Lincoln"
+  },
+  {
+   "date": "2026-10-19",
+   "bank_id": "ts-025",
+   "author": "Thomas Sowell"
+  },
+  {
+   "date": "2026-10-19",
+   "bank_id": "csl-019",
+   "author": "C. S. Lewis",
+   "note": "evening replacement (expanded passage), set manually"
+  },
+  {
+   "date": "2026-10-20",
+   "bank_id": "rr-001",
+   "author": "Ronald Reagan"
+  },
+  {
+   "date": "2026-10-21",
+   "bank_id": "jm-002",
+   "author": "John Marshall"
+  },
+  {
+   "date": "2026-10-22",
+   "bank_id": "as-006",
+   "author": "Antonin Scalia"
+  },
+  {
+   "date": "2026-10-23",
+   "bank_id": "rr-008",
+   "author": "Ronald Reagan"
+  },
+  {
+   "date": "2026-10-24",
+   "bank_id": "al-012",
+   "author": "Abraham Lincoln"
+  },
+  {
+   "date": "2026-10-25",
+   "bank_id": "gw-011",
+   "author": "George Washington"
+  },
+  {
+   "date": "2026-10-26",
+   "bank_id": "hom-008",
+   "author": "Homer"
+  },
+  {
+   "date": "2026-10-27",
+   "bank_id": "jm-007",
+   "author": "John Marshall"
+  },
+  {
+   "date": "2026-10-28",
+   "bank_id": "rb-111",
+   "author": "Robert Bork"
+  },
+  {
+   "date": "2026-10-29",
+   "bank_id": "csl-011",
+   "author": "C. S. Lewis"
+  },
+  {
+   "date": "2026-10-30",
+   "bank_id": "al-002",
+   "author": "Abraham Lincoln"
+  },
+  {
+   "date": "2026-10-31",
+   "bank_id": "st-002",
+   "author": "Sun Tzu"
+  },
+  {
+   "date": "2026-10-31",
+   "bank_id": "st-002",
+   "author": "Sun Tzu"
+  },
+  {
+   "date": "2026-11-01",
+   "bank_id": "gw-012",
+   "author": "George Washington"
+  },
+  {
+   "date": "2026-11-02",
+   "bank_id": "rr-002",
+   "author": "Ronald Reagan"
+  },
+  {
+   "date": "2026-11-03",
+   "bank_id": "jm-014",
+   "author": "John Marshall"
+  },
+  {
+   "date": "2026-11-03",
+   "bank_id": "jm-001",
+   "author": "John Marshall"
+  },
+  {
+   "date": "2026-11-04",
+   "bank_id": "ws-001",
+   "author": "William Shakespeare"
+  },
+  {
+   "date": "2026-11-05",
+   "bank_id": "hom-004",
+   "author": "Homer"
+  },
+  {
+   "date": "2026-11-06",
+   "bank_id": "as-009",
+   "author": "Antonin Scalia"
+  },
+  {
+   "date": "2026-11-07",
+   "bank_id": "rr-010",
+   "author": "Ronald Reagan"
+  },
+  {
+   "date": "2026-11-08",
+   "bank_id": "as-014",
+   "author": "Antonin Scalia"
+  },
+  {
+   "date": "2026-11-10",
+   "bank_id": "hom-002",
+   "author": "Homer"
+  },
+  {
+   "date": "2026-11-11",
+   "bank_id": "al-005",
+   "author": "Abraham Lincoln"
+  },
+  {
+   "date": "2026-11-12",
+   "bank_id": "rb-107",
+   "author": "Robert Bork"
+  },
+  {
+   "date": "2026-11-13",
+   "bank_id": "csl-005",
+   "author": "C. S. Lewis"
+  },
+  {
+   "date": "2026-11-14",
+   "bank_id": "rr-004",
+   "author": "Ronald Reagan"
+  },
+  {
+   "date": "2026-11-15",
+   "bank_id": "al-007",
+   "author": "Abraham Lincoln"
+  },
+  {
+   "date": "2026-11-16",
+   "bank_id": "as-018",
+   "author": "Antonin Scalia"
+  },
+  {
+   "date": "2026-11-17",
+   "bank_id": "ar-002",
+   "author": "Aristotle"
+  },
+  {
+   "date": "2026-11-18",
+   "bank_id": "st-010",
+   "author": "Sun Tzu"
+  },
+  {
+   "date": "2026-11-19",
+   "bank_id": "jm-010",
+   "author": "John Marshall"
+  },
+  {
+   "date": "2026-11-20",
+   "bank_id": "csl-017",
+   "author": "C. S. Lewis"
+  },
+  {
+   "date": "2026-11-21",
+   "bank_id": "ws-002",
+   "author": "William Shakespeare"
+  },
+  {
+   "date": "2026-11-22",
+   "bank_id": "gw-010",
+   "author": "George Washington"
+  },
+  {
+   "date": "2026-11-23",
+   "bank_id": "guest-napier-001",
+   "author": "Sir Charles Napier"
+  },
+  {
+   "date": "2026-11-24",
+   "bank_id": "al-013",
+   "author": "Abraham Lincoln"
+  },
+  {
+   "date": "2026-11-25",
+   "bank_id": "csl-008",
+   "author": "C. S. Lewis"
+  },
+  {
+   "date": "2026-11-26",
+   "bank_id": "jhn-001",
+   "author": "John Henry Newman"
+  }
+ ]
+}

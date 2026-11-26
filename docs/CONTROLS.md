@@ -132,14 +132,14 @@ with a small red all-caps `QUOTE OF THE DAY` kicker, the full quote text in ital
 source line `Author · Work, locator`, linked to `verification_url` when present (no link otherwise). It is
 the only tag shown on the page. There is no per-quote headline; a `headline` field, if present, is ignored.
 
-| File | Apply script | Input scratch |
+| File | Written by | Usage state |
 |---|---|---|
-| `quote_of_the_day.json` | `/workspace/qotd.py apply` | `/workspace/qotd_today.json` |
+| `quote_of_the_day.json` | `upkeep/qotd.py` (Quote of the Day workflow, ~1:10 AM ET) | `upkeep/state/quote_used.json` |
 
 Schema: `date`, `quote`, `author`, `work`, `locator`, optional `verification_url`.
-Unified verified bank: `/workspace/qotd_bank.json` (extensible `authors[]` + `quotes[]`).
+Unified verified bank: `qotd_bank.json` (extensible `authors[]` + `quotes[]`; primary-source verified entries only).
 Rotation: one author per day, no consecutive same author, no quote-id repeats
-(`python3 /workspace/qotd.py pick`). Usage: `/workspace/quote_used.json`. Prefer ≤60 words.
+(`python -m upkeep.qotd --dry-run`). Usage: `upkeep/state/quote_used.json`. Prefer ≤60 words.
 
 Placement (in `settings.json` → `placement.quote_of_the_day`):
 
@@ -211,10 +211,9 @@ See [STYLE.md](STYLE.md) for the living Drudge-style guide.
 - **Cluster sibling pick:** after placement, if the chosen outlet's headline is bland but another
   free outlet in the same story-cluster has a punchier non-bland headline, Spangle displays (and links
   to) that sibling instead. Only when *every* candidate is bland is the story queued for a rewrite.
-- **Box rewriter (hourly):** `/workspace/rewrite_queue.py` builds the site locally and writes
-  `/workspace/rewrite_queue.json`. The parent agent writes punchy replacements to
-  `/workspace/rewrites_done.json`, then runs `python3 /workspace/rewrite_queue.py apply` to commit
-  them as `headline_overrides.json` and trigger the workflow.
+- **Rewriter (Upkeep workflow, ~7 AM and 4 PM ET):** `upkeep/rewrite.py` builds the site, collects the
+  queue, has an LLM write punchy replacements, runs the gates, tests and confidentiality guard, then commits
+  them to `headline_overrides.json` and triggers the build. See [UPKEEP.md](UPKEEP.md).
 
 ## Niche demotion (`niche`)
 
@@ -530,7 +529,7 @@ be `sha256:` URL keys.
 Private config key `defeatism` (lexicons not in the repo). Headlines asserting that one configured side
 can't win, is doomed or will lose are excluded from the page entirely; the same framing about the other
 configured side is boosted. Headline overrides and rewrites can never introduce that framing: the build
-reverts such a display to the original title, and the box-side rewrite tool rejects it.
+reverts such a display to the original title, and the rewrite job (`upkeep/rewrite.py`) rejects it.
 
 ## Clean pages (`ranking/clutter.py`, `clutter_scores.json`, `scripts/clutter_refresh.py`)
 `scripts/clutter_refresh.py` fetches a recent article from each public feed and scores the outlet's
